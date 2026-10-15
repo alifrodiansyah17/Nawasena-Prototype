@@ -328,6 +328,17 @@
     v.noBagian = akt ? ('Bagian ' + akt.no) : (s.bagian === 8 ? 'Unduhan' : 'Peta potensimu');
     v.keDaftarIsi = this.pilih('bagian', 0);
     v.keUnduh = this.pilih('bagian', 8);
+    // panel samping peta (komputer): posisi baca dan bagian berikutnya
+    var noAkt = akt ? s.bagian : 0, berikut = D.BAGIAN[noAkt];
+    v.rail = {
+      posisi: noAkt ? 'Bagian ' + noAkt + ' dari 6' : (s.bagian === 8 ? 'Unduhan' : 'Peta potensimu'),
+      judul: noAkt ? akt.nama : (s.bagian === 8 ? 'Simpan hasilmu biar bisa dibaca lagi' : 'Enam bagian, baca berurutan atau loncat sesukamu'),
+      seg: D.BAGIAN.map(function (b, i) { return { st: 'flex: 1; height: 6px; border-radius: 999px; background: ' + (i < noAkt ? '#009FE3' : '#E0F2FE') + ';' }; }),
+      adaLanjut: s.bagian !== 8,
+      lanjutLabel: noAkt ? (berikut ? 'Lanjut ke bagian berikutnya' : 'Sudah sampai akhir') : 'Mulai dari sini',
+      lanjutNama: berikut ? berikut.nama : 'Unduh peta potensimu',
+      lanjutKlik: berikut ? this.pilih('bagian', noAkt + 1) : this.pilih('bagian', 8)
+    };
     v.cvSendiri = !sudahSusun; v.cvDibuatkan = !!sudahSusun;
     v.labelUnduh = sudahSusun ? 'CV dan unduhan' : 'Unduhan';
     v.subUnduh = sudahSusun ? 'CV rapi + peta potensimu (PDF)' : 'Peta potensimu (PDF)';
