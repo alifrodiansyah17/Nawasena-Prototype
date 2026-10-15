@@ -38,7 +38,10 @@
   .lap .awet { break-inside: avoid; }
   .sampul2 { position: relative; overflow: hidden; border-radius: 22px; height: 256mm; background: linear-gradient(150deg, #0369A1 0%, #0284C7 45%, #009FE3 100%); color: #FFFFFF; padding: 30px 30px 26px; display: flex; flex-direction: column; border-bottom: 8px solid #FFD100; }
   .sampul2 .mtr { position: absolute; right: -60px; top: -60px; width: 300px; height: 300px; opacity: .95; }
-  .sampul2 .logo { height: 30px; width: auto; display: block; position: relative; align-self: flex-start; }
+  .sampul2 .logo { height: 30px; width: auto; display: block; }
+  .sampul2 .merek { position: relative; display: flex; align-items: center; gap: 12px; align-self: flex-start; }
+  .sampul2 .merek i { width: 1.5px; height: 7mm; background: rgba(255,255,255,.6); display: block; }
+  .sampul2 .merek span { font-family: Nunito, sans-serif; font-weight: 800; font-size: 13pt; color: #FFFFFF; white-space: nowrap; }
   .sampul2 .kicker { margin-top: 70px; font-size: 9pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #FFE680; }
   .sampul2 h1 { color: #FFFFFF; font-size: 34pt; line-height: 1.05; margin-top: 8px; letter-spacing: -0.02em; }
   .sampul2 .nama { margin-top: 16px; font-size: 13pt; font-weight: 700; }
@@ -145,7 +148,8 @@
   .lap .kaki-pg { position: absolute; left: 15mm; right: 15mm; bottom: 8mm; display: flex; align-items: center; gap: 10px; font-size: 7.5pt; color: #64748B; padding-top: 3mm; border-top: 1px solid #BAE6FD; }
   .lap .kaki-pg img { height: 5.2mm; width: auto; display: block; }
   .lap .kaki-pg .tm { font-family: Nunito, sans-serif; font-weight: 800; color: #0284C7; }
-  .lap .kaki-pg .hl { margin-left: auto; width: 22px; height: 22px; border-radius: 7px; background: #FFD100; color: #0F172A; display: flex; align-items: center; justify-content: center; font-family: Nunito, sans-serif; font-weight: 800; font-size: 8.5pt; }
+  .lap .kaki-pg .gr { width: 1px; height: 4mm; background: #94A3B8; display: block; }
+  .lap .kaki-pg .hl { margin-left: 8px; width: 22px; height: 22px; border-radius: 7px; background: #FFD100; color: #0F172A; display: flex; align-items: center; justify-content: center; font-family: Nunito, sans-serif; font-weight: 800; font-size: 8.5pt; }
   .lap .pita { display: flex; align-items: center; gap: 8px; font-size: 8.5pt; font-weight: 700; color: #64748B; letter-spacing: .04em; text-transform: uppercase; height: 26px; }
   .lap .pita b { width: 20px; height: 20px; border-radius: 6px; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: Nunito, sans-serif; font-size: 9pt; }
   .lap .kepala { background-color: #FFFFFF !important; box-shadow: 0 2px 10px rgba(2,132,199,.08); }
@@ -253,8 +257,8 @@
     function bagian(n) { bagNow = n; }
 
     // ---- sampul
-    blok('<div class="sampul2"><img class="mtr" src="aset/matahari.svg" alt=""><img class="logo" src="aset/logo-nawasena-putih.png" alt="Nawasena">'
-      + '<div class="kicker">Peta potensimu · Sahabat karirmu</div><h1>Mengenal Diri<br>dan Arah Karir</h1>'
+    blok('<div class="sampul2"><img class="mtr" src="aset/matahari.svg" alt=""><div class="merek"><img class="logo" src="aset/logo-nawasena-putih.png" alt="Nawasena"><i></i><span>Sahabat karirmu</span></div>'
+      + '<div class="kicker">Peta potensimu</div><h1>Mengenal Diri<br>dan Arah Karir</h1>'
       + '<div class="nama">' + x(nama) + '</div><div class="idn">' + x(b1.identitas) + '</div>'
       + '<div class="ark"><img src="' + maskot + '" alt=""><div><div class="lb">Cara kerja kamu</div><h2>' + x(a.nama) + (a.sub ? ' · ' + x(a.sub) : '') + '</h2><p>' + x(a.teks) + '</p></div></div>'
       + '<div class="dftr">' + BAG.map(function (b) { return '<div><b>' + b.no + '</b>' + x(b.nama) + '</div>'; }).join('') + '</div>'
@@ -364,7 +368,7 @@
       return '<div class="kartu putih" style="display:flex;gap:12px;align-items:flex-start;"><div class="tahap" style="margin:0;"><div class="bul k">' + (i + 1) + '</div></div><div class="isi" style="color:#1E293B;font-size:10pt;padding-top:6px;">' + x(t) + '</div></div>';
     }).join(''), true);
     if (b6.batas) blok(sub('Yang perlu kamu tahu soal hasil ini', '#38BDF8') + '<div class="kartu biru"><div class="isi">' + x(b6.batas) + '</div></div>');
-    blok('<div class="tutup"><h3>Ini potret hari ini, bukan garis finis.</h3><p>' + x(b6.tutup) + '</p><p style="margin-top:12px;font-weight:700;">— Nawasena, sahabat karirmu</p></div>');
+    blok('<div class="tutup"><h3>Ini potret hari ini, bukan garis finis.</h3><p>' + x(b6.tutup) + '</p><p style="margin-top:12px;font-weight:700;">— Nawasena · Sahabat karirmu</p></div>');
 
     // ---- ukur setiap blok di lebar kertas yang sama dengan hasil cetak
     akar.classList.add('lap');
@@ -402,7 +406,7 @@
       var z = h.t > TINGGI ? Math.max(0.6, TINGGI / h.t) : Math.min(1.15, TINGGI / h.t);
       return '<section class="pg"><div class="pgi" style="zoom:' + z.toFixed(3) + ';width:calc(180mm / ' + z.toFixed(3) + ');">'
         + h.blok.map(function (b) { return '<div class="blk">' + b.html + '</div>'; }).join('') + '</div>'
-        + '<div class="kaki-pg"><img src="aset/logo-nawasena.png" alt="Nawasena"><span><span class="tm">Peta potensimu</span> · ' + x(nama) + ' · Sahabat karirmu</span><span class="hl">' + (i + 1) + '</span></div></section>';
+        + '<div class="kaki-pg"><img src="aset/logo-nawasena.png" alt="Nawasena"><i class="gr"></i><span class="tm">Sahabat karirmu</span><span style="margin-left:auto;">Peta potensimu · ' + x(nama) + '</span><span class="hl">' + (i + 1) + '</span></div></section>';
     }).join('');
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
     document.title = 'Peta Potensimu ' + nama;
