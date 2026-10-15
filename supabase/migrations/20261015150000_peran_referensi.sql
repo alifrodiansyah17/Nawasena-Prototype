@@ -1,0 +1,76 @@
+-- Tabel referensi peran dan gaji (PRD R4, R17): gaji di Bagian 5 diambil dari sini, bukan ditulis model.
+-- PERHATIAN TIM: angka gaji awal adalah perkiraan (acuan Jakarta) dan wajib divalidasi sebelum rilis publik.
+-- Tim bisa mengubah angka atau menonaktifkan peran langsung di tabel ini tanpa deploy ulang.
+create table if not exists public.peran_referensi (
+  id text primary key,
+  nama text not null,
+  rumpun text not null,
+  fungsi text not null,
+  gaji_masuk text not null,      -- saat masuk peran ini
+  gaji_menengah text not null,   -- 2–4 tahun di peran ini
+  gaji_senior text not null,     -- senior atau manajer
+  aktif boolean not null default true,
+  diubah timestamptz not null default now()
+);
+alter table public.peran_referensi enable row level security;
+
+insert into public.peran_referensi (id, nama, rumpun, fungsi, gaji_masuk, gaji_menengah, gaji_senior) values
+  ('data_analyst', 'Data Analyst', 'Data dan analitik', 'Mengolah data jadi temuan yang dipakai untuk mengambil keputusan', 'Rp6 – 9 juta', 'Rp9 – 15 juta', 'Rp16 – 28 juta'),
+  ('business_analyst', 'Business Analyst', 'Produk dan teknologi', 'Menjembatani orang yang punya masalah dengan tim yang membangun sistemnya', 'Rp6,5 – 9 juta', 'Rp10 – 16 juta', 'Rp18 – 28 juta'),
+  ('bi_analyst', 'Business Intelligence Analyst', 'Data dan analitik', 'Membangun dasbor dan laporan rutin yang dibaca manajemen', 'Rp6 – 9 juta', 'Rp9 – 15 juta', 'Rp16 – 26 juta'),
+  ('data_scientist', 'Data Scientist', 'Data dan analitik', 'Membuat model prediksi dan eksperimen dari data', 'Rp8 – 13 juta', 'Rp13 – 22 juta', 'Rp24 – 40 juta'),
+  ('people_analytics', 'People Analytics Analyst', 'Sumber daya manusia', 'Membaca data karyawan untuk keputusan SDM', 'Rp6 – 9 juta', 'Rp9 – 14 juta', 'Rp15 – 25 juta'),
+  ('product_manager', 'Product Manager', 'Produk dan teknologi', 'Menentukan fitur apa yang dibangun, untuk siapa, dan kenapa', 'Rp9 – 14 juta', 'Rp15 – 25 juta', 'Rp28 – 50 juta'),
+  ('product_owner', 'Product Owner', 'Produk dan teknologi', 'Menjaga prioritas pekerjaan tim pengembang setiap sprint', 'Rp8 – 12 juta', 'Rp12 – 20 juta', 'Rp22 – 35 juta'),
+  ('ux_researcher', 'UX Researcher', 'Produk dan teknologi', 'Menggali kebutuhan dan kebiasaan pengguna lewat riset', 'Rp7 – 10 juta', 'Rp10 – 16 juta', 'Rp18 – 30 juta'),
+  ('ui_ux_designer', 'UI/UX Designer', 'Desain', 'Merancang tampilan dan alur aplikasi supaya enak dipakai', 'Rp6 – 9 juta', 'Rp9 – 15 juta', 'Rp16 – 28 juta'),
+  ('software_engineer', 'Software Engineer', 'Produk dan teknologi', 'Membangun dan merawat aplikasi atau sistem', 'Rp8 – 12 juta', 'Rp13 – 22 juta', 'Rp25 – 45 juta'),
+  ('qa_engineer', 'QA Engineer', 'Produk dan teknologi', 'Memastikan aplikasi berjalan sesuai harapan sebelum dirilis', 'Rp6 – 9 juta', 'Rp9 – 15 juta', 'Rp16 – 25 juta'),
+  ('it_support', 'IT Support Specialist', 'Produk dan teknologi', 'Menjaga perangkat dan sistem kantor tetap berjalan', 'Rp5 – 7 juta', 'Rp7 – 10 juta', 'Rp11 – 18 juta'),
+  ('engineering_manager', 'Engineering Manager', 'Produk dan teknologi', 'Memimpin tim engineer dan menjaga kualitas pengiriman', 'Rp25 – 40 juta', 'Rp35 – 55 juta', 'Rp50 – 80 juta'),
+  ('head_of_product', 'Head of Product', 'Produk dan teknologi', 'Mengarahkan strategi produk dan memimpin para product manager', 'Rp35 – 55 juta', 'Rp45 – 70 juta', 'Rp60 – 100 juta'),
+  ('process_improvement', 'Process Improvement Officer', 'Operasional', 'Membenahi alur kerja supaya lebih cepat, murah, dan rapi', 'Rp6 – 9 juta', 'Rp9 – 14 juta', 'Rp15 – 25 juta'),
+  ('operations_officer', 'Operations Officer', 'Operasional', 'Menjaga operasional harian berjalan sesuai standar', 'Rp5 – 7 juta', 'Rp7 – 11 juta', 'Rp12 – 20 juta'),
+  ('supply_chain_analyst', 'Supply Chain Analyst', 'Operasional', 'Merencanakan stok, pengadaan, dan distribusi barang', 'Rp6 – 9 juta', 'Rp9 – 14 juta', 'Rp15 – 25 juta'),
+  ('ppic', 'PPIC Staff', 'Operasional', 'Menyusun rencana produksi dan mengendalikan persediaan', 'Rp5 – 8 juta', 'Rp8 – 12 juta', 'Rp13 – 20 juta'),
+  ('project_control', 'Project Control & Cost Analyst', 'Proyek', 'Menjaga proyek tetap di dalam anggaran dan jadwal', 'Rp7 – 12 juta', 'Rp10 – 16 juta', 'Rp16 – 25 juta'),
+  ('project_coordinator', 'Project Coordinator', 'Proyek', 'Mengatur jadwal, orang, dan dokumen supaya proyek jalan', 'Rp5 – 8 juta', 'Rp8 – 12 juta', 'Rp13 – 22 juta'),
+  ('project_manager', 'Project Manager', 'Proyek', 'Memimpin proyek dari rencana sampai serah terima', 'Rp12 – 18 juta', 'Rp18 – 28 juta', 'Rp28 – 45 juta'),
+  ('qhse_officer', 'QHSE Officer', 'Operasional', 'Menjaga mutu, keselamatan, dan kepatuhan lingkungan kerja', 'Rp6 – 9 juta', 'Rp9 – 14 juta', 'Rp15 – 25 juta'),
+  ('financial_analyst', 'Financial Analyst', 'Keuangan', 'Menyusun anggaran, proyeksi, dan analisis untuk keputusan keuangan', 'Rp6 – 10 juta', 'Rp9 – 14 juta', 'Rp14 – 22 juta'),
+  ('accounting_staff', 'Accounting Staff', 'Keuangan', 'Mencatat transaksi dan menyusun laporan keuangan', 'Rp5 – 7 juta', 'Rp7 – 10 juta', 'Rp12 – 20 juta'),
+  ('tax_staff', 'Tax Staff', 'Keuangan', 'Menghitung dan melaporkan pajak perusahaan', 'Rp5 – 8 juta', 'Rp8 – 12 juta', 'Rp13 – 22 juta'),
+  ('risk_analyst', 'Risk Management Analyst', 'Keuangan', 'Mengenali dan mengawasi risiko operasional atau keuangan', 'Rp6 – 11 juta', 'Rp9 – 15 juta', 'Rp18 – 30 juta'),
+  ('internal_auditor', 'Internal Auditor', 'Keuangan', 'Memeriksa apakah proses dan angka perusahaan sudah benar', 'Rp6 – 9 juta', 'Rp9 – 14 juta', 'Rp15 – 25 juta'),
+  ('credit_analyst', 'Credit Analyst', 'Keuangan', 'Menilai kelayakan calon peminjam', 'Rp6 – 9 juta', 'Rp9 – 13 juta', 'Rp14 – 22 juta'),
+  ('finance_manager', 'Finance Manager', 'Keuangan', 'Memimpin fungsi keuangan dan perencanaan anggaran', 'Rp20 – 30 juta', 'Rp28 – 40 juta', 'Rp40 – 65 juta'),
+  ('hr_generalist', 'HR Generalist', 'Sumber daya manusia', 'Mengurus berbagai kebutuhan karyawan dari masuk sampai keluar', 'Rp5 – 7 juta', 'Rp7 – 11 juta', 'Rp12 – 20 juta'),
+  ('talent_acquisition', 'Talent Acquisition Specialist', 'Sumber daya manusia', 'Mencari dan menyeleksi calon karyawan', 'Rp5 – 8 juta', 'Rp8 – 13 juta', 'Rp14 – 24 juta'),
+  ('ld_officer', 'Learning & Development Officer', 'Sumber daya manusia', 'Merancang dan menjalankan pelatihan karyawan', 'Rp5 – 7 juta', 'Rp7 – 10 juta', 'Rp12 – 20 juta'),
+  ('talent_competency', 'Talent & Competency Analyst', 'Sumber daya manusia', 'Memetakan kompetensi jabatan dan kesiapan karyawan', 'Rp5 – 8 juta', 'Rp7 – 11 juta', 'Rp12 – 20 juta'),
+  ('hrbp', 'HR Business Partner', 'Sumber daya manusia', 'Menjadi mitra SDM bagi pimpinan divisi', 'Rp12 – 18 juta', 'Rp18 – 28 juta', 'Rp28 – 45 juta'),
+  ('mt_hc', 'Management Trainee · Human Capital', 'Sumber daya manusia', 'Program rotasi di fungsi SDM untuk calon pemimpin', 'Rp6 – 10 juta', 'Rp7 – 12 juta', 'Rp15 – 25 juta'),
+  ('digital_marketing', 'Digital Marketing Specialist', 'Pemasaran', 'Menjalankan kampanye iklan dan konten digital', 'Rp5 – 8 juta', 'Rp8 – 13 juta', 'Rp14 – 24 juta'),
+  ('content_strategist', 'Content Strategist', 'Pemasaran', 'Merencanakan konten yang konsisten dan punya tujuan', 'Rp5 – 8 juta', 'Rp8 – 13 juta', 'Rp14 – 22 juta'),
+  ('social_media', 'Social Media Specialist', 'Pemasaran', 'Mengelola akun media sosial dan komunitasnya', 'Rp5 – 7 juta', 'Rp7 – 11 juta', 'Rp12 – 18 juta'),
+  ('brand_executive', 'Brand Executive', 'Pemasaran', 'Menjaga citra dan pertumbuhan satu merek', 'Rp6 – 9 juta', 'Rp9 – 15 juta', 'Rp16 – 28 juta'),
+  ('marketing_analyst', 'Marketing Analyst', 'Pemasaran', 'Membaca data kampanye dan perilaku pelanggan', 'Rp6 – 9 juta', 'Rp9 – 14 juta', 'Rp15 – 24 juta'),
+  ('pr_comms', 'Public Relations Officer', 'Komunikasi', 'Mengelola hubungan dengan media dan publik', 'Rp5 – 8 juta', 'Rp8 – 12 juta', 'Rp13 – 22 juta'),
+  ('copywriter', 'Copywriter', 'Kreatif', 'Menulis kalimat iklan, kampanye, dan konten merek', 'Rp5 – 7 juta', 'Rp7 – 11 juta', 'Rp12 – 20 juta'),
+  ('graphic_designer', 'Graphic Designer', 'Desain', 'Membuat materi visual untuk merek dan kampanye', 'Rp5 – 7 juta', 'Rp7 – 10 juta', 'Rp11 – 18 juta'),
+  ('account_executive', 'Account Executive', 'Penjualan', 'Mencari dan menutup penjualan ke klien bisnis', 'Rp5 – 8 juta', 'Rp8 – 14 juta', 'Rp15 – 25 juta'),
+  ('key_account', 'Key Account Manager', 'Penjualan', 'Menjaga dan menumbuhkan klien besar', 'Rp10 – 15 juta', 'Rp15 – 22 juta', 'Rp22 – 35 juta'),
+  ('customer_success', 'Customer Success Specialist', 'Layanan pelanggan', 'Memastikan pelanggan berhasil memakai produk', 'Rp5 – 8 juta', 'Rp8 – 12 juta', 'Rp13 – 22 juta'),
+  ('marketing_manager', 'Marketing Manager', 'Pemasaran', 'Memimpin strategi dan tim pemasaran', 'Rp18 – 28 juta', 'Rp25 – 38 juta', 'Rp35 – 60 juta'),
+  ('management_consultant', 'Management Consultant', 'Konsultan', 'Membantu klien memecahkan masalah bisnis', 'Rp9 – 14 juta', 'Rp14 – 22 juta', 'Rp25 – 45 juta'),
+  ('policy_analyst', 'Policy Analyst', 'Kebijakan publik', 'Meneliti dan merumuskan usulan kebijakan', 'Rp6 – 9 juta', 'Rp9 – 14 juta', 'Rp15 – 25 juta'),
+  ('research_assistant', 'Research Associate', 'Riset', 'Membantu merancang, menjalankan, dan menulis riset', 'Rp5 – 8 juta', 'Rp8 – 12 juta', 'Rp13 – 22 juta'),
+  ('instructional_designer', 'Instructional Designer', 'Pendidikan', 'Merancang materi belajar yang efektif', 'Rp6 – 9 juta', 'Rp9 – 13 juta', 'Rp14 – 22 juta'),
+  ('teacher', 'Guru atau Pengajar', 'Pendidikan', 'Mengajar dan mendampingi perkembangan murid', 'Rp4 – 6 juta', 'Rp6 – 9 juta', 'Rp10 – 15 juta'),
+  ('community_manager', 'Community Manager', 'Komunitas', 'Membangun dan merawat komunitas pengguna', 'Rp5 – 8 juta', 'Rp8 – 12 juta', 'Rp13 – 22 juta'),
+  ('legal_officer', 'Legal Officer', 'Hukum', 'Menyusun dan meninjau kontrak serta kepatuhan', 'Rp6 – 9 juta', 'Rp9 – 15 juta', 'Rp16 – 30 juta'),
+  ('mt_general', 'Management Trainee', 'Program pengembangan', 'Program rotasi lintas fungsi untuk calon pemimpin', 'Rp6 – 10 juta', 'Rp7 – 12 juta', 'Rp15 – 25 juta'),
+  ('admin_secretary', 'Executive Assistant', 'Administrasi', 'Mengatur agenda, dokumen, dan koordinasi pimpinan', 'Rp5 – 7 juta', 'Rp7 – 10 juta', 'Rp11 – 18 juta'),
+  ('field_engineer', 'Field Engineer', 'Teknik', 'Memasang, memelihara, dan memperbaiki peralatan di lapangan', 'Rp6 – 9 juta', 'Rp9 – 14 juta', 'Rp15 – 25 juta'),
+  ('production_engineer', 'Production Engineer', 'Teknik', 'Menjaga proses produksi efisien dan sesuai mutu', 'Rp6 – 9 juta', 'Rp9 – 14 juta', 'Rp15 – 25 juta')
+on conflict (id) do nothing;

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Nawasena · Unduh</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+  @page { size: A4; margin: 16mm 15mm; }
+  * { box-sizing: border-box; }
+  .contoh { background: #FEF9C3; border: 1px solid #FACC15; color: #713F12; border-radius: 8px; padding: 8px 12px; font-weight: 600; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E293B; font-size: 10.5pt; line-height: 1.5; background: #F1F5F9; }
+  .kertas { max-width: 800px; margin: 0 auto; background: #FFFFFF; padding: 28px 32px; }
+  .bar { position: sticky; top: 0; background: #0284C7; color: #FFFFFF; padding: 12px 16px; display: flex; gap: 10px; align-items: center; justify-content: space-between; font-size: 13px; z-index: 2; }
+  .bar button { background: #FFD100; color: #0F172A; border: 0; border-radius: 999px; padding: 10px 18px; font-weight: 700; font-family: Nunito, sans-serif; font-size: 14px; cursor: pointer; }
+  h1, h2, h3, h4 { font-family: Nunito, 'Plus Jakarta Sans', sans-serif; color: #0F172A; margin: 0; line-height: 1.2; }
+  h1 { font-size: 22pt; } h2 { font-size: 15pt; color: #0284C7; margin-top: 22px; } h3 { font-size: 11.5pt; margin-top: 12px; } h4 { font-size: 10pt; color: #0284C7; text-transform: uppercase; letter-spacing: .06em; margin-top: 10px; }
+  p { margin: 4px 0; }
+  .kecil { font-size: 9pt; color: #64748B; }
+  .kotak { border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 12px; margin: 8px 0; break-inside: avoid; }
+  .bagian { break-before: page; }
+  .sampul { border-bottom: 3px solid #FFD100; padding-bottom: 14px; margin-bottom: 8px; }
+  .label { display: inline-block; font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; background: #E0F2FE; color: #0F172A; border-radius: 999px; padding: 2px 8px; }
+  ul { margin: 4px 0; padding-left: 18px; }
+  /* CV ATS: satu kolom, tanpa warna latar, teks bisa dipilih */
+  .cv { font-family: Arial, Helvetica, sans-serif; color: #000000; font-size: 10.5pt; }
+  .cv h1 { font-family: Arial, Helvetica, sans-serif; font-size: 18pt; letter-spacing: .02em; }
+  .cv h2 { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #000000; border-bottom: 1px solid #000000; padding-bottom: 2px; margin-top: 14px; letter-spacing: .08em; }
+  .cv .baris { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; margin-top: 6px; }
+  .cv .baris span:last-child { font-weight: 400; white-space: nowrap; }
+  @media print { body { background: #FFFFFF; } .bar { display: none; } .kertas { padding: 0; max-width: none; } }
+</style>
+</head>
+<body>
+<div class="bar"><span id="info">Menyiapkan dokumen…</span><button onclick="window.print()">Simpan sebagai PDF</button></div>
+<div class="kertas" id="isi"></div>
+<script src="config.js"></script>
+<script src="aset/vendor/supabase-2.117.2.js"></script>
+<script src="aset/data.js"></script>
+<script src="aset/contoh-laporan.js"></script>
+<script src="aset/api.js"></script>
+<script src="aset/api-demo.js"></script>
+<script>
+(function () {
+  'use strict';
+  var jenis = new URLSearchParams(location.search).get('jenis') || 'laporan';
+  var akar = document.getElementById('isi');
+  function el(tag, cls, teks) { var e = document.createElement(tag); if (cls) e.className = cls; if (teks != null) e.textContent = teks; return e; }
+  function tambah(p, tag, cls, teks) { var e = el(tag, cls, teks); p.appendChild(e); return e; }
+  function daftar(p, arr, fn) { (arr || []).forEach(function (x) { fn(p, x); }); }
+  function jp(p, x) { var k = tambah(p, 'div', 'kotak'); tambah(k, 'h3', null, x.j); tambah(k, 'p', null, x.p); }
+
+  function bulir(e) {
+    var a = String(e.apa || '').trim(); if (!a) return '';
+    var t = a.charAt(0).toUpperCase() + a.slice(1);
+    if (String(e.berapa || '').trim()) t += ' (' + e.berapa.trim() + ')';
+    if (String(e.hasil || '').trim()) t += ', ' + e.hasil.trim();
+    return t.replace(/[.\s]+$/, '') + '.';
+  }
+
+  function cetakCV(c) {
+    var w = tambah(akar, 'div', 'cv');
+    tambah(w, 'h1', null, String(c.nama || '').toUpperCase());
+    if (c.posisi) tambah(w, 'p', null, c.posisi).style.fontWeight = '700';
+    tambah(w, 'p', null, [c.kota, c.hp, c.email, c.linkedin].filter(Boolean).join(' | '));
+    var prof = c.profilSendiri || c.profil;
+    if (prof) { tambah(w, 'h2', null, 'PROFIL PROFESIONAL'); tambah(w, 'p', null, prof); }
+    function blok(judul, arr) {
+      arr = (arr || []).filter(function (x) { return x.jabatan || x.tempat || x.apa; });
+      if (!arr.length) return;
+      tambah(w, 'h2', null, judul);
+      arr.forEach(function (x) {
+        var b = tambah(w, 'div', 'baris');
+        tambah(b, 'span', null, [x.jabatan, x.tempat].filter(Boolean).join(' | '));
+        tambah(b, 'span', null, [x.mulai, x.selesai].filter(Boolean).join(' - '));
+        if (bulir(x)) { var u = tambah(w, 'ul'); tambah(u, 'li', null, bulir(x)); }
+      });
+    }
+    blok('PENGALAMAN KERJA', c.kerja);
+    blok('ORGANISASI DAN PROYEK', c.organisasi);
+    var pend = (c.pendidikan || []).filter(function (x) { return x.gelar || x.kampus; });
+    if (pend.length) {
+      tambah(w, 'h2', null, 'PENDIDIKAN');
+      pend.forEach(function (x) {
+        var b = tambah(w, 'div', 'baris');
+        tambah(b, 'span', null, [x.gelar, [x.kampus, x.kota].filter(Boolean).join(', ')].filter(Boolean).join(' | '));
+        tambah(b, 'span', null, x.lulus || '');
+        if (x.ipk) tambah(w, 'p', null, 'IPK ' + x.ipk + '/4,00');
+      });
+    }
+    var kh = [];
+    if ((c.keahlian || []).length) kh.push(['Teknis', c.keahlian.join(', ')]);
+    if ((c.tools || []).length) kh.push(['Tools', c.tools.join(', ')]);
+    if ((c.bahasa || []).length) kh.push(['Bahasa', c.bahasa.join(', ')]);
+    if (kh.length) { tambah(w, 'h2', null, 'KEAHLIAN'); kh.forEach(function (k) { var p = tambah(w, 'p'); tambah(p, 'b', null, k[0] + ': '); p.appendChild(document.createTextNode(k[1])); }); }
+    var ser = (c.sertifikasi || []).filter(function (x) { return x.nama; });
+    if (ser.length) { tambah(w, 'h2', null, 'SERTIFIKASI'); ser.forEach(function (x) { tambah(w, 'p', null, [x.nama, x.penerbit, x.tahun].filter(Boolean).join(' | ')); }); }
+    document.title = 'CV ' + (c.nama || '');
+  }
+
+  function cetakLaporan(nama, b1, L) {
+    var r = L.rencana || {}, A = L.arahA || {}, B = L.arahB || {};
+    var s = tambah(akar, 'div', 'sampul');
+    tambah(s, 'div', 'kecil', 'PETA POTENSIMU · NAWASENA');
+    tambah(s, 'h1', null, 'Mengenal Diri dan Arah Karir');
+    tambah(s, 'p', null, nama + (b1.identitas ? ' · ' + b1.identitas : ''));
+    if (b1.contoh || (r && r.contoh)) tambah(akar, 'p', 'contoh', 'Mode uji coba: isi laporan ini masih contoh, belum dibuat dari CV dan jawaban kuismu.');
+    tambah(akar, 'p', 'kecil', 'Laporan ini disusun dari jawaban kuis yang kamu isi sendiri dan dari CV yang kamu kirim. Isinya untuk membantu kamu mengenali cara kerjamu dan memilih langkah berikutnya, bukan penilaian akhir tentang dirimu.');
+
+    tambah(akar, 'h2', null, '1 · Kenalan Sama Dirimu');
+    var a = b1.arketipe || {};
+    var k = tambah(akar, 'div', 'kotak'); tambah(k, 'span', 'label', 'Cara kerja kamu'); tambah(k, 'h3', null, (a.nama || '') + ' · ' + (a.sub || '')); tambah(k, 'p', null, a.teks);
+    tambah(akar, 'h4', null, 'Yang paling kamu banget');
+    daftar(akar, b1.paling, function (p, x) { var q = tambah(p, 'div', 'kotak'); tambah(q, 'h3', null, x.j); tambah(q, 'span', 'label', x.c); tambah(q, 'p', null, x.p); });
+    tambah(akar, 'h4', null, 'Yang masih perlu dilatih'); daftar(akar, b1.dilatih, jp);
+    tambah(akar, 'h4', null, 'Yang cara kerjanya mirip kamu');
+    [b1.tokoh_nyata, b1.tokoh_fiksi].forEach(function (t) { if (!t) return; var q = tambah(akar, 'div', 'kotak'); tambah(q, 'h3', null, t.nama + ' · ' + (t.peran || t.asal || '')); tambah(q, 'p', null, t.why); });
+    tambah(akar, 'p', 'kecil', 'Nama di atas cuma perbandingan cara kerja, bukan tanda mereka kenal atau mendukung Nawasena.');
+
+    var b2 = r.b2 || {};
+    tambah(akar, 'h2', 'bagian', '2 · Tipe Karirmu');
+    var q2 = tambah(akar, 'div', 'kotak'); tambah(q2, 'span', 'label', 'Tipe karirmu sekarang'); tambah(q2, 'h3', null, b2.judul); tambah(q2, 'p', null, b2.teks);
+    [['Keahlian', b2.keahlian], ['Keluasan', b2.keluasan], ['Sinyal memimpin', b2.memimpin]].forEach(function (x) { var p = tambah(akar, 'p'); tambah(p, 'b', null, x[0] + ': '); p.appendChild(document.createTextNode(x[1] || '')); });
+    tambah(akar, 'h4', null, 'Dua jalan dari sini');
+    daftar(akar, b2.jalan, function (p, x) { var q = tambah(p, 'div', 'kotak'); tambah(q, 'h3', null, x.judul); tambah(q, 'p', null, x.teks); tambah(q, 'p', 'kecil', x.ref); });
+    if (b2.catatan) { var p2 = tambah(akar, 'p'); tambah(p2, 'b', null, 'Yang perlu kamu timbang: '); p2.appendChild(document.createTextNode(b2.catatan)); }
+
+    var b3 = r.b3 || {};
+    tambah(akar, 'h2', 'bagian', '3 · Keunggulan dan Tantanganmu');
+    tambah(akar, 'p', null, (b3.ubin || []).map(function (u) { return u.angka + ' ' + u.label; }).join(' · '));
+    tambah(akar, 'h4', null, 'Yang lagi jadi keunggulanmu'); daftar(akar, b3.plus, jp);
+    tambah(akar, 'h4', null, 'Yang bisa jadi tantangan'); daftar(akar, b3.minus, jp);
+    if (b3.sorot) tambah(akar, 'p', null, b3.sorot).style.fontWeight = '700';
+    tambah(akar, 'h4', null, 'Perkenalan 60 detik');
+    var ce = b3.cerita || {};
+    [['Siapa kamu', ce.siapa], ['Buktinya', ce.bukti], ['Kenapa arah ini', ce.kenapa]].forEach(function (x) { var p = tambah(akar, 'p'); tambah(p, 'b', null, x[0] + ': '); p.appendChild(document.createTextNode(x[1] || '')); });
+    tambah(akar, 'h4', null, 'Tiga pertanyaan yang paling mungkin muncul');
+    if (b3.tanya_lead) tambah(akar, 'p', 'kecil', b3.tanya_lead);
+    daftar(akar, b3.tanya, function (p, x) {
+      var q = tambah(p, 'div', 'kotak'); tambah(q, 'h3', null, x.t);
+      [['Yang sebenarnya dicek', x.cek], ['Cerita yang bisa kamu pakai', x.pakai], ['Yang biasanya kurang kuat', x.kurang]].forEach(function (y) { var pp = tambah(q, 'p'); tambah(pp, 'b', null, y[0] + ': '); pp.appendChild(document.createTextNode(y[1] || '')); });
+    });
+
+    var b4 = r.b4 || {};
+    tambah(akar, 'h2', 'bagian', '4 · Catatan buat CV-mu');
+    tambah(akar, 'p', null, b4.pembuka);
+    daftar(akar, b4.banding, function (p, x) { var q = tambah(p, 'div', 'kotak'); var a1 = tambah(q, 'p'); tambah(a1, 'b', null, 'Ditulis gini: '); a1.appendChild(document.createTextNode(x.sblm)); var a2 = tambah(q, 'p'); tambah(a2, 'b', null, 'Jadikan gini: '); a2.appendChild(document.createTextNode(x.sdh)); });
+    tambah(akar, 'h4', null, 'Yang paling cepat terasa efeknya'); daftar(akar, b4.segera, jp);
+    tambah(akar, 'h4', null, 'Yang bisa bikin CV-mu lebih kuat'); daftar(akar, b4.kuat, jp);
+
+    tambah(akar, 'h2', 'bagian', '5 · Enam Arah Karir Berikutnya');
+    tambah(akar, 'p', null, (r.b5 || {}).intro);
+    var peran = (A.peran || []).concat(B.peran || []);
+    peran.forEach(function (x, i) {
+      var q = tambah(akar, 'div', 'kotak'); tambah(q, 'span', 'label', 'Arah ' + (i + 1) + ' · ' + (x.fam || '')); tambah(q, 'h3', null, x.nama); tambah(q, 'p', 'kecil', x.fun);
+      [['Yang dibutuhkan', x.comp], ['Yang sudah kamu punya', x.punya], ['Kenapa cocok', x.why], ['Hari-harinya', x.day], ['Yang akan menantang', x.chal], ['Jalur karir', x.path],
+       ['Kisaran gaji', (x.gaji || []).map(function (g) { return g.k + ' ' + g.v; }).join('; ')], ['Industri', (x.ind || []).map(function (g) { return g.k + ' ' + g.v; }).join('; ')],
+       ['Yang perlu kamu siapkan', x.prep]].forEach(function (y) { var pp = tambah(q, 'p'); tambah(pp, 'b', null, y[0] + ': '); pp.appendChild(document.createTextNode(y[1] || '')); });
+    });
+    var tp = B.tempat || {};
+    tambah(akar, 'h4', null, 'Tempat kerja yang paling pas buat kamu'); tambah(akar, 'p', null, tp.intro);
+    daftar(akar, tp.daftar, function (p, x) { var q = tambah(p, 'div', 'kotak'); tambah(q, 'span', 'label', x.label); tambah(q, 'h3', null, x.nama); tambah(q, 'p', null, x.teks); });
+    tambah(akar, 'p', null, 'Ciri tempat yang bikin kamu betah: ' + (tp.ciri || []).join('; '));
+    tambah(akar, 'p', null, 'Tanda cocok di lowongan: ' + (tp.cocok || []).join(', '));
+    tambah(akar, 'p', null, 'Bisa kamu tanyakan saat wawancara: ' + (tp.tanya || []).join(', '));
+
+    var b6 = B.b6 || {};
+    tambah(akar, 'h2', 'bagian', '6 · Langkah yang Bisa Kamu Lakukan Sekarang');
+    var ol = tambah(akar, 'ol'); (b6.langkah || []).forEach(function (t) { tambah(ol, 'li', null, t); });
+    tambah(akar, 'h4', null, 'Yang perlu kamu tahu soal hasil ini'); tambah(akar, 'p', null, b6.batas);
+    var pt = tambah(akar, 'p'); tambah(pt, 'b', null, 'Ini potret hari ini, bukan garis finis. '); pt.appendChild(document.createTextNode(b6.tutup || ''));
+    document.title = 'Peta Potensimu ' + nama;
+  }
+
+  async function jalan() {
+    var info = document.getElementById('info');
+    try {
+      var C = window.NAWASENA_CONFIG, d;
+      if (C.MODE_DEMO) {
+        d = { profil: { nama: 'Demo' }, laporan: { bagian1: window.CONTOH_LAPORAN.bagian1 }, lengkap: { status: 'siap', bagian: window.CONTOH_LAPORAN.lengkap },
+          cv: { sumber: 'susun', susun: { nama: 'Nadia Putri Rahmawati', kota: 'Surabaya', email: 'nadia@email.com', pendidikan: [{ gelar: 'S1 Teknik Industri', kampus: 'ITS', lulus: '2026' }], kerja: [], organisasi: [], keahlian: ['Analisis data'], tools: ['Excel'], bahasa: [], sertifikasi: [] } } };
+      } else {
+        var u = await window.API.sesi();
+        if (!u) { info.textContent = 'Sesi habis. Buka lagi aplikasinya dan Login.'; return; }
+        d = await window.API.muat();
+      }
+      if (jenis === 'cv') {
+        if (!d.cv || d.cv.sumber !== 'susun') { info.textContent = 'CV ini kamu unggah sendiri, jadi tidak perlu diunduh dari sini.'; return; }
+        cetakCV(d.cv.susun || {});
+      } else {
+        if (!d.lengkap || d.lengkap.status !== 'siap') { info.textContent = 'Peta potensimu belum lengkap. Tunggu sampai keenam bagian selesai disusun.'; return; }
+        cetakLaporan(d.profil.nama, d.laporan.bagian1 || {}, d.lengkap.bagian || {});
+      }
+      info.textContent = 'Tekan tombol di kanan, lalu pilih "Simpan sebagai PDF".';
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      setTimeout(function () { window.print(); }, 400);
+    } catch (e) {
+      info.textContent = 'Gagal memuat: ' + (e.message || e);
+    }
+  }
+  jalan();
+})();
+</script>
+</body>
+</html>
