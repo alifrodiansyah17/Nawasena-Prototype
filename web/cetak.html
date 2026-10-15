@@ -117,14 +117,40 @@
   .tutup { background: linear-gradient(150deg, #0369A1, #009FE3); color: #FFFFFF; border-radius: 18px; padding: 20px; margin-top: 14px; border-bottom: 6px solid #FFD100; break-inside: avoid; }
   .tutup h3 { color: #FFFFFF; font-size: 15pt; margin-bottom: 6px; }
   .catat { font-size: 8.5pt; color: #64748B; margin-top: 6px; }
-  .lap { width: 180mm; margin: 0 auto; }
+  /* Halaman peta: tiap .pg selembar A4 penuh (tanpa margin printer), latar biru muda + ornamen + logo di kaki */
+  @page peta { size: A4; margin: 0; }
+  .lap { width: 210mm; margin: 0 auto; }
+  .lap .ukur { width: 180mm; }
   .lap .blk { display: flow-root; }
-  .lap .blk + .blk { margin-top: 4px; }
-  .lap .pg { break-after: page; break-inside: avoid; }
+  .lap .blk + .blk { margin-top: 6px; }
+  .lap .pg { page: peta; position: relative; overflow: hidden; width: 210mm; height: 297mm; padding: 14mm 15mm 22mm; break-after: page; break-inside: avoid;
+    background: url(aset/matahari-pudar.svg) right -46mm top -46mm / 120mm no-repeat,
+      radial-gradient(120mm 90mm at 0% 100%, rgba(56,189,248,.16), transparent 70%),
+      radial-gradient(90mm 70mm at 100% 0%, rgba(255,209,0,.12), transparent 70%), #F3F9FE; }
   .lap .pg:last-child { break-after: auto; }
+  .lap .pg.sampul { padding: 0; background: #0284C7; }
+  .lap .pg.sampul .sampul2 { height: 297mm; border-radius: 0; border-bottom-width: 12px; padding: 22mm 18mm 18mm; }
+  .lap .pg.sampul .sampul2 .mtr { width: 150mm; height: 150mm; right: -40mm; top: -40mm; }
+  .lap .pg.sampul .sampul2 .logo { height: 11mm; }
+  .lap .pg.sampul .sampul2 .kicker { margin-top: 38mm; font-size: 10pt; }
+  .lap .pg.sampul .sampul2 h1 { font-size: 44pt; }
+  .lap .pg.sampul .sampul2 .nama { font-size: 16pt; margin-top: 10mm; }
+  .lap .pg.sampul .ark { margin-top: 14mm; padding: 7mm; }
+  .lap .pg.sampul .ark img { width: 34mm; height: 34mm; }
+  .lap .pg.sampul .ark h2 { font-size: 20pt; }
+  .lap .pg.sampul .ark p { font-size: 10.5pt; }
+  .lap .pg.sampul .dftr div { font-size: 11pt; }
+  .lap .pg.sampul .dftr b { width: 30px; height: 30px; font-size: 12pt; }
+  .lap .pgi { transform-origin: 0 0; }
+  .lap .kaki-pg { position: absolute; left: 15mm; right: 15mm; bottom: 8mm; display: flex; align-items: center; gap: 10px; font-size: 7.5pt; color: #64748B; padding-top: 3mm; border-top: 1px solid #BAE6FD; }
+  .lap .kaki-pg img { height: 5.2mm; width: auto; display: block; }
+  .lap .kaki-pg .tm { font-family: Nunito, sans-serif; font-weight: 800; color: #0284C7; }
+  .lap .kaki-pg .hl { margin-left: auto; width: 22px; height: 22px; border-radius: 7px; background: #FFD100; color: #0F172A; display: flex; align-items: center; justify-content: center; font-family: Nunito, sans-serif; font-weight: 800; font-size: 8.5pt; }
   .lap .pita { display: flex; align-items: center; gap: 8px; font-size: 8.5pt; font-weight: 700; color: #64748B; letter-spacing: .04em; text-transform: uppercase; height: 26px; }
   .lap .pita b { width: 20px; height: 20px; border-radius: 6px; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: Nunito, sans-serif; font-size: 9pt; }
-  @media screen { .kertas:has(.lap) { background: transparent; padding: 20px 0; max-width: none; } .lap .pg { background: #FFFFFF; padding: 16mm 15mm; width: 210mm; margin: 0 auto 16px calc((180mm - 210mm) / 2); box-shadow: 0 4px 20px rgba(15,23,42,.08); } }
+  .lap .kepala { background-color: #FFFFFF !important; box-shadow: 0 2px 10px rgba(2,132,199,.08); }
+  .lap .putih, .lap .metrik { background: #FFFFFF; }
+  @media screen { .kertas:has(.lap) { background: transparent; padding: 20px 0; max-width: none; } .lap .pg { margin: 0 auto 16px; box-shadow: 0 4px 20px rgba(15,23,42,.12); } }
   @media print { body { background: #FFFFFF; } .bar { display: none; } .kertas { padding: 0; max-width: none; } }
 </style>
 </head>
@@ -216,7 +242,7 @@
   //  * setiap bagian dan setiap topik besar (tiap arah karir, tempat kerja) mulai di halaman baru
   //  * blok yang tidak muat pindah utuh ke halaman berikutnya, dengan pita "lanjutan"
   //  * sisa kecil di akhir bagian ditarik ke halaman sebelumnya (diperkecil sedikit) supaya tidak tercecer sendirian
-  var TINGGI = 258 * 96 / 25.4;   // tinggi isi satu halaman (A4 − margin), dalam px
+  var TINGGI = 259 * 96 / 25.4;   // tinggi isi satu halaman (A4 − ruang atas dan kaki halaman), dalam px
   async function cetakLaporan(nama, b1, L) {
     var r = L.rencana || {}, A = L.arahA || {}, B = L.arahB || {}, bl = [];
     var a = b1.arketipe || {}, M = window.MASKOT || {};
@@ -346,7 +372,7 @@
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
     await Promise.all([].slice.call(akar.querySelectorAll('img')).map(function (im) { return im.complete ? 0 : new Promise(function (ok) { im.onload = im.onerror = ok; }); }));
     var el = akar.querySelectorAll('.ukur > .blk');
-    bl.forEach(function (b, i) { b.t = el[i].getBoundingClientRect().height + 4; });
+    bl.forEach(function (b, i) { b.t = el[i].getBoundingClientRect().height + 6; });
     var pita = function (n) { var g = BAG[n - 1] || {}; return { html: '<div class="pita"><b style="background:' + (g.warna || '#0284C7') + ';">' + n + '</b>' + x(g.nama) + ' · lanjutan</div>', t: 30, bag: n }; };
 
     // ---- tata ke halaman
@@ -368,10 +394,17 @@
       var isi = h.t - 30;
       if (sbl.t + isi <= TINGGI / 0.85) { sbl.blok = sbl.blok.concat(h.blok.slice(1)); sbl.t += isi; hal.splice(i, 1); }
     }
-    akar.innerHTML = hal.map(function (h) {
-      var z = h.t > TINGGI ? Math.max(0.6, TINGGI / h.t) : 1;
-      return '<section class="pg"><div class="pgi" style="' + (z < 1 ? 'zoom:' + z.toFixed(3) + ';' : '') + '">' + h.blok.map(function (b) { return '<div class="blk">' + b.html + '</div>'; }).join('') + '</div></section>';
+    // halaman yang isinya pendek diperbesar sedikit (maks. 15%) supaya terasa penuh; yang kepanjangan diperkecil.
+    // Lebar isi ikut dibagi zoom, jadi baris teks sama persis dengan saat diukur.
+    var nTotal = hal.length;
+    akar.innerHTML = hal.map(function (h, i) {
+      if (h.blok[0].bag === 0) return '<section class="pg sampul">' + h.blok[0].html + '</section>';
+      var z = h.t > TINGGI ? Math.max(0.6, TINGGI / h.t) : Math.min(1.15, TINGGI / h.t);
+      return '<section class="pg"><div class="pgi" style="zoom:' + z.toFixed(3) + ';width:calc(180mm / ' + z.toFixed(3) + ');">'
+        + h.blok.map(function (b) { return '<div class="blk">' + b.html + '</div>'; }).join('') + '</div>'
+        + '<div class="kaki-pg"><img src="aset/logo-nawasena.png" alt="Nawasena"><span><span class="tm">Peta potensimu</span> · ' + x(nama) + ' · Sahabat karirmu</span><span class="hl">' + (i + 1) + '</span></div></section>';
     }).join('');
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
     document.title = 'Peta Potensimu ' + nama;
   }
 

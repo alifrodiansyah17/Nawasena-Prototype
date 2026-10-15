@@ -56,6 +56,15 @@
   #sibuk div { display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #E0F2FE; border-radius: 999px; padding: 12px 18px;
     box-shadow: 0 10px 30px rgba(2,132,199,0.15); font-weight: 700; color: #0284C7; font-size: 14px; }
   #sibuk i { width: 18px; height: 18px; border-radius: 999px; border: 2.5px solid #E0F2FE; border-top-color: #009FE3; animation: spin 1s linear infinite; display: block; }
+  /* Latar halaman peta potensimu: biru muda, matahari pudar di pojok, logo samar di bawah. Tidak ikut digulir. */
+  .latar-lap { background:
+      url(aset/matahari-pudar.svg) right -90px top -90px / 340px no-repeat,
+      url(aset/logo-nawasena-pudar.png) right 32px bottom 26px / 150px auto no-repeat,
+      radial-gradient(520px 380px at 0% 100%, rgba(56,189,248,.14), transparent 70%),
+      radial-gradient(420px 320px at 100% 0%, rgba(255,209,0,.10), transparent 70%),
+      #F3F9FE; }
+  .lap-kartu { box-shadow: 0 2px 10px rgba(2,132,199,.06); }
+  body:not(.desktop) .latar-lap { background-position: right -70px top -60px, right 20px bottom 18px, 0 0, 0 0, 0 0; background-size: 210px, 110px auto, auto, auto, auto; }
   /* Peta potensimu (komputer): kolom isi + panel samping yang ikut menempel saat digulir */
   .lap-baris { display: flex; gap: 36px; max-width: 1440px; margin: 0 auto; align-items: flex-start; }
   .lap-isi { flex: 1; min-width: 0; max-width: 1080px; display: flex; flex-direction: column; gap: 20px; }
@@ -1928,7 +1937,7 @@
 </div>
 </sc-if>
 <sc-if value="{{is_laporan}}">
-<div style="height: var(--tinggi); display: flex; flex-direction: column; background: #FFFFFF; overflow: hidden;">
+<div class="latar-lap" style="height: var(--tinggi); display: flex; flex-direction: column; overflow: hidden;">
   <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 8px; flex-shrink: 0;">
     <div style="width: 44px; height: 44px; display: flex; align-items: center;">
       <sc-if value="{{b0}}">
@@ -5424,7 +5433,7 @@
         </div>
       </div>
     </div>
-    <div class="scroll" style="flex-grow: 1; padding: 36px 48px 56px;">
+    <div class="scroll latar-lap" style="flex-grow: 1; padding: 36px 48px 56px;">
       <div class="lap-baris">
       <div class="lap-isi">
         <sc-if value="{{modeContoh}}">
