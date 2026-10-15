@@ -36,7 +36,7 @@
   .lap p { margin: 0; }
   .lap .hal { break-before: page; }
   .lap .awet { break-inside: avoid; }
-  .sampul2 { position: relative; overflow: hidden; border-radius: 22px; background: linear-gradient(150deg, #0369A1 0%, #0284C7 45%, #009FE3 100%); color: #FFFFFF; padding: 30px 30px 26px; min-height: 250mm; display: flex; flex-direction: column; border-bottom: 8px solid #FFD100; }
+  .sampul2 { position: relative; overflow: hidden; border-radius: 22px; height: 256mm; background: linear-gradient(150deg, #0369A1 0%, #0284C7 45%, #009FE3 100%); color: #FFFFFF; padding: 30px 30px 26px; display: flex; flex-direction: column; border-bottom: 8px solid #FFD100; }
   .sampul2 .mtr { position: absolute; right: -60px; top: -60px; width: 300px; height: 300px; opacity: .95; }
   .sampul2 .logo { height: 30px; width: auto; display: block; position: relative; align-self: flex-start; }
   .sampul2 .kicker { margin-top: 70px; font-size: 9pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #FFE680; }
@@ -72,6 +72,8 @@
   .kolom { border-radius: 16px; padding: 12px; }
   .kolom > .jdl { font-family: Nunito, sans-serif; font-weight: 800; font-size: 11.5pt; margin: 2px 2px 10px; }
   .kolom .kartu { background: #FFFFFF; border: 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid2 .kartu { margin: 0; }
   .chip { display: inline-block; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; border-radius: 999px; padding: 2px 8px; margin: 2px 0 4px; }
   .chip.h { background: #DCFCE7; color: #15803D; } .chip.b { background: #E0F2FE; color: #0369A1; } .chip.k { background: #FFD100; color: #0F172A; } .chip.a { background: #FEF3C7; color: #92400E; }
   .hero { background: linear-gradient(140deg, #0284C7, #009FE3); color: #FFFFFF; border-radius: 16px; padding: 16px 18px; break-inside: avoid; margin-bottom: 12px; }
@@ -115,6 +117,14 @@
   .tutup { background: linear-gradient(150deg, #0369A1, #009FE3); color: #FFFFFF; border-radius: 18px; padding: 20px; margin-top: 14px; border-bottom: 6px solid #FFD100; break-inside: avoid; }
   .tutup h3 { color: #FFFFFF; font-size: 15pt; margin-bottom: 6px; }
   .catat { font-size: 8.5pt; color: #64748B; margin-top: 6px; }
+  .lap { width: 180mm; margin: 0 auto; }
+  .lap .blk { display: flow-root; }
+  .lap .blk + .blk { margin-top: 4px; }
+  .lap .pg { break-after: page; break-inside: avoid; }
+  .lap .pg:last-child { break-after: auto; }
+  .lap .pita { display: flex; align-items: center; gap: 8px; font-size: 8.5pt; font-weight: 700; color: #64748B; letter-spacing: .04em; text-transform: uppercase; height: 26px; }
+  .lap .pita b { width: 20px; height: 20px; border-radius: 6px; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: Nunito, sans-serif; font-size: 9pt; }
+  @media screen { .kertas:has(.lap) { background: transparent; padding: 20px 0; max-width: none; } .lap .pg { background: #FFFFFF; padding: 16mm 15mm; width: 210mm; margin: 0 auto 16px calc((180mm - 210mm) / 2); box-shadow: 0 4px 20px rgba(15,23,42,.08); } }
   @media print { body { background: #FFFFFF; } .bar { display: none; } .kertas { padding: 0; max-width: none; } }
 </style>
 </head>
@@ -202,135 +212,166 @@
   function fld(k, v) { return v ? '<div class="fld"><b>' + x(k) + '</b><span>' + x(v) + '</span></div>' : ''; }
   function chips(arr, cls) { return '<div class="chips ' + (cls || '') + '">' + (arr || []).map(function (t) { return '<span>' + x(t) + '</span>'; }).join('') + '</div>'; }
 
-  function cetakLaporan(nama, b1, L) {
-    var r = L.rencana || {}, A = L.arahA || {}, B = L.arahB || {}, h = [];
+  // Isi dipecah jadi blok yang tidak boleh terpotong. Blok lalu ditata ke halaman A4:
+  //  * setiap bagian dan setiap topik besar (tiap arah karir, tempat kerja) mulai di halaman baru
+  //  * blok yang tidak muat pindah utuh ke halaman berikutnya, dengan pita "lanjutan"
+  //  * sisa kecil di akhir bagian ditarik ke halaman sebelumnya (diperkecil sedikit) supaya tidak tercecer sendirian
+  var TINGGI = 258 * 96 / 25.4;   // tinggi isi satu halaman (A4 − margin), dalam px
+  async function cetakLaporan(nama, b1, L) {
+    var r = L.rencana || {}, A = L.arahA || {}, B = L.arahB || {}, bl = [];
     var a = b1.arketipe || {}, M = window.MASKOT || {};
     var maskot = svgData(M[a.maskot] || M.analyst || '');
-    akar.classList.add('lap');
     var tgl = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    var bagNow = 0;
+    function blok(html, baru) { bl.push({ html: html, baru: !!baru, bag: bagNow }); }
+    function bagian(n) { bagNow = n; }
 
     // ---- sampul
-    h.push('<div class="sampul2"><img class="mtr" src="aset/matahari.svg" alt=""><img class="logo" src="aset/logo-nawasena-putih.png" alt="Nawasena">'
+    blok('<div class="sampul2"><img class="mtr" src="aset/matahari.svg" alt=""><img class="logo" src="aset/logo-nawasena-putih.png" alt="Nawasena">'
       + '<div class="kicker">Peta potensimu · Sahabat karirmu</div><h1>Mengenal Diri<br>dan Arah Karir</h1>'
       + '<div class="nama">' + x(nama) + '</div><div class="idn">' + x(b1.identitas) + '</div>'
       + '<div class="ark"><img src="' + maskot + '" alt=""><div><div class="lb">Cara kerja kamu</div><h2>' + x(a.nama) + (a.sub ? ' · ' + x(a.sub) : '') + '</h2><p>' + x(a.teks) + '</p></div></div>'
       + '<div class="dftr">' + BAG.map(function (b) { return '<div><b>' + b.no + '</b>' + x(b.nama) + '</div>'; }).join('') + '</div>'
-      + '<div class="kaki">Disusun ' + tgl + ' dari jawaban kuis yang kamu isi sendiri dan dari CV yang kamu kirim. Isinya buat membantu kamu mengenali cara kerjamu dan memilih langkah berikutnya, bukan penilaian akhir tentang dirimu.</div></div>');
+      + '<div class="kaki">Disusun ' + tgl + ' dari jawaban kuis yang kamu isi sendiri dan dari CV yang kamu kirim. Isinya buat membantu kamu mengenali cara kerjamu dan memilih langkah berikutnya, bukan penilaian akhir tentang dirimu.</div></div>', true);
 
     // ---- Bagian 1
-    h.push('<div class="hal">' + kepala(1));
-    if (b1.contoh || r.contoh) h.push('<p class="contoh" style="margin-bottom:12px;">Mode uji coba: isi laporan ini masih contoh, belum dibuat dari CV dan jawaban kuismu.</p>');
-    h.push('<div class="hero"><div class="lb">Cara kerja kamu</div><h3>' + x(a.nama) + (a.sub ? ' · ' + x(a.sub) : '') + '</h3><p>' + x(a.teks) + '</p></div>');
-    h.push('<div class="dua"><div class="kolom hijau"><div class="jdl" style="color:#15803D;">↗ Yang paling kamu banget</div>'
-      + (b1.paling || []).map(function (q) { return kartu('', q.j, q.p, q.c ? '<span class="chip h">' + x(q.c) + '</span>' : ''); }).join('') + '</div>'
-      + '<div class="kolom kuning"><div class="jdl" style="color:#92400E;">△ Yang masih perlu dilatih</div>'
-      + (b1.dilatih || []).map(function (q) { return kartu('', q.j, q.p); }).join('')
-      + '<p class="catat" style="color:#713F12;">Dua kotak ini sama-sama normal. Yang kiri sudah jalan tanpa kamu pikirkan, yang kanan butuh tenaga lebih.</p></div></div>');
+    bagian(1);
+    blok(kepala(1) + (b1.contoh || r.contoh ? '<p class="contoh" style="margin-bottom:12px;">Mode uji coba: isi laporan ini masih contoh, belum dibuat dari CV dan jawaban kuismu.</p>' : '')
+      + '<div class="hero"><div class="lb">Cara kerja kamu</div><h3>' + x(a.nama) + (a.sub ? ' · ' + x(a.sub) : '') + '</h3><p>' + x(a.teks) + '</p></div>', true);
+    blok('<div class="kolom hijau"><div class="jdl" style="color:#15803D;">↗ Yang paling kamu banget</div><div class="grid2">'
+      + (b1.paling || []).map(function (q) { return kartu('', q.j, q.p, q.c ? '<span class="chip h">' + x(q.c) + '</span>' : ''); }).join('') + '</div></div>');
+    blok('<div class="kolom kuning"><div class="jdl" style="color:#92400E;">△ Yang masih perlu dilatih</div><div class="grid2">'
+      + (b1.dilatih || []).map(function (q) { return kartu('', q.j, q.p); }).join('') + '</div>'
+      + '<p class="catat" style="color:#713F12;margin:8px 2px 0;">Dua kotak ini sama-sama normal. Yang hijau sudah jalan tanpa kamu pikirkan, yang kuning butuh tenaga lebih.</p></div>');
     var tk = [b1.tokoh_nyata, b1.tokoh_fiksi].filter(Boolean);
-    if (tk.length) {
-      h.push(sub('Yang cara kerjanya mirip kamu', '#38BDF8') + '<div class="dua">' + tk.map(function (t, i) {
-        return kartu(i ? 'kuning' : 'biru', t.nama, t.why, '<span class="chip ' + (i ? 'a' : 'b') + '">' + x(t.peran || t.asal) + '</span>');
-      }).join('') + '</div><p class="catat">Nama di atas cuma perbandingan cara kerja, bukan tanda mereka kenal atau mendukung Nawasena.</p>');
-    }
-    h.push('</div>');
+    if (tk.length) blok(sub('Yang cara kerjanya mirip kamu', '#38BDF8') + '<div class="dua">' + tk.map(function (t, i) {
+      return kartu(i ? 'kuning' : 'biru', t.nama, t.why, '<span class="chip ' + (i ? 'a' : 'b') + '">' + x(t.peran || t.asal) + '</span>');
+    }).join('') + '</div><p class="catat">Nama di atas cuma perbandingan cara kerja, bukan tanda mereka kenal atau mendukung Nawasena.</p>');
 
     // ---- Bagian 2
     var b2 = r.b2 || {};
-    h.push('<div class="hal">' + kepala(2));
-    h.push('<div class="hero"><div class="lb">Tipe karirmu sekarang</div><h3>' + x(b2.judul) + '</h3><p>' + x(b2.teks) + '</p></div>');
-    [['Keahlian', b2.keahlian, '#009FE3'], ['Keluasan', b2.keluasan, '#16A34A'], ['Sinyal memimpin', b2.memimpin, '#FFD100']].forEach(function (m) {
-      if (m[1]) h.push('<div class="metrik" style="border-color:' + m[2] + ';"><b>' + m[0] + '</b><span>' + x(m[1]) + '</span></div>');
-    });
-    if ((b2.jalan || []).length) h.push(sub('Dua jalan dari sini', '#009FE3') + '<div class="dua">' + b2.jalan.map(function (j, i) {
+    bagian(2);
+    blok(kepala(2) + '<div class="hero"><div class="lb">Tipe karirmu sekarang</div><h3>' + x(b2.judul) + '</h3><p>' + x(b2.teks) + '</p></div>', true);
+    blok([['Keahlian', b2.keahlian, '#009FE3'], ['Keluasan', b2.keluasan, '#16A34A'], ['Sinyal memimpin', b2.memimpin, '#FFD100']].map(function (m) {
+      return m[1] ? '<div class="metrik" style="border-color:' + m[2] + ';"><b>' + m[0] + '</b><span>' + x(m[1]) + '</span></div>' : '';
+    }).join(''));
+    if ((b2.jalan || []).length) blok(sub('Dua jalan dari sini', '#009FE3') + '<div class="dua">' + b2.jalan.map(function (j, i) {
       return kartu(i ? 'kuning' : 'biru', j.judul, j.teks, j.ref ? '<span class="chip ' + (i ? 'a' : 'b') + '">' + x(j.ref) + '</span>' : '');
     }).join('') + '</div>');
-    if (b2.catatan) h.push('<div class="sorot"><i></i><div>Yang perlu kamu timbang: ' + x(b2.catatan) + '</div></div>');
-    h.push('</div>');
+    if (b2.catatan) blok('<div class="sorot"><i></i><div>Yang perlu kamu timbang: ' + x(b2.catatan) + '</div></div>');
 
     // ---- Bagian 3
     var b3 = r.b3 || {}, UW = [['#0284C7', '#F0F9FF'], ['#16A34A', '#F0FDF4'], ['#CA8A04', '#FEF9C3']];
-    h.push('<div class="hal">' + kepala(3));
-    if ((b3.ubin || []).length) h.push('<div class="tiga">' + b3.ubin.map(function (u, i) {
+    bagian(3);
+    blok(kepala(3) + ((b3.ubin || []).length ? '<div class="tiga">' + b3.ubin.map(function (u, i) {
       var w = UW[i % 3], pj = String(u.angka || '').length > 6;
       return '<div class="ubin" style="background:' + w[1] + ';border:1px solid ' + w[0] + '33;"><div class="n" style="color:' + w[0] + ';' + (pj ? 'font-size:12pt;' : '') + '">' + x(u.angka) + '</div><div class="l">' + x(u.label) + '</div></div>';
-    }).join('') + '</div>');
-    h.push('<div class="dua" style="margin-top:12px;"><div class="kolom hijau"><div class="jdl" style="color:#15803D;">＋ Yang lagi jadi keunggulanmu</div>'
+    }).join('') + '</div>' : ''), true);
+    blok('<div class="dua"><div class="kolom hijau"><div class="jdl" style="color:#15803D;">＋ Yang lagi jadi keunggulanmu</div>'
       + (b3.plus || []).map(function (q) { return kartu('', q.j, q.p); }).join('') + '</div>'
       + '<div class="kolom kuning"><div class="jdl" style="color:#92400E;">－ Yang bisa jadi tantangan</div>'
-      + (b3.minus || []).map(function (q) { return kartu('', q.j, q.p); }).join('') + '</div></div>');
-    if (b3.sorot) h.push('<div class="sorot"><i></i><div>' + x(b3.sorot) + '</div></div>');
+      + (b3.minus || []).map(function (q) { return kartu('', q.j, q.p); }).join('') + '</div></div>'
+      + (b3.sorot ? '<div class="sorot"><i></i><div>' + x(b3.sorot) + '</div></div>' : ''));
     var ce = b3.cerita || {};
-    h.push(sub('Perkenalan 60 detik', '#009FE3') + [['Siapa kamu', ce.siapa], ['Buktinya', ce.bukti], ['Kenapa arah ini', ce.kenapa]].map(function (c, i) {
+    blok(sub('Perkenalan 60 detik', '#009FE3') + [['Siapa kamu', ce.siapa], ['Buktinya', ce.bukti], ['Kenapa arah ini', ce.kenapa]].map(function (c, i) {
       return '<div class="tahap"><div class="bul">' + (i + 1) + '</div><div><h4>' + c[0] + '</h4><div class="isi" style="color:#475569;font-size:9.5pt;">' + x(c[1]) + '</div></div></div>';
-    }).join(''));
-    h.push(sub('Tiga pertanyaan yang paling mungkin muncul', '#FFD100'));
-    if (b3.tanya_lead) h.push('<p class="catat" style="margin:-4px 0 8px;">' + x(b3.tanya_lead) + '</p>');
+    }).join(''), true);
     (b3.tanya || []).forEach(function (t, i) {
-      h.push('<div class="kartu putih"><h3>' + (i + 1) + '. ' + x(t.t) + '</h3><div class="tanya3">'
+      blok((i === 0 ? sub('Tiga pertanyaan yang paling mungkin muncul', '#FFD100') + (b3.tanya_lead ? '<p class="catat" style="margin:-4px 0 8px;">' + x(b3.tanya_lead) + '</p>' : '') : '')
+        + '<div class="kartu putih"><h3>' + (i + 1) + '. ' + x(t.t) + '</h3><div class="tanya3">'
         + '<div style="background:#F0F9FF;"><b style="color:#0369A1;">Yang sebenarnya dicek</b>' + x(t.cek) + '</div>'
         + '<div style="background:#F0FDF4;"><b style="color:#15803D;">Cerita yang bisa kamu pakai</b>' + x(t.pakai) + '</div>'
         + '<div style="background:#FFF7ED;"><b style="color:#C2410C;">Yang biasanya kurang kuat</b>' + x(t.kurang) + '</div></div></div>');
     });
-    h.push('</div>');
 
     // ---- Bagian 4
     var b4 = r.b4 || {};
-    h.push('<div class="hal">' + kepala(4));
-    if (b4.pembuka) h.push('<p style="margin-bottom:12px;color:#334155;">' + x(b4.pembuka) + '</p>');
+    bagian(4);
+    blok(kepala(4) + (b4.pembuka ? '<p style="color:#334155;">' + x(b4.pembuka) + '</p>' : ''), true);
     (b4.banding || []).forEach(function (q) {
-      h.push('<div class="banding"><div style="background:#FFF1F2;"><b style="color:#BE123C;">Ditulis gini</b>' + x(q.sblm) + '</div>'
+      blok('<div class="banding"><div style="background:#FFF1F2;"><b style="color:#BE123C;">Ditulis gini</b>' + x(q.sblm) + '</div>'
         + '<div style="background:#F0FDF4;"><b style="color:#15803D;">Jadikan gini</b>' + x(q.sdh) + '</div></div>');
     });
-    h.push('<div class="dua"><div class="kolom kuning"><div class="jdl" style="color:#92400E;">⚡ Yang paling cepat terasa efeknya</div>'
+    blok('<div class="dua"><div class="kolom kuning"><div class="jdl" style="color:#92400E;">⚡ Yang paling cepat terasa efeknya</div>'
       + (b4.segera || []).map(function (q) { return kartu('', q.j, q.p); }).join('') + '</div>'
       + '<div class="kolom biru"><div class="jdl" style="color:#0369A1;">★ Yang bisa bikin CV-mu lebih kuat</div>'
-      + (b4.kuat || []).map(function (q) { return kartu('', q.j, q.p); }).join('') + '</div></div>');
-    if (b4.sorot) h.push('<div class="sorot"><i></i><div>' + x(b4.sorot) + '</div></div>');
-    h.push('</div>');
+      + (b4.kuat || []).map(function (q) { return kartu('', q.j, q.p); }).join('') + '</div></div>'
+      + (b4.sorot ? '<div class="sorot"><i></i><div>' + x(b4.sorot) + '</div></div>' : ''));
 
-    // ---- Bagian 5
+    // ---- Bagian 5: ringkasan, lalu tiap arah di halamannya sendiri
     var b5 = r.b5 || {}, arah = r.arah || [];
-    h.push('<div class="hal">' + kepala(5));
-    if (b5.intro) h.push('<p style="margin-bottom:12px;color:#334155;">' + x(b5.intro) + '</p>');
     var peran = (A.peran || []).concat(B.peran || []);
-    h.push('<div class="dua" style="margin-bottom:14px;">' + peran.map(function (q, i) {
-      return '<div class="kartu biru" style="display:flex;gap:10px;align-items:center;margin:0;"><div class="tahap" style="margin:0;"><div class="bul">' + (i + 1) + '</div></div><div><h3 style="margin:0;">' + x(q.nama) + '</h3><div class="isi" style="font-size:8.5pt;">' + x(q.fam) + '</div></div></div>';
-    }).join('') + '</div>');
-    if (b5.benang) h.push('<div class="kartu kuning"><h3 style="color:#92400E;">Yang menghubungkan keenamnya</h3><div class="isi">' + x(b5.benang) + '</div></div>');
-    if (b5.kurang) h.push('<div class="kartu putih"><h3 style="color:#475569;">Yang kurang cocok buat kamu</h3><div class="isi">' + x(b5.kurang) + '</div></div>');
+    bagian(5);
+    blok(kepala(5) + (b5.intro ? '<p style="color:#334155;margin-bottom:12px;">' + x(b5.intro) + '</p>' : '')
+      + '<div class="dua">' + peran.map(function (q, i) {
+        return '<div class="kartu biru" style="display:flex;gap:10px;align-items:center;margin:0;"><div class="tahap" style="margin:0;"><div class="bul">' + (i + 1) + '</div></div><div><h3 style="margin:0;">' + x(q.nama) + '</h3><div class="isi" style="font-size:8.5pt;">' + x(q.fam) + '</div></div></div>';
+      }).join('') + '</div>', true);
+    if (b5.benang) blok('<div class="kartu kuning"><h3 style="color:#92400E;">Yang menghubungkan keenamnya</h3><div class="isi">' + x(b5.benang) + '</div></div>');
+    if (b5.kurang) blok('<div class="kartu putih"><h3 style="color:#475569;">Yang kurang cocok buat kamu</h3><div class="isi">' + x(b5.kurang) + '</div></div>');
     peran.forEach(function (q, i) {
       var kel = (arah[i] || {}).kel;
-      h.push('<div class="arah' + (i === 0 ? ' hal' : '') + '"><div class="atas"><div class="no">' + (i + 1) + '</div><div><h3>' + x(q.nama) + '</h3><p>' + x(q.fam) + '</p></div>'
+      blok('<div class="arah"><div class="atas"><div class="no">' + (i + 1) + '</div><div><h3>' + x(q.nama) + '</h3><p>' + x(q.fam) + '</p></div>'
         + (kel ? '<span class="kel">' + x(kel) + '</span>' : '') + '</div><div class="badan">'
         + (q.fun ? '<div class="fun">' + x(q.fun) + '</div>' : '')
-        + '<div class="dua">' + '<div>' + fld('Yang dibutuhkan', q.comp) + fld('Yang sudah kamu punya', q.punya) + fld('Kenapa cocok', q.why) + '</div>'
+        + '<div class="dua"><div>' + fld('Yang dibutuhkan', q.comp) + fld('Yang sudah kamu punya', q.punya) + fld('Kenapa cocok', q.why) + '</div>'
         + '<div>' + fld('Hari-harinya', q.day) + fld('Yang akan menantang', q.chal) + fld('Jalur karir', q.path) + '</div></div>'
-        + ((q.gaji || []).length ? '<div class="awet"><div class="fld" style="margin-bottom:2px;"><b>Kisaran gaji</b></div><div class="gaji">' + q.gaji.map(function (g) { return '<div><div class="k">' + x(String(g.k).replace(/^[a-c]\.\s*/, '')) + '</div><div class="v">' + x(g.v) + '</div></div>'; }).join('') + '</div></div>' : '')
+        + ((q.gaji || []).length ? '<div class="fld" style="margin-bottom:2px;"><b>Kisaran gaji</b></div><div class="gaji">' + q.gaji.map(function (g) { return '<div><div class="k">' + x(String(g.k).replace(/^[a-c]\.\s*/, '')) + '</div><div class="v">' + x(g.v) + '</div></div>'; }).join('') + '</div>' : '')
         + ((q.ind || []).length ? '<div class="fld"><b>Industri</b><span>' + q.ind.map(function (g) { return '<b style="display:inline;color:#0F172A;text-transform:none;letter-spacing:0;font-size:9pt;">' + x(g.k) + '</b> ' + x(g.v); }).join('<br>') + '</span></div>' : '')
         + (q.prep ? '<div class="kartu kuning" style="margin:6px 0 0;"><h3 style="color:#92400E;">Yang perlu kamu siapkan</h3><div class="isi">' + x(q.prep) + '</div></div>' : '')
-        + '</div></div>');
+        + '</div></div>', true);
     });
     var tp = B.tempat || {};
     if (tp.intro || (tp.daftar || []).length) {
-      h.push('<div class="awet">' + sub('Tempat kerja yang paling pas buat kamu', '#16A34A') + (tp.intro ? '<p style="margin-bottom:10px;color:#334155;">' + x(tp.intro) + '</p>' : '') + '</div>');
-      h.push('<div class="dua">' + (tp.daftar || []).map(function (q, i) { return kartu(i === 0 ? 'hijau' : 'putih', q.nama, q.teks, q.label ? '<span class="chip ' + (i === 0 ? 'h' : 'b') + '">' + x(q.label) + '</span>' : ''); }).join('') + '</div>');
-      if ((tp.ciri || []).length) h.push('<div class="fld awet" style="margin-top:8px;"><b>Ciri tempat yang bikin kamu betah</b></div>' + chips(tp.ciri, 'h'));
-      if ((tp.cocok || []).length) h.push('<div class="fld awet"><b>Tanda cocok di lowongan</b></div>' + chips(tp.cocok));
-      if ((tp.tanya || []).length) h.push('<div class="fld awet"><b>Bisa kamu tanyakan saat wawancara</b></div>' + chips(tp.tanya, 'k'));
+      blok(sub('Tempat kerja yang paling pas buat kamu', '#16A34A') + (tp.intro ? '<p style="margin-bottom:10px;color:#334155;">' + x(tp.intro) + '</p>' : '')
+        + '<div class="dua">' + (tp.daftar || []).map(function (q, i) { return kartu(i === 0 ? 'hijau' : 'putih', q.nama, q.teks, q.label ? '<span class="chip ' + (i === 0 ? 'h' : 'b') + '">' + x(q.label) + '</span>' : ''); }).join('') + '</div>', true);
+      var ch = '';
+      if ((tp.ciri || []).length) ch += '<div class="fld" style="margin-top:4px;"><b>Ciri tempat yang bikin kamu betah</b></div>' + chips(tp.ciri, 'h');
+      if ((tp.cocok || []).length) ch += '<div class="fld"><b>Tanda cocok di lowongan</b></div>' + chips(tp.cocok);
+      if ((tp.tanya || []).length) ch += '<div class="fld"><b>Bisa kamu tanyakan saat wawancara</b></div>' + chips(tp.tanya, 'k');
+      if (ch) blok(ch);
     }
-    h.push('</div>');
 
     // ---- Bagian 6
     var b6 = B.b6 || {};
-    h.push('<div class="hal">' + kepala(6));
-    (b6.langkah || []).forEach(function (t, i) {
-      h.push('<div class="kartu putih" style="display:flex;gap:12px;align-items:flex-start;"><div class="tahap" style="margin:0;"><div class="bul k">' + (i + 1) + '</div></div><div class="isi" style="color:#1E293B;font-size:10pt;padding-top:6px;">' + x(t) + '</div></div>');
-    });
-    if (b6.batas) h.push(sub('Yang perlu kamu tahu soal hasil ini', '#38BDF8') + '<div class="kartu biru"><div class="isi">' + x(b6.batas) + '</div></div>');
-    h.push('<div class="tutup"><h3>Ini potret hari ini, bukan garis finis.</h3><p>' + x(b6.tutup) + '</p><p style="margin-top:12px;font-weight:700;">— Nawasena, sahabat karirmu</p></div>');
-    h.push('</div>');
+    bagian(6);
+    blok(kepala(6) + (b6.langkah || []).map(function (t, i) {
+      return '<div class="kartu putih" style="display:flex;gap:12px;align-items:flex-start;"><div class="tahap" style="margin:0;"><div class="bul k">' + (i + 1) + '</div></div><div class="isi" style="color:#1E293B;font-size:10pt;padding-top:6px;">' + x(t) + '</div></div>';
+    }).join(''), true);
+    if (b6.batas) blok(sub('Yang perlu kamu tahu soal hasil ini', '#38BDF8') + '<div class="kartu biru"><div class="isi">' + x(b6.batas) + '</div></div>');
+    blok('<div class="tutup"><h3>Ini potret hari ini, bukan garis finis.</h3><p>' + x(b6.tutup) + '</p><p style="margin-top:12px;font-weight:700;">— Nawasena, sahabat karirmu</p></div>');
 
-    akar.innerHTML = h.join('');
+    // ---- ukur setiap blok di lebar kertas yang sama dengan hasil cetak
+    akar.classList.add('lap');
+    akar.innerHTML = '<div class="ukur">' + bl.map(function (b) { return '<div class="blk">' + b.html + '</div>'; }).join('') + '</div>';
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    await Promise.all([].slice.call(akar.querySelectorAll('img')).map(function (im) { return im.complete ? 0 : new Promise(function (ok) { im.onload = im.onerror = ok; }); }));
+    var el = akar.querySelectorAll('.ukur > .blk');
+    bl.forEach(function (b, i) { b.t = el[i].getBoundingClientRect().height + 4; });
+    var pita = function (n) { var g = BAG[n - 1] || {}; return { html: '<div class="pita"><b style="background:' + (g.warna || '#0284C7') + ';">' + n + '</b>' + x(g.nama) + ' · lanjutan</div>', t: 30, bag: n }; };
+
+    // ---- tata ke halaman
+    var hal = [], cur = null;
+    bl.forEach(function (b) {
+      // muat kalau cukup; kalau halaman ini baru terisi kurang dari separuh, boleh diperkecil sampai 20% daripada meninggalkan halaman kosong
+      var muat = cur && (cur.t + b.t <= TINGGI || (cur.t < TINGGI * 0.5 && cur.t + b.t <= TINGGI / 0.8));
+      if (!cur || b.baru || !muat) {
+        cur = { blok: [], t: 0, bag: b.bag, lanjut: !b.baru && !!cur };
+        hal.push(cur);
+        if (cur.lanjut && b.bag) { var pt = pita(b.bag); cur.blok.push(pt); cur.t += pt.t; }
+      }
+      cur.blok.push(b); cur.t += b.t;
+    });
+    // sisa kecil yang tercecer: gabung ke halaman sebelumnya kalau cukup dengan diperkecil maksimal 15%
+    for (var i = hal.length - 1; i > 0; i--) {
+      var h = hal[i], sbl = hal[i - 1];
+      if (!h.lanjut) continue;
+      var isi = h.t - 30;
+      if (sbl.t + isi <= TINGGI / 0.85) { sbl.blok = sbl.blok.concat(h.blok.slice(1)); sbl.t += isi; hal.splice(i, 1); }
+    }
+    akar.innerHTML = hal.map(function (h) {
+      var z = h.t > TINGGI ? Math.max(0.6, TINGGI / h.t) : 1;
+      return '<section class="pg"><div class="pgi" style="' + (z < 1 ? 'zoom:' + z.toFixed(3) + ';' : '') + '">' + h.blok.map(function (b) { return '<div class="blk">' + b.html + '</div>'; }).join('') + '</div></section>';
+    }).join('');
     document.title = 'Peta Potensimu ' + nama;
   }
 
@@ -351,7 +392,7 @@
         cetakCV(d.cv.susun || {});
       } else {
         if (!d.lengkap || d.lengkap.status !== 'siap') { info.textContent = 'Peta potensimu belum lengkap. Tunggu sampai keenam bagian selesai disusun.'; return; }
-        cetakLaporan(d.profil.nama, d.laporan.bagian1 || {}, d.lengkap.bagian || {});
+        await cetakLaporan(d.profil.nama, d.laporan.bagian1 || {}, d.lengkap.bagian || {});
       }
       info.textContent = 'Tekan tombol di kanan, lalu pilih "Simpan sebagai PDF".';
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
