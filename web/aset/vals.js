@@ -248,6 +248,7 @@
       : 'Tiap role yang kamu pilih (maksimal ' + MAKS + ') dibahas sebagai satu arah karir di laporanmu. Sisanya diisi arah yang paling relevan dengan karir dan gaya kerjamu sekarang.';
     v.tgtKini = saran.peran_kini || ''; v.tgtKiniAda = !tgtKerja && !!saran.peran_kini;
     v.tgtMemuat = !!s.saranMemuat && !(saran.opsi && saran.opsi.length);
+    v.tgtBayang = [1, 2, 3, 4, 5, 6];
     var jumlah = pilihan.length + ketik;
     v.tgtHitung = jumlah ? jumlah + ' dari maks ' + MAKS + ' dipilih' : 'Maksimal ' + MAKS;
     // pilihan dari CV (atau bawaan kalau belum ada), ditambah pilihan tersimpan yang tidak ada di daftar

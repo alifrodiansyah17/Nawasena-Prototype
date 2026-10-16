@@ -683,6 +683,7 @@
       if (!paksa && s.saranTarget && s.saranTarget._kunci === kunci) return;
       try { var simpan = JSON.parse(window.localStorage.getItem(kunci) || 'null'); if (!paksa && simpan && simpan.opsi && simpan.opsi.length) { s.saranTarget = simpan; return; } } catch (e) { /* abaikan */ }
       this._saranJalan = true; s.saranMemuat = true; s.saranGagal = false;
+      if (s.layar === 'target') this.render();   // tampilkan kartu bayangan selama menunggu
       API.saranTarget().then(function (r) {
         if (r && r.opsi && r.opsi.length) {
           r._kunci = kunci; s.saranTarget = r;

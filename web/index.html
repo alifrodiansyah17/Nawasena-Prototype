@@ -37,6 +37,8 @@
   @keyframes goyang { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
   [data-kosong="1"] { animation: muncul .2s ease-out both, goyang .4s ease .2s; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes kedip { 50% { opacity: .45; } }
+  .kedip { animation: kedip 1.2s ease-in-out infinite; }
   .spin { animation: spin 1.1s linear infinite; }
   #app { max-width: 480px; margin: 0 auto; background: #FFFFFF; min-height: var(--tinggi); position: relative; }
   @media (min-width: 520px) { #app { box-shadow: 0 0 0 1px #E2E8F0, 0 24px 60px rgba(2,132,199,0.12); } }
@@ -1228,6 +1230,9 @@
       <sc-if value="{{tgtMemuat}}">
         <div style="display: flex; align-items: center; gap: 10px; background: #F0F9FF; border-radius: 12px; padding: 14px 15px; font-size: 13px; color: #0284C7; font-weight: 600;">
           <div class="spin" style="width: 18px; height: 18px; flex-shrink: 0; border-radius: 999px; border: 2.5px solid #E0F2FE; border-top-color: #009FE3;"></div>Menyiapkan pilihan dari CV dan jawaban kuismu…
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{tgtBayang}}" as="x"><div class="kedip" style="height: 62px; border-radius: 12px; background: #F1F5F9;"></div></sc-for>
         </div>
       </sc-if>
       <sc-if value="{{tgtGagal}}">
@@ -4658,6 +4663,9 @@
           <div style="display: flex; align-items: center; gap: 10px; background: #F0F9FF; border-radius: 12px; padding: 14px 15px; font-size: 13px; color: #0284C7; font-weight: 600;">
             <div class="spin" style="width: 18px; height: 18px; flex-shrink: 0; border-radius: 999px; border: 2.5px solid #E0F2FE; border-top-color: #009FE3;"></div>Menyiapkan pilihan dari CV dan jawaban kuismu…
           </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <sc-for list="{{tgtBayang}}" as="x"><div class="kedip" style="height: 62px; border-radius: 12px; background: #F1F5F9;"></div></sc-for>
+          </div>
         </sc-if>
         <sc-if value="{{tgtGagal}}">
           <div style="background: #FFF7ED; border-radius: 12px; padding: 13px 15px; font-size: 13px; color: #9A3412; line-height: 1.5;">Pilihannya belum bisa kami siapkan sekarang. Tulis sendiri di bawah, atau <span class="tap" onClick="{{tgtCobaLagi}}" style="font-weight: 700; color: #0284C7;">coba lagi</span>.</div>
@@ -6499,9 +6507,9 @@
 <script src="aset/contoh-laporan.js?v=887734dc"></script>
 <script src="aset/api.js?v=5ac873d9"></script>
 <script src="aset/api-demo.js?v=a52f73e6"></script>
-<script src="aset/runtime.js?v=f9c0c7f6"></script>
-<script src="aset/app.js?v=ef4242b6"></script>
-<script src="aset/vals.js?v=1aa40f39"></script>
+<script src="aset/runtime.js?v=34f7ee4f"></script>
+<script src="aset/app.js?v=3ac18d49"></script>
+<script src="aset/vals.js?v=797e3f55"></script>
 <script>window.App.mulai();</script>
 </body>
 </html>

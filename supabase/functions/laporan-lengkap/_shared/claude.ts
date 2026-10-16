@@ -133,11 +133,14 @@ function bersihkan(x: any): any {
   return x;
 }
 
-async function tanyaGemini<T>(opsi: { system: string; pesan: string; skema: Record<string, unknown>; maxTokens?: number }): Promise<HasilClaude<T>> {
+async function tanyaGemini<T>(opsi: { system: string; pesan: string; skema: Record<string, unknown>; maxTokens?: number; effort?: string }): Promise<HasilClaude<T>> {
   // Model utama, lalu model cadangan kalau sedang penuh (503) atau kena batas kuota (429).
   // Model yang kena 429 diistirahatkan sampai waktu tunggu dari Google lewat, supaya tidak membanjiri API.
   // Panggilan baru tidak dimulai lewat GEMINI_BATAS_MS (bawaan 75 dtk), supaya fungsi selesai sebelum batas 150 detik.
+  // effort "low" (tugas pendek yang ditunggu pengguna, mis. pilihan target): model lite dulu dan tanpa "thinking", supaya cepat.
+  const cepat = opsi.effort === "low";
   const model = [...new Set([
+    ...(cepat ? [Deno.env.get("GEMINI_MODEL_CEPAT") || "gemini-3.5-flash-lite", "gemini-flash-lite-latest"] : []),
     Deno.env.get("GEMINI_MODEL") || "gemini-3.5-flash",
     Deno.env.get("GEMINI_MODEL_CADANGAN") || "gemini-2.5-flash",
     "gemini-3.6-flash",
@@ -154,16 +157,16 @@ async function tanyaGemini<T>(opsi: { system: string; pesan: string; skema: Reco
   };
   let m = 0, gagalIsi = 0;
   const maks = (opsi.maxTokens ?? 16000) + 8000;   // ruang tambahan untuk "thinking" model
-  let pakaiSkema = true, terakhir = "";
+  let pakaiSkema = true, pakaiTanpaPikir = cepat, terakhir = "";
   for (let coba = 1; sisa() > 0 && coba <= 12; coba++) {
     // pilih model yang tidak sedang istirahat; kalau semua istirahat, tunggu yang paling cepat selesai (kalau masih sempat)
     const siap = model.findIndex((_, i) => (istirahat[model[(m + i) % model.length]] || 0) <= Date.now());
     if (siap < 0) {
-      const cepat = Math.min(...model.map((x) => istirahat[x])) - Date.now();
-      if (cepat > sisa() || cepat > 60000) {
+      const tunggu = Math.min(...model.map((x) => istirahat[x])) - Date.now();
+      if (tunggu > sisa() || tunggu > 60000) {
         throw new Error("Kuota Gemini sedang habis. Coba lagi beberapa saat lagi. (" + terakhir.slice(0, 200) + ")");
       }
-      await tidur(Math.max(cepat, 1000));
+      await tidur(Math.max(tunggu, 1000));
       m = 0;   // setelah menunggu, mulai lagi dari model utama
       continue;
     }
@@ -182,12 +185,14 @@ async function tanyaGemini<T>(opsi: { system: string; pesan: string; skema: Reco
           maxOutputTokens: maks,
           responseMimeType: "application/json",
           ...(pakaiSkema ? { responseJsonSchema: skemaGemini(opsi.skema) } : {}),
+          ...(pakaiTanpaPikir ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
         },
       }),
     });
     const t = await r.text();
     if (!r.ok) {
       terakhir = `Gemini ${model[m]} ${r.status}: ${t.slice(0, 500)}`;
+      if (r.status === 400 && pakaiTanpaPikir && /thinking/i.test(t)) { pakaiTanpaPikir = false; continue; }   // model ini wajib "thinking"
       if (r.status === 400 && pakaiSkema && /schema/i.test(t)) { pakaiSkema = false; continue; }
       if (r.status === 429) { istirahat[model[m]] = Date.now() + tungguDari(t); continue; }
       if (r.status >= 500) { istirahat[model[m]] = Date.now() + 8000; continue; }

@@ -124,23 +124,26 @@
     t.innerHTML = html;
     this.frag = t.content;
     this.root.innerHTML = '';
+    this._layar = null;
   };
   Runtime.prototype.render = function (vals, kunci) {
     this.daftarFn = [];
     var wadah = document.createElement('div');
-    wadah.id = this.root.firstElementChild ? this.root.firstElementChild.id || 'layar' : 'layar';
     wadah.id = 'layar';
     this.bangun(this.frag, vals, wadah);
-    if (!this.root.firstElementChild) { this.root.appendChild(wadah); this._kunci = kunci; return; }
-    // Pindah layar: ganti isi seluruhnya, supaya tidak ada sisa layar lama yang tertinggal
-    // (misalnya kalau DOM sempat diubah dari luar, seperti fitur terjemahan browser).
-    if (kunci !== undefined && kunci !== this._kunci) {
-      this._kunci = kunci;
-      this.root.replaceChild(wadah, this.root.firstElementChild);
+    var root = this.root, kini = this._layar && this._layar.parentNode === root ? this._layar : null;
+    // #app hanya boleh berisi satu layar: buang apa pun yang lain (sisa layar lama, atau elemen yang
+    // disisipkan dari luar seperti ekstensi browser), supaya tidak pernah ada dua layar bertumpuk.
+    for (var c = root.firstChild; c;) { var n = c.nextSibling; if (c !== kini) root.removeChild(c); c = n; }
+    // Layar baru (atau pindah layar): pasang utuh, jangan di-morph dari layar lama.
+    if (!kini || (kunci !== undefined && kunci !== this._kunci)) {
+      if (kini) root.removeChild(kini);
+      root.appendChild(wadah);
+      this._layar = wadah; this._kunci = kunci;
       return;
     }
-    window.morphdom(this.root.firstElementChild, wadah, {
-      onBeforeElUpdated: function (from, to) {
+    window.morphdom(kini, wadah, {
+      onBeforeElUpdated: function (from) {
         // biarkan input file dan elemen yang ditandai tetap
         if (from.hasAttribute && from.hasAttribute('data-tetap')) return false;
         return true;
