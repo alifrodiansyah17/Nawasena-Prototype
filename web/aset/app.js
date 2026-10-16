@@ -309,7 +309,10 @@
       if (!s.pesanan || s.pesanan.status !== 'ok' || this.lengkapSiap()) return;
       var l = s.lengkap, macet = l && l.status === 'proses' && (Date.now() - new Date(l.diubah || 0).getTime() > 5 * 60 * 1000);
       if (!l || l.status === 'belum' || l.status === 'gagal' || macet) {
-        if (this._mintaLengkap && Date.now() - this._mintaLengkap < 60000) return;
+        // Kalau gagal berulang (mis. kuota AI habis), jarak coba ulang makin panjang: 1, 2, 4, 8, lalu tiap 10 menit.
+        var jeda = l && l.status === 'gagal' ? (this._jedaLengkap || 60000) : 60000;
+        if (this._mintaLengkap && Date.now() - this._mintaLengkap < jeda) return;
+        if (l && l.status === 'gagal') this._jedaLengkap = Math.min(jeda * 2, 600000); else this._jedaLengkap = 0;
         this._mintaLengkap = Date.now();
         API.mintaLaporanLengkap().catch(function (e) { console.warn(e); });
       }
