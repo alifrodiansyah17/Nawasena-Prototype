@@ -42,6 +42,7 @@ function isiContoh(skema: any): any {
   if (props.includes("tempat")) return c.lengkap.arahB;
   if (props.includes("peran")) return c.lengkap.arahA;
   if (props.includes("profil")) return { profil: PROFIL_CONTOH };
+  if (props.includes("opsi")) return { peran_kini: "", tahun_kerja: 0, jenjang: "staf", opsi: [] };   // aplikasi memakai pilihan bawaan
   throw new Error("Tidak ada contoh untuk skema ini");
 }
 

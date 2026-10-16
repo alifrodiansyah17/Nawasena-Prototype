@@ -51,7 +51,7 @@
     timerToast = setTimeout(function () { elToast.className = ''; }, 4200);
   }
   // Urutan alur untuk menentukan arah animasi (layar lebih awal = gerak mundur)
-  var URUTAN_LAYAR = ['muat', 'landing', 'masuk', 'daftar', 'masukKode', 'cekcv', 'unggah', 'susun', 'lampiran', 'previewcv',
+  var URUTAN_LAYAR = ['muat', 'landing', 'masuk', 'daftar', 'masukKode', 'setuju', 'cekcv', 'unggah', 'susun', 'lampiran', 'previewcv',
     'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan'];
   var GERAK_HEMAT = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
 
@@ -161,10 +161,11 @@
     s: {
       layar: 'muat', layarSebelum: '', user: null,
       profil: null, cvRow: null, lampiran: [], jawaban: null, laporan: null, lengkap: null, pesanan: null,
+      setuju: false, tandaSetuju: false,
       nama: '', tglLahir: '', hp: '', email: '', akun: '', otp: ['', '', '', '', '', ''], kodeMode: 'masuk', kontakTampil: '',
       cvFileNama: '', cvFileInfo: '', lampFileNama: '', lampTautan: '',
       cv: null, cvStep: 1, entri: entriKosong(), skillKetik: { keahlian: '', tools: '', bahasa: '' }, profilMemuat: false,
-      jawab: [], hal: 0, tick: 0, target: '',
+      jawab: [], hal: 0, tick: 0, target: '', targetPilih: [], saranTarget: null, saranMemuat: false,
       bayar: 'qris', bukti: null, salin: false, simpanQr: false,
       bagian: 0, peran: -1,
       butuh: -1, hargaVote: -1, tier: -1, sudahKirim: false, ideKirim: false, harap: '',
@@ -228,8 +229,9 @@
       if (l === 'menunggu' || l === 'berhasil' || (l === 'laporan' && !this.lengkapSiap())) {
         this._poll = setInterval(function () { self.segarkan(); }, 8000);
       }
+      if (l === 'intro' || l === 'soal' || l === 'target') this.muatSaranTarget();
       if (l === 'masukKode') this.jalankanHitungKode();
-      if (l === 'masukKode') setTimeout(function () { var i = document.querySelector('[data-otp="0"]'); if (i) i.focus(); }, 60);
+      if (l === 'masukKode') setTimeout(function () { var i = document.querySelector('[data-otp-input]'); if (i) i.focus(); }, 60);
     },
 
     // ------------------------------------------------------------ mulai
@@ -243,9 +245,17 @@
         return document.getElementById(dk ? 'tpl-desktop' : 'tpl').innerHTML;
       };
       this.rt = new window.NawasenaRuntime(document.getElementById('app'), pilihTpl());
+      // Kotak kode OTP: kursor selalu di ujung, jadi hapus selalu menghapus angka terakhir
+      var keUjung = function (e) {
+        var el = e.target;
+        if (!el || !el.hasAttribute || !el.hasAttribute('data-otp-input')) return;
+        setTimeout(function () { try { var n = el.value.length; el.setSelectionRange(n, n); } catch (er) { /* abaikan */ } }, 0);
+      };
+      ['focusin', 'click', 'keyup'].forEach(function (ev) { document.addEventListener(ev, keUjung, true); });
       var gantiUkuran = function () { self.rt.gantiTemplate(pilihTpl()); self.render(); };
       if (mq.addEventListener) mq.addEventListener('change', gantiUkuran); else if (mq.addListener) mq.addListener(gantiUkuran);
       this.render();
+      this.pasangTombolKembali();
       try {
         var u = await API.sesi();
         if (u && this.terlaluLamaDiam()) { await API.keluar(); u = null; toast('Kamu sudah lama tidak aktif, silakan masuk lagi ya.'); }
@@ -260,12 +270,51 @@
       API.padaSesiBerubah(function (ev) { if (ev === 'SIGNED_OUT') self.set({ layar: 'landing', profil: null }); });
     },
 
+    // ------------------------------------------------------------ tombol kembali HP/browser
+    // Satu entri riwayat "penjaga" selalu dipasang di atas halaman. Saat pengguna menekan kembali,
+    // entri itu terpakai, lalu aplikasi menjalankan tombol Kembali di layar yang sedang tampil dan
+    // memasang penjaganya lagi. Di layar paling awal, tekan kembali dua kali untuk benar-benar keluar.
+    pasangTombolKembali: function () {
+      var self = this;
+      if (!window.history || !history.pushState) return;
+      var jaga = function () { try { history.pushState({ nws: 1 }, ''); } catch (e) { /* abaikan */ } };
+      try { history.replaceState({ nws: 0 }, ''); } catch (e) { return; }
+      jaga();
+      window.addEventListener('popstate', function () {
+        if (self.mundurSistem()) { self._keluarSiap = 0; jaga(); return; }
+        if (self._keluarSiap && Date.now() - self._keluarSiap < 2500) { history.back(); return; }
+        self._keluarSiap = Date.now();
+        jaga();
+        toast('Tekan kembali sekali lagi untuk keluar.');
+      });
+    },
+    // Jalankan langkah mundur di dalam aplikasi. false = tidak ada lagi yang bisa dimundurkan.
+    mundurSistem: function () {
+      var s = this.s;
+      if (document.getElementById('sibuk').classList.contains('tampil')) return true;   // sedang memproses: abaikan
+      if (s.layar === 'laporan') {
+        if (s.peran >= 0) { this.set({ peran: -1 }); return true; }
+        if (s.bagian > 0) { this.set({ bagian: 0 }); return true; }
+        return false;
+      }
+      if (s.layar === 'soal') { this.halMundur(); return true; }
+      if (s.layar === 'susun') { this.cvMundur(); return true; }
+      // layar lain: pakai tombol Kembali (panah kiri) yang tampil di layar itu
+      var tombol = Array.prototype.filter.call(document.querySelectorAll('#layar .tap'), function (el) {
+        return el.offsetParent !== null && el.querySelector('path[d="M15 18l-6-6 6-6"]');
+      })[0];
+      if (tombol) { tombol.click(); return true; }
+      return false;
+    },
+
     muatData: async function () {
       var d = await API.muat();
       this.s.profil = d.profil; this.s.cvRow = d.cv; this.s.lampiran = d.lampiran; this.s.jawaban = d.jawaban;
       this.s.laporan = d.laporan; this.s.lengkap = d.lengkap; this.s.pesanan = d.pesanan;
       if (d.jawaban && Array.isArray(d.jawaban.data)) { this.s.jawab = d.jawaban.data.slice(); this.s.hal = Math.min(5, d.jawaban.hal || 0); }
-      if (d.jawaban && d.jawaban.target_jenis && !this.s.targetDiketik) this.s.target = d.jawaban.target || '';
+      if (d.jawaban && d.jawaban.target_jenis && !this.s.targetDiketik) {
+        this.s.targetPilih = String(d.jawaban.target || '').split(/\s*;\s*/).filter(Boolean); this.s.target = '';
+      }
       if (d.cv && d.cv.sumber === 'susun' && d.cv.susun) this.s.cv = d.cv.susun;
       if (!this.s.cv) this.s.cv = cvKosong(d.profil);
       if (d.cv && d.cv.sumber === 'unggah') { this.s.cvFileNama = d.cv.nama_file || 'CV.pdf'; this.s.cvFileInfo = 'sudah tersimpan'; }
@@ -290,6 +339,8 @@
     arahkan: function () {
       var s = this.s, lv = levelDari(s.profil && s.profil.tgl_lahir);
       if (!s.profil) { this.set({ layar: 'daftar', email: (s.user && s.user.email) || s.email }); return; }
+      // akun lama yang belum pernah menyetujui pengolahan data pribadi (kolom ada tapi masih kosong)
+      if ('setuju_data' in s.profil && !s.profil.setuju_data) { this.set({ layar: 'setuju' }); return; }
       if (!s.cvRow) { this.set({ layar: lv === 'entry' ? 'cekcv' : 'unggah' }); return; }
       if (!s.jawaban || !s.jawaban.selesai) { this.set({ layar: (s.jawab.filter(Boolean).length ? 'soal' : 'intro') }); return; }
       if (!s.laporan && !s.jawaban.target_jenis) { this.set({ layar: 'target' }); return; }
@@ -341,6 +392,7 @@
       if (!/^\d{4}-\d{2}-\d{2}$/.test(tgl || '') || umur(tgl) < 13 || umur(tgl) > 80) throw new Error('Tanggal lahirnya belum benar');
       if (hp.length < 10 || hp.length > 15) throw new Error('Nomor WhatsApp-nya belum benar');
       if (!emailValid(email)) throw new Error('Alamat email-nya belum benar');
+      if (!s.setuju) { this.set({ tandaSetuju: true }); throw new Error('Centang dulu persetujuan pengolahan data pribadinya ya'); }
       var k = await API.cekKontak(email, hp);
       if (k.hp_terpakai && !(s.profil)) throw new Error('Nomor WhatsApp ini sudah dipakai akun lain. Kalau itu kamu, pakai Login.');
       if (s.user && API._uid) {
@@ -362,10 +414,16 @@
       this.s.kodeDikirim = Date.now();
       this.set({ layar: 'masukKode', kodeMode: 'daftar', kontakTampil: email, otp: ['', '', '', '', '', ''], email: email });
     },
+    setujuiData: async function () {
+      if (!this.s.setuju) { this.set({ tandaSetuju: true }); throw new Error('Centang dulu persetujuannya ya'); }
+      var p = await API.setujuiData();
+      this.s.profil = p || Object.assign({}, this.s.profil, { setuju_data: new Date().toISOString() });
+      this.arahkan();
+    },
     simpanProfilDanLanjut: async function () {
       var s = this.s;
       try {
-        await API.simpanProfil(String(s.nama).trim(), s.tglLahir, hpDigit(s.hp));
+        await API.simpanProfil(String(s.nama).trim(), s.tglLahir, hpDigit(s.hp), !!s.setuju);
       } catch (e) {
         if (/HP_TERPAKAI/.test(e.message)) { this.set({ layar: 'daftar' }); throw new Error('Nomor WhatsApp ini sudah dipakai akun lain.'); }
         throw e;
@@ -425,18 +483,16 @@
         this.arahkan();
       }
     },
-    isiOtp: function (i) {
+    isiOtp: function () {
       var self = this;
       return function (e) {
-        var v = String(e.target.value || '').replace(/\D/g, '');
-        var a = self.s.otp.slice();
-        if (v.length > 1) { // tempel kode utuh
-          v.slice(0, 6 - i).split('').forEach(function (c, k) { a[i + k] = c; });
-        } else a[i] = v;
+        var v = String(e.target.value || '').replace(/\D/g, '').slice(0, 6);
+        if (e.target.value !== v) e.target.value = v;
+        var a = ['', '', '', '', '', ''];
+        v.split('').forEach(function (c, k) { a[k] = c; });
+        var lama = self.s.otp.join('');
         self.set({ otp: a });
-        var lanjut = Math.min(5, i + Math.max(1, v.length));
-        if (v) { var n = document.querySelector('[data-otp="' + lanjut + '"]'); if (n) n.focus(); }
-        if (a.join('').length === 6) self.aman(self.cekKode, 'Mengecek kode…')();
+        if (v.length === 6 && lama !== v) self.aman(self.cekKode, 'Mengecek kode…')();
       };
     },
 
@@ -607,13 +663,57 @@
     // Pertanyaan ikut level dari usia (lama kerja baru terbaca dari CV saat analisis):
     // 'pekerjaan' untuk yang baru mulai, 'role' untuk yang sudah bekerja.
     jenisTarget: function () { return levelDari(this.s.profil && this.s.profil.tgl_lahir) === 'entry' ? 'pekerjaan' : 'role'; },
+    // Beberapa target boleh dipilih; disimpan sebagai satu teks dipisah '; ' (server memecahnya lagi).
+    MAKS_TARGET: 3,
+    daftarTarget: function () {
+      var d = (this.s.targetPilih || []).slice(), t = String(this.s.target || '').replace(/\s+/g, ' ').trim();
+      if (t) d.push(t);
+      return d;
+    },
+    pilihTarget: function (t) {
+      var a = (this.s.targetPilih || []).slice(), i = -1;
+      a.forEach(function (x, k) { if (x.toLowerCase() === t.toLowerCase()) i = k; });
+      if (i >= 0) a.splice(i, 1);
+      else {
+        if (this.daftarTarget().length >= this.MAKS_TARGET) { toast('Maksimal ' + this.MAKS_TARGET + ' pilihan ya. Lepas satu dulu kalau mau ganti.'); return; }
+        a.push(t);
+      }
+      this.s.targetDiketik = true;
+      this.set({ targetPilih: a });
+    },
+    opsiTargetBawaan: function (kerja) {
+      return (kerja
+        ? [['Analis data', 'mengolah data jadi bahan keputusan'], ['Management Trainee', 'program rotasi calon pemimpin'], ['Digital Marketing', 'kampanye dan konten digital'],
+           ['Business Analyst', 'menjembatani bisnis dan tim teknologi'], ['HR / Talent Acquisition', 'mencari dan merawat talenta'], ['Project Coordinator', 'mengatur jadwal, orang, dan dokumen']]
+        : [['Team Lead', 'memimpin tim kecil di bidangmu'], ['Manager', 'memegang target dan tim'], ['Senior Specialist', 'makin dalam di keahlianmu'],
+           ['Head of Department', 'mengarahkan satu fungsi'], ['Konsultan', 'membantu banyak klien'], ['Product Manager', 'menentukan arah produk']]
+      ).map(function (x) { return { t: x[0], k: x[1] }; });
+    },
+    // Pilihan target dari CV (fungsi saran-target). Dipanggil sejak kuis dimulai supaya sudah siap di layar target.
+    muatSaranTarget: function () {
+      var self = this, s = this.s;
+      if (!s.cvRow || !API.saranTarget || this._saranJalan) return;
+      var kunci = 'nws_saran_' + (API._uid || '') + '_' + (s.cvRow.diubah || '') + '_' + this.jenisTarget();
+      if (s.saranTarget && s.saranTarget._kunci === kunci) return;
+      try { var simpan = JSON.parse(window.localStorage.getItem(kunci) || 'null'); if (simpan && simpan.opsi && simpan.opsi.length) { s.saranTarget = simpan; return; } } catch (e) { /* abaikan */ }
+      this._saranJalan = true; s.saranMemuat = true;
+      API.saranTarget().then(function (r) {
+        if (r && r.opsi && r.opsi.length) {
+          r._kunci = kunci; s.saranTarget = r;
+          try { window.localStorage.setItem(kunci, JSON.stringify(r)); } catch (e) { /* abaikan */ }
+        }
+      }).catch(function (e) { console.warn('saran target', e); })
+        .then(function () { self._saranJalan = false; s.saranMemuat = false; if (s.layar === 'target') self.render(); });
+    },
     simpanTarget: async function (lewati) {
-      var teks = lewati ? '' : String(this.s.target || '').replace(/\s+/g, ' ').trim();
-      if (!lewati && teks.length < 3) throw new Error('Tulis dulu gambarannya, atau pilih lewati');
+      var daftar = lewati ? [] : this.daftarTarget();
+      var teks = daftar.join('; ');
+      if (!lewati && !daftar.length) throw new Error('Pilih minimal satu, atau tekan lewati');
+      if (daftar.length > this.MAKS_TARGET) throw new Error('Maksimal ' + this.MAKS_TARGET + ' pilihan ya');
       if (teks.length > 300) throw new Error('Cukup tulis singkat saja ya, maksimal 300 huruf');
       var jenis = this.jenisTarget(), jw = this.s.jawaban || {};
       if (!(jw.target_jenis === jenis && (jw.target || '') === teks)) await API.simpanTarget(teks, jenis);
-      this.s.target = teks; this.s.targetDiketik = false;
+      this.s.targetPilih = daftar; this.s.target = ''; this.s.targetDiketik = false;
       this.s.jawaban = Object.assign({}, this.s.jawaban || {}, { target: teks, target_jenis: jenis });
       this.set({ layar: 'proses' });
     },
@@ -695,10 +795,13 @@
     bukaCetak: function (jenis) { window.open('cetak.html?jenis=' + jenis, '_blank'); },
     // ------------------------------------------------------------ keluar otomatis kalau lama tidak aktif
     batasDiamMs: function () { return (Number(C.BATAS_DIAM_MENIT) || 30) * 60 * 1000; },
-    catatAktif: function () { try { window.sessionStorage.setItem('nws_aktif', String(Date.now())); } catch (e) { this._aktif = Date.now(); } },
+    // Waktu aktivitas terakhir disimpan di localStorage (bersama sesi), jadi tetap terbaca
+    // walaupun browser sempat menutup tab saat pengguna pindah ke aplikasi lain.
+    catatAktif: function () { this._aktif = Date.now(); try { window.localStorage.setItem('nws_aktif', String(this._aktif)); } catch (e) { /* abaikan */ } },
     terlaluLamaDiam: function () {
       var t = 0;
-      try { t = Number(window.sessionStorage.getItem('nws_aktif') || 0); } catch (e) { t = this._aktif || 0; }
+      try { t = Number(window.localStorage.getItem('nws_aktif') || 0); } catch (e) { t = 0; }
+      t = Math.max(t, this._aktif || 0);
       return t > 0 && Date.now() - t > this.batasDiamMs();
     },
     awasiDiam: function () {
@@ -713,12 +816,13 @@
       };
       setInterval(periksa, 60000);
       document.addEventListener('visibilitychange', function () { if (!document.hidden) periksa(); });
+      window.addEventListener('pageshow', function () { periksa(); });
     },
 
     keluar: async function () {
       await API.keluar();
       if (this._lepas) { this._lepas(); this._lepas = null; }
-      this.s = Object.assign(this.s, { profil: null, cvRow: null, jawaban: null, laporan: null, lengkap: null, pesanan: null, jawab: [], hal: 0, target: '', targetDiketik: false, cv: null, user: null });
+      this.s = Object.assign(this.s, { profil: null, cvRow: null, jawaban: null, laporan: null, lengkap: null, pesanan: null, jawab: [], hal: 0, target: '', targetPilih: [], saranTarget: null, targetDiketik: false, cv: null, user: null });
       this.set({ layar: 'landing' });
     }
   };
@@ -733,6 +837,17 @@
     return m;
   }
 
+  // Baris identitas di sampul laporan. Sudah bekerja: jabatan sekarang dan lama pengalaman kerjanya.
+  function identitasDari(b1) {
+    b1 = b1 || {};
+    var th = Number(b1.tahun_kerja) || 0, peran = String(b1.peran_kini || '').trim();
+    if (th > 0 && peran) {
+      var lama = th < 1 ? 'kurang dari 1 tahun' : Math.round(th) + ' tahun';
+      return peran + ' · ' + lama + ' pengalaman kerja';
+    }
+    return String(b1.identitas || '');
+  }
+
   window.App = App;
-  window.NawasenaUtil = { rp: rp, tglIndo: tglIndo, jamIndo: jamIndo, levelDari: levelDari, umur: umur, bulir: bulir, teksCV: teksCV, huruf1: huruf1, svgData: svgData, PILIHAN_SKILL: PILIHAN_SKILL, toast: toast };
+  window.NawasenaUtil = { identitasDari: identitasDari, rp: rp, tglIndo: tglIndo, jamIndo: jamIndo, levelDari: levelDari, umur: umur, bulir: bulir, teksCV: teksCV, huruf1: huruf1, svgData: svgData, PILIHAN_SKILL: PILIHAN_SKILL, toast: toast };
 })();

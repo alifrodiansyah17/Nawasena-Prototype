@@ -48,6 +48,14 @@
     async simpanJawaban(data, hal, selesai) { await tunda(200); db.jawaban = Object.assign({}, db.jawaban || {}, { data: data, hal: hal, selesai: selesai ? new Date().toISOString() : null }); },
     async daftarSandi(email, sandi) { await tunda(400); calon = email; API._uid = 'demo-user'; return { id: API._uid, email: email }; },
     async masukSandi(akun, sandi) { await tunda(400); if (!db.profil) throw new Error('Email atau nomor ini belum terdaftar. Coba daftar dulu ya.'); API._uid = 'demo-user'; },
+    async saranTarget() {
+      await tunda(900);
+      return { jenis: 'role', peran_kini: 'Product Manager', tahun_kerja: 4, jenjang: 'staf', opsi: [
+        { t: 'Senior Product Manager', k: 'naik satu jenjang di jalurmu' }, { t: 'Group Product Manager', k: 'memegang beberapa produk sekaligus' },
+        { t: 'Head of Product', k: 'mengarahkan strategi produk' }, { t: 'Product Lead', k: 'memimpin tim produk kecil' },
+        { t: 'Product Operations Lead', k: 'memakai pengalaman proses produkmu' }, { t: 'Business Analyst Lead', k: 'memakai kebiasaan menggali kebutuhan' },
+        { t: 'Program Manager', k: 'mengatur inisiatif lintas tim' }, { t: 'Strategy Manager', k: 'membawa sudut pandang produk ke strategi' }] };
+    },
     async simpanTarget(target, jenis) { await tunda(200); db.jawaban = Object.assign({}, db.jawaban || {}, { target: target, target_jenis: jenis }); },
     async mulaiAnalisis() {
       var sidik = JSON.stringify([db.cv && db.cv.teks, db.jawaban && db.jawaban.data, db.jawaban && db.jawaban.target, (db.lampiran || []).map(function (l) { return l.id; })]);

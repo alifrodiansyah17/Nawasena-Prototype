@@ -5,14 +5,24 @@
   var C = window.NAWASENA_CONFIG;
   if (C.MODE_DEMO) return; // api-demo.js akan mengisi window.API
 
-  // Sesi login hanya disimpan selama tab/jendela terbuka (sessionStorage).
-  // Tutup jendela lalu buka lagi = harus masuk lagi. Data yang sudah diisi tetap tersimpan di server.
+  // Sesi login disimpan di browser (localStorage), jadi pindah ke aplikasi lain atau tab yang dimuat ulang
+  // tidak membuat pengguna harus minta kode email lagi. Keamanannya dijaga oleh keluar otomatis kalau
+  // tidak ada aktivitas selama BATAS_DIAM_MENIT (lihat app.js: awasiDiam), dicek juga saat aplikasi dibuka lagi.
   var penyimpanan = (function () {
     var mem = {};
-    try { window.sessionStorage.setItem('_cek', '1'); window.sessionStorage.removeItem('_cek'); return window.sessionStorage; }
+    try {
+      window.localStorage.setItem('_cek', '1'); window.localStorage.removeItem('_cek');
+      // pindahkan sesi yang masih aktif dari versi sebelumnya (sessionStorage), supaya tidak perlu login ulang
+      try {
+        var lama = window.sessionStorage.getItem('nawasena-sesi');
+        if (lama && !window.localStorage.getItem('nawasena-sesi')) window.localStorage.setItem('nawasena-sesi', lama);
+        window.sessionStorage.removeItem('nawasena-sesi');
+      } catch (e) { /* abaikan */ }
+      return window.localStorage;
+    }
     catch (e) { return { getItem: function (k) { return k in mem ? mem[k] : null; }, setItem: function (k, v) { mem[k] = String(v); }, removeItem: function (k) { delete mem[k]; } }; }
   })();
-  // Bersihkan sesi lama yang dulu tersimpan permanen di browser (versi sebelumnya).
+  // Bersihkan sesi lama dengan nama kunci bawaan Supabase (versi pertama aplikasi).
   try {
     for (var i = window.localStorage.length - 1; i >= 0; i--) {
       var kunci = window.localStorage.key(i);
@@ -78,8 +88,18 @@
       API._uid = d.user.id;
       return d.user;
     },
-    async simpanProfil(nama, tglLahir, hp) {
-      return cek(await sb.rpc('simpan_profil', { p_nama: nama, p_tgl_lahir: tglLahir, p_hp: hp }));
+    async simpanProfil(nama, tglLahir, hp, setuju) {
+      var r = await sb.rpc('simpan_profil', { p_nama: nama, p_tgl_lahir: tglLahir, p_hp: hp, p_setuju: !!setuju });
+      // database belum diperbarui (kolom persetujuan belum ada): pakai fungsi lama
+      if (r.error && /Could not find the function|PGRST202/i.test((r.error.message || '') + (r.error.code || ''))) {
+        r = await sb.rpc('simpan_profil', { p_nama: nama, p_tgl_lahir: tglLahir, p_hp: hp });
+      }
+      return cek(r);
+    },
+    async setujuiData() {
+      var r = await sb.rpc('setujui_data');
+      if (r.error && /Could not find the function|PGRST202/i.test((r.error.message || '') + (r.error.code || ''))) return null;
+      return cek(r);
     },
     async daftarSandi(email, sandi) {
       var d = cek(await sb.auth.signUp({ email: email, password: sandi }));
@@ -150,6 +170,7 @@
       await sb.from('cv').update({ diubah: new Date().toISOString() }).eq('user_id', uid());
     },
     async profilCV(susun) { return fungsi('profil-cv', { susun: susun }); },
+    async saranTarget() { return fungsi('saran-target', {}); },
 
     // ---------- kuis & analisis
     async simpanJawaban(data, hal, selesai) {

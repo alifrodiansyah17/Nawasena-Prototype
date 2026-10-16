@@ -3,7 +3,7 @@
   'use strict';
   var App = window.App, C = window.NAWASENA_CONFIG, D = window.DATA, U = window.NawasenaUtil;
   var ITEMS = D.ITEMS, SKALA4 = ['Bukan aku', 'Aku banget'];
-  var LAYAR = ['muat', 'landing', 'masuk', 'masukKode', 'daftar', 'cekcv', 'unggah', 'lampiran', 'susun', 'previewcv',
+  var LAYAR = ['muat', 'landing', 'masuk', 'masukKode', 'daftar', 'setuju', 'cekcv', 'unggah', 'lampiran', 'susun', 'previewcv',
     'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan'];
 
   function lengkapContoh(s) { var b = s.lengkap && s.lengkap.bagian; return !!(b && b.rencana && b.rencana.contoh); }
@@ -66,6 +66,18 @@
     v.setNama = this.isi('nama'); v.setTgl = this.isi('tglLahir'); v.setHp = this.isi('hp'); v.setEmail = this.isi('email');
     v.tglMaks = new Date().toISOString().slice(0, 10);
     v.daftarLanjutKlik = this.aman(this.daftarLanjut, C.VERIFIKASI_EMAIL ? 'Mengirim kode…' : 'Membuat akunmu…');
+    // persetujuan pengolahan data pribadi (UU PDP)
+    var tandaSetuju = s.tandaSetuju && !s.setuju;
+    v.setujuCentang = !!s.setuju; v.setujuAria = s.setuju ? 'true' : 'false';
+    v.toggleSetuju = function (e) {
+      if (e && e.target && e.target.closest && e.target.closest('a')) return;   // klik tautan kebijakan: jangan ubah centang
+      self.set({ setuju: !s.setuju, tandaSetuju: false });
+    };
+    v.setujuWadah = 'display: flex; gap: 12px; align-items: flex-start; border-radius: 12px; padding: 14px; cursor: pointer; '
+      + 'background: ' + (s.setuju ? '#F0F9FF' : '#F8FAFC') + '; border: 1.5px solid ' + (tandaSetuju ? '#DC2626' : s.setuju ? '#009FE3' : '#E2E8F0') + ';';
+    v.setujuKotak = 'width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; border-radius: 6px; display: flex; align-items: center; justify-content: center; '
+      + 'background: ' + (s.setuju ? '#009FE3' : '#FFFFFF') + '; border: 1.5px solid ' + (tandaSetuju ? '#DC2626' : s.setuju ? '#009FE3' : '#94A3B8') + ';';
+    v.setujuLanjutKlik = this.aman(this.setujuiData, 'Menyimpan…');
     v.emailTampil = profil.email || s.email || 'emailmu';
     v.namaTampil = profil.nama || s.nama || 'Kamu';
 
@@ -92,11 +104,17 @@
     v.kirimUlangLabel = sisaKode > 0 ? 'Kirim ulang dalam ' + sisaKode + ' detik' : 'Kirim ulang kodenya';
     v.kirimUlangGaya = sisaKode > 0 ? 'color: #94A3B8; font-weight: 700; cursor: default;' : 'color: #0284C7; font-weight: 700;';
     v.cekKodeKlik = this.aman(this.cekKode, 'Mengecek kode…');
+    // Satu kotak isian tak terlihat menutupi 6 kotak tampilan: tombol hapus, tempel, dan isi otomatis
+    // dari SMS/email jalan seperti kotak teks biasa.
+    v.otpNilai = s.otp.join('');
+    v.adaOtp = v.otpNilai.length > 0;
+    v.isiOtpKlik = this.isiOtp();
+    v.hapusOtp = function () { self.set({ otp: ['', '', '', '', '', ''] }); var i = document.querySelector('[data-otp-input]'); if (i) i.focus(); };
     v.otpBoxes = s.otp.map(function (val, i) {
       var aktif = (val === '' && s.otp.slice(0, i).every(function (x) { return x !== ''; }));
-      return { v: val, on: self.isiOtp(i),
-        st: 'flex-grow: 1; width: 100%; height: 58px; text-align: center; font-size: 22px; font-weight: 700; '
-          + 'font-family: Nunito, sans-serif; color: #0284C7; background: #FFFFFF; outline: none; '
+      return { v: val,
+        st: 'flex: 1 1 0; min-width: 0; height: 58px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; '
+          + 'font-family: Nunito, sans-serif; color: #0284C7; background: #FFFFFF; '
           + 'border-radius: 12px; border: 1.5px solid ' + (aktif || val ? '#009FE3' : '#CBD5E1') + '; '
           + (aktif ? 'box-shadow: 0 0 0 3px rgba(0,159,227,0.14);' : '') };
     });
@@ -211,19 +229,43 @@
     v.halKembaliLabel = 'Kembali';
 
     // ---------------------------------------------------------------- target karir (sesudah kuis, opsional)
-    var tgtKerja = self.jenisTarget() === 'pekerjaan';
+    var tgtKerja = self.jenisTarget() === 'pekerjaan', MAKS = self.MAKS_TARGET;
+    var saran = s.saranTarget || {}, pilihan = s.targetPilih || [];
+    var ketik = String(s.target || '').trim() ? 1 : 0;
     v.target = s.target;
-    v.setTarget = function (e) { s.target = e.target.value; s.targetDiketik = true; };
+    v.setTarget = function (e) {
+      var lama = String(s.target || '').trim() ? 1 : 0, baru = String(e.target.value || '').trim() ? 1 : 0;
+      s.target = e.target.value; s.targetDiketik = true;
+      if (lama !== baru) self.render();   // perbarui hitungan pilihan
+    };
     v.tgtJudul = tgtKerja ? 'Pekerjaan seperti apa yang ingin kamu coba cari tahu?' : 'Role apa yang ingin kamu capai berikutnya?';
-    v.tgtSub = tgtKerja ? 'Tidak harus nama jabatan. Ceritakan saja gambaran pekerjaan yang kamu bayangkan.'
-      : 'Tulis role atau level yang kamu incar dalam beberapa tahun ke depan.';
+    v.tgtSub = tgtKerja ? 'Pilih yang paling bikin kamu penasaran, boleh lebih dari satu. Kalau tidak ada yang pas, tulis sendiri.'
+      : 'Pilihannya kami sesuaikan dengan posisi dan pengalamanmu sekarang. Boleh pilih lebih dari satu.';
     v.tgtPh = tgtKerja ? 'Misalnya: ikut menentukan fitur aplikasi yang dipakai banyak orang' : 'Misalnya: Head of Product';
+    v.tgtTulisJudul = 'Atau tulis sendiri (opsional)';
+    v.tgtPilihJudul = tgtKerja ? 'Pilihan yang cocok dengan latar belakangmu' : 'Langkah berikutnya yang masuk akal buat kamu';
     v.tgtInfo = tgtKerja
-      ? 'Kalau diisi, 3 dari 6 arah karir di laporanmu mengikuti jawaban ini. 3 lainnya dari kemampuan yang sudah terbentuk di kamu.'
-      : 'Kalau diisi, 1 dari 6 arah karir di laporanmu membahas role ini. 5 lainnya yang paling relevan dengan karir dan gaya kerjamu sekarang.';
-    v.tgtContoh = (tgtKerja ? ['Ikut menentukan fitur aplikasi', 'Banyak mengolah data', 'Merapikan cara kerja tim']
-      : ['Head of Product', 'Finance Manager', 'Engineering Manager'])
-      .map(function (t) { return { t: t, pick: function () { s.targetDiketik = true; self.set({ target: t }); } }; });
+      ? 'Kalau diisi, 3 dari 6 arah karir di laporanmu mengikuti pilihanmu. 3 lainnya dari kemampuan yang sudah terbentuk di kamu.'
+      : 'Tiap role yang kamu pilih (maksimal ' + MAKS + ') dibahas sebagai satu arah karir di laporanmu. Sisanya diisi arah yang paling relevan dengan karir dan gaya kerjamu sekarang.';
+    v.tgtKini = saran.peran_kini || ''; v.tgtKiniAda = !tgtKerja && !!saran.peran_kini;
+    v.tgtMemuat = !!s.saranMemuat && !(saran.opsi && saran.opsi.length);
+    var jumlah = pilihan.length + ketik;
+    v.tgtHitung = jumlah ? jumlah + ' dari maks ' + MAKS + ' dipilih' : 'Maksimal ' + MAKS;
+    // pilihan dari CV (atau bawaan kalau belum ada), ditambah pilihan tersimpan yang tidak ada di daftar
+    var opsi = (saran.opsi && saran.opsi.length) ? saran.opsi.slice() : (v.tgtMemuat ? [] : self.opsiTargetBawaan(tgtKerja));
+    var ada = {}; opsi.forEach(function (o) { ada[o.t.toLowerCase()] = 1; });
+    pilihan.forEach(function (t) { if (!ada[t.toLowerCase()]) opsi.push({ t: t, k: '' }); });
+    v.tgtOpsi = opsi.map(function (o) {
+      var on = pilihan.some(function (t) { return t.toLowerCase() === o.t.toLowerCase(); });
+      return {
+        t: o.t, k: o.k, pilih: on, aria: on ? 'true' : 'false',
+        st: 'display: flex; gap: 12px; align-items: flex-start; border-radius: 12px; padding: 12px 14px; cursor: pointer; '
+          + 'background: ' + (on ? '#F0F9FF' : '#FFFFFF') + '; border: 1.5px solid ' + (on ? '#009FE3' : '#E2E8F0') + ';',
+        kotak: 'width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; border-radius: 6px; display: flex; align-items: center; justify-content: center; '
+          + 'background: ' + (on ? '#009FE3' : '#FFFFFF') + '; border: 1.5px solid ' + (on ? '#009FE3' : '#94A3B8') + ';',
+        pick: function () { self.pilihTarget(o.t); }
+      };
+    });
     v.lanjutTarget = this.aman(function () { return self.simpanTarget(false); }, 'Menyimpan…');
     v.lewatiTarget = this.aman(function () { return self.simpanTarget(true); }, 'Menyimpan…');
     v.kembaliKeSoal = function () { self.set({ layar: 'soal', hal: 5 }); };
@@ -262,7 +304,7 @@
     var ark = b1.arketipe || {};
     v.arkNama = ark.nama || ''; v.arkSub = ark.sub || ''; v.arkTeks = ark.teks || '';
     v.maskotSrc = U.svgData((window.MASKOT || {})[ark.maskot] || (window.MASKOT || {}).analyst || '');
-    v.identitas = (b1.identitas || '') + (lap.diubah ? ' · ' + U.tglIndo(lap.diubah) : '');
+    v.identitas = U.identitasDari(b1) + (lap.diubah ? ' · ' + U.tglIndo(lap.diubah) : '');
     v.paling = (b1.paling || []).map(function (x) { return { j: x.j, c: x.c, p: x.p }; });
     v.dilatih = (b1.dilatih || []).map(function (x) { return { j: x.j, p: x.p }; });
     var tn = b1.tokoh_nyata || {}, tf = b1.tokoh_fiksi || {};
@@ -403,9 +445,11 @@
     var jw = s.jawaban || {};
     v.adaTarget = !!(jw.target && jw.target_jenis);
     v.targetLabel = jw.target_jenis === 'role' ? 'Role yang ingin kamu capai' : 'Pekerjaan yang kamu bayangkan';
-    v.targetTeks = jw.target || '';
+    v.targetTeks = String(jw.target || '').split(/\s*;\s*/).filter(Boolean).join(' · ');
+    var ANGKA = ['', 'Satu', 'Dua', 'Tiga'], angka = ['', 'satu', 'dua', 'tiga', 'empat', 'lima'];
+    var nTgt = (r.arah || []).filter(function (a) { return a.kel === 'Sesuai target karirmu'; }).length || 1;
     if (v.adaTarget && s.bagian === 5) v.bagSub = jw.target_jenis === 'role'
-      ? 'Satu sesuai target karirmu, lima yang relevan dengan karirmu sekarang, plus tempat kerja yang paling pas'
+      ? ANGKA[nTgt] + ' sesuai target karirmu, ' + angka[6 - nTgt] + ' yang relevan dengan karirmu sekarang, plus tempat kerja yang paling pas'
       : 'Tiga sesuai keinginanmu, tiga yang sudah terbentuk di kamu, plus tempat kerja yang paling pas';
     var KEL_DEPAN = { 'Sesuai keinginanmu': 1, 'Sesuai target karirmu': 1 };
     var kelGaya = function (kel) {

@@ -163,12 +163,12 @@
 <body>
 <div class="bar"><span id="info">Menyiapkan dokumen…</span><button onclick="window.print()">Simpan sebagai PDF</button></div>
 <div class="kertas" id="isi"></div>
-<script src="config.js"></script>
-<script src="aset/vendor/supabase-2.117.2.js"></script>
-<script src="aset/data.js"></script>
-<script src="aset/contoh-laporan.js"></script>
-<script src="aset/api.js"></script>
-<script src="aset/api-demo.js"></script>
+<script src="config.js?v=61bf8395"></script>
+<script src="aset/vendor/supabase-2.117.2.js?v=d3846343"></script>
+<script src="aset/data.js?v=37ff04b7"></script>
+<script src="aset/contoh-laporan.js?v=887734dc"></script>
+<script src="aset/api.js?v=aef4886e"></script>
+<script src="aset/api-demo.js?v=a52f73e6"></script>
 <script>
 (function () {
   'use strict';
@@ -227,6 +227,13 @@
     document.title = 'CV ' + (c.nama || '');
   }
 
+  // sama dengan identitasDari di app.js: sudah bekerja → jabatan sekarang · lama pengalaman kerja
+  function identitasDari(b1) {
+    b1 = b1 || {};
+    var th = Number(b1.tahun_kerja) || 0, peran = String(b1.peran_kini || '').trim();
+    if (th > 0 && peran) return peran + ' · ' + (th < 1 ? 'kurang dari 1 tahun' : Math.round(th) + ' tahun') + ' pengalaman kerja';
+    return String(b1.identitas || '');
+  }
   function x(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function svgData(svg) {
     svg = svg || ''; if (svg && svg.indexOf('xmlns=') < 0) svg = svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
@@ -261,7 +268,7 @@
     // ---- sampul
     blok('<div class="sampul2"><img class="mtr" src="aset/matahari.svg" alt=""><div class="merek"><img class="logo" src="aset/logo-nawasena-putih.png" alt="Nawasena"></div>'
       + '<div class="kicker">Peta potensimu</div><h1>Mengenal Diri<br>dan Arah Karir</h1>'
-      + '<div class="nama">' + x(nama) + '</div><div class="idn">' + x(b1.identitas) + '</div>'
+      + '<div class="nama">' + x(nama) + '</div><div class="idn">' + x(identitasDari(b1)) + '</div>'
       + '<div class="ark"><img src="' + maskot + '" alt=""><div><div class="lb">Cara kerja kamu</div><h2>' + x(a.nama) + (a.sub ? ' · ' + x(a.sub) : '') + '</h2><p>' + x(a.teks) + '</p></div></div>'
       + '<div class="dftr">' + BAG.map(function (b) { return '<div><b>' + b.no + '</b>' + x(b.nama) + '</div>'; }).join('') + '</div>'
       + '<div class="kaki">Disusun ' + tgl + ' dari jawaban kuis yang kamu isi sendiri dan dari CV yang kamu kirim. Isinya buat membantu kamu mengenali cara kerjamu dan memilih langkah berikutnya, bukan penilaian akhir tentang dirimu.</div></div>', true);

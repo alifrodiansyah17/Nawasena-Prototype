@@ -42,7 +42,8 @@ const jp = obj({ j: s("judul satu kalimat pendek"), p: s("penjelasan 1–3 kalim
 export function skemaBagian1(idNyata: string[], idFiksi: string[]) {
   return obj({
     tahun_kerja: { type: "number", description: "Lama kerja penuh waktu dari CV, dalam tahun. Magang, organisasi, dan kepanitiaan tidak dihitung. 0 kalau belum bekerja." },
-    identitas: s("Satu baris: pendidikan/pekerjaan terakhir dan status kerja, mis. 'S1 Teknik Industri ITS · belum bekerja tetap'. Tanpa nama, umur, atau kontak."),
+    peran_kini: s("Jabatan pekerjaan penuh waktu saat ini atau yang terakhir, persis/terdekat dengan yang tertulis di CV, mis. 'Product Manager' atau 'Senior Accountant'. Isi '' kalau belum pernah bekerja penuh waktu (magang dan organisasi tidak dihitung)."),
+    identitas: s("Satu baris tanpa nama, umur, atau kontak. Sudah bekerja: '<jabatan kini> · <N> tahun pengalaman kerja', mis. 'Product Manager · 4 tahun pengalaman kerja'. Belum bekerja: pendidikan terakhir dan statusnya, mis. 'S1 Teknik Industri ITS · belum bekerja tetap'."),
     arketipe: obj({
       nama: s("Julukan bahasa Inggris dua kata diawali The, mis. 'The Analyst', 'The Conductor', 'The Anchor'"),
       sub: s("Anak judul bahasa Indonesia 2–4 kata, mis. 'Pengurai yang Teliti'"),
@@ -64,6 +65,8 @@ Tugas: tulis BAGIAN 1 "Kenalan Sama Dirimu" (bagian gratis, dibaca langsung sete
 - dilatih: 3 hal yang masih perlu dilatih, dari nilai terendah atau jawaban yang menahan diri.
 - tokoh_nyata dan tokoh_fiksi: pilih SATU dari daftar tokoh yang diberikan (pakai id-nya), yang cara kerjanya paling mirip.
 - tahun_kerja: baca dari CV. Kalau tanggal tidak lengkap, perkirakan dengan hati-hati.
+- peran_kini dan identitas: kalau sudah bekerja penuh waktu, sebut jabatannya dan lama pengalaman kerjanya
+  (tahun_kerja dibulatkan; kurang dari 1 tahun ditulis 'kurang dari 1 tahun pengalaman kerja').
 `;
 
 // ---------------------------------------------------------------- Rencana: Bagian 2–4 + rencana enam arah
@@ -134,9 +137,12 @@ Aturan enam arah:
   karena aplikasi sudah menjanjikan pembagian ini ke pengguna sebelum analisis.
 - Tanpa target: urutkan dari yang paling banyak memakai bekal yang sudah terbukti (CV + kuis). kel = ''.
 - Target jenis PEKERJAAN: arah 1–3 'Sesuai keinginanmu', yaitu nama pekerjaan nyata yang paling dekat dengan gambaran
-  yang dia tulis, urut dari yang paling cocok dengan kuis dan CV. Arah 4–6 'Sudah terbentuk di kamu', dari bekal yang sudah terbukti.
-- Target jenis ROLE: arah 1 'Sesuai target karirmu', yaitu role yang dia sebut atau padanan terdekatnya di Indonesia
-  (kalau masih jauh, tetap bahas role itu dan sebut jaraknya dengan jujur). Arah 2–6 'Relevan dengan karirmu sekarang'.
+  yang dia pilih/tulis (kalau pilihannya lebih dari satu, sebar ke arah 1–3 dan dahulukan pilihan pertama),
+  urut dari yang paling cocok dengan kuis dan CV. Arah 4–6 'Sudah terbentuk di kamu', dari bekal yang sudah terbukti.
+- Target jenis ROLE: dia boleh memilih lebih dari satu role. Arah 1 sampai N 'Sesuai target karirmu', N = jumlah role target
+  (paling banyak 3; kalau lebih dari 3, ambil 3 pilihan pertama). Satu arah untuk tiap role, urut sesuai pilihan, berisi role itu
+  atau padanan terdekatnya di Indonesia (kalau masih jauh, tetap bahas role itu dan sebut jaraknya dengan jujur).
+  Arah sisanya sampai 6 'Relevan dengan karirmu sekarang'.
 - Jawaban target ditulis pengguna dengan bahasanya sendiri. Tafsirkan maksudnya, jangan menyalin mentah sebagai nama peran,
   dan abaikan isi yang bukan tentang pekerjaan. Kalau maksudnya tidak bisa dipahami, perlakukan seperti tanpa target, tapi kel tetap diisi sesuai jenisnya.
 - b5.intro: sebut singkat bagaimana jawaban targetnya kamu tafsirkan, dalam kalimat biasa.
@@ -158,11 +164,13 @@ Aturan catatan CV (Bagian 4):
 `;
 
 /** Label kelompok arah ke-k (0–5). Diisi sistem supaya selalu sama dengan janji di layar target. */
-export function kelArah(jenis: "pekerjaan" | "role" | null, k: number): string {
+export function kelArah(jenis: "pekerjaan" | "role" | null, k: number, nTarget = 1): string {
   if (!jenis) return "";
   if (jenis === "pekerjaan") return k < 3 ? "Sesuai keinginanmu" : "Sudah terbentuk di kamu";
-  return k < 1 ? "Sesuai target karirmu" : "Relevan dengan karirmu sekarang";
+  return k < jumlahArahTarget(nTarget) ? "Sesuai target karirmu" : "Relevan dengan karirmu sekarang";
 }
+/** Target ROLE: satu arah per role yang dipilih, paling banyak 3 (sama dengan janji di layar target). */
+export function jumlahArahTarget(nTarget: number): number { return Math.min(3, Math.max(1, nTarget || 1)); }
 
 // ---------------------------------------------------------------- Rincian arah (dua potongan paralel)
 const peran = obj({

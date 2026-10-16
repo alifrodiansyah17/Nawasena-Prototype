@@ -33,7 +33,9 @@ window.NAWASENA_CONFIG = {
   //   true  = kode 6 angka dikirim ke email (perlu SMTP sendiri, lihat README)
   VERIFIKASI_EMAIL: true,
 
-  // Keluar otomatis kalau tidak ada aktivitas selama sekian menit (sesi juga hilang saat jendela ditutup)
+  // Keluar otomatis kalau tidak ada aktivitas selama sekian menit. Pindah aplikasi atau menutup tab
+  // tidak langsung mengeluarkan pengguna; yang dihitung waktu sejak aktivitas terakhir.
+  // 30 menit = batas atas rekomendasi OWASP untuk aplikasi berisiko rendah–menengah (15–30 menit).
   BATAS_DIAM_MENIT: 30,
 
   // Isi true untuk mencoba aplikasi tanpa Supabase (data palsu di browser, tanpa AI)

@@ -102,7 +102,7 @@ async function jalankanPotongan(userId: string, langkah: string) {
           let id = typeof a.peran_id === "string" && peran.some((p) => p.id === a.peran_id) ? a.peran_id : null;
           if (id && dipakai.has(id)) id = null;
           if (id) dipakai.add(id);
-          return { ...a, peran_id: id, kel: kelArah(k.targetJenis, i) };
+          return { ...a, peran_id: id, kel: kelArah(k.targetJenis, i, k.targetDaftar.length) };
         });
       }
       rapikanTipe(data.b2 as Record<string, unknown> | undefined);

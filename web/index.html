@@ -14,7 +14,7 @@
 <style>
   :root { --tinggi: 100vh; }
   @supports (height: 100dvh) { :root { --tinggi: 100dvh; } }
-  html, body { margin: 0; background: #E0F2FE; }
+  html, body { margin: 0; background: #E0F2FE; overscroll-behavior-y: none; }
   body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; color: #1E293B; -webkit-font-smoothing: antialiased; }
   * { box-sizing: border-box; }
   a { color: #009FE3; text-decoration: none; }
@@ -24,7 +24,8 @@
   input, textarea { font-family: inherit; font-size: 16px !important; }
   input:focus, textarea:focus { outline: none; border-color: #009FE3 !important; }
   input::placeholder, textarea::placeholder { color: #94A3B8; }
-  .scroll { overflow-y: auto; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+  /* overscroll-behavior: tanpa efek pantul/tarik di ujung gulir, supaya tidak ada area kosong yang sempat terbuka */
+  .scroll { overflow-y: auto; scrollbar-width: thin; -webkit-overflow-scrolling: touch; overscroll-behavior-y: none; }
   .scroll::-webkit-scrollbar { width: 6px; }
   .scroll::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 999px; }
   /* Motion: tombol membal saat ditekan, perubahan warna halus, layar bergeser saat pindah (lihat app.js: animasiLayar) */
@@ -244,10 +245,16 @@
       <h2 style="font-size: 24px; line-height: 32px; font-weight: 700;">Masukkan kodenya ya</h2>
       <p style="font-size: 14px; color: #64748B; margin-top: 8px;">Kode 6 angkanya barusan kami kirim ke <b style="color: #0F172A;">{{kontakTampil}}</b></p>
     </div>
-    <div style="display: flex; gap: 8px;">
-      <sc-for list="{{otpBoxes}}" as="b">
-        <input value="{{b.v}}" onChange="{{b.on}}" data-otp="{{bIndex}}" inputmode="numeric" autocomplete="one-time-code" style="{{b.st}}">
-      </sc-for>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="position: relative; display: flex; gap: 8px;">
+        <sc-for list="{{otpBoxes}}" as="b">
+          <div style="{{b.st}}">{{b.v}}</div>
+        </sc-for>
+        <input data-otp-input="1" value="{{otpNilai}}" onChange="{{isiOtpKlik}}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="6" aria-label="Kode 6 angka" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: none; background: transparent; color: transparent; caret-color: transparent; cursor: text;">
+      </div>
+      <sc-if value="{{adaOtp}}">
+        <p style="font-size: 13px; color: #64748B;">Salah ketik? Tekan tombol hapus di keyboard, atau <span class="tap" onClick="{{hapusOtp}}" style="color: #0284C7; font-weight: 700;">hapus semua kodenya</span></p>
+      </sc-if>
     </div>
     <div style="display: flex; flex-direction: column; gap: 10px;">
       <p style="font-size: 13.5px; color: #64748B;">Kodenya belum masuk juga? Cek folder Spam atau Promosi dulu. <span class="tap" onClick="{{kirimUlangKlik}}" style="{{kirimUlangGaya}}">{{kirimUlangLabel}}</span></p>
@@ -314,12 +321,44 @@
         </div>
       </div>
       </sc-if>
+      <div class="tap" onClick="{{toggleSetuju}}" role="checkbox" aria-checked="{{setujuAria}}" style="{{setujuWadah}}">
+        <div style="{{setujuKotak}}"><sc-if value="{{setujuCentang}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></sc-if></div>
+        <p style="font-size: 13px; color: #334155; line-height: 1.55;">Aku setuju data pribadiku (nama, tanggal lahir, nomor WhatsApp, email, CV, dan jawaban kuis) diolah Nawasena untuk menyusun analisis dan laporan karirku, sesuai <a href="privasi.html" target="_blank" rel="noopener" style="font-weight: 700; color: #0284C7; text-decoration: underline;">Kebijakan Privasi</a>.</p>
+      </div>
     </div>
   </div>
   <div style="padding: 12px 20px 20px; display: flex; flex-direction: column; gap: 11px; border-top: 1px solid #F1F5F9; background: #FFFFFF; flex-shrink: 0;">
     <div class="tap" onClick="{{daftarLanjutKlik}}" style="width: 100%; height: 54px; border-radius: 9999px; display: flex; align-items: center; justify-content: center;  font-size: 14px; font-weight: 700; font-family: Nunito, sans-serif; background: #FFD100; color: #0F172A; box-shadow: 0 6px 16px rgba(255,209,0,0.35);">Lanjut
     </div>
     <p style="font-size: 12px; color: #64748B; text-align: center;">Sudah punya akun? <span class="tap" onClick="{{go_masuk}}" style="color: #0284C7; font-weight: 700;">Login di sini</span></p>
+  </div>
+</div>
+</sc-if>
+<sc-if value="{{is_setuju}}">
+<div style="height: var(--tinggi); display: flex; flex-direction: column; background: #FFFFFF; overflow: hidden;">
+  <div class="scroll" style="flex-grow: 1; padding: 0 20px 20px; display: flex; flex-direction: column; gap: 18px;">
+    <div style="padding-top: 18px;"><img src="aset/logo-nawasena.png" alt="Nawasena" style="height: 30px; width: auto; display: block;"></div>
+    <div style="width: 62px; height: 62px; border-radius: 20px; background: #E0F2FE; display: flex; align-items: center; justify-content: center;">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#009FE3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+    </div>
+    <div>
+      <h2 style="font-size: 24px; line-height: 32px; font-weight: 700;">Satu hal dulu sebelum lanjut</h2>
+      <p style="font-size: 14px; color: #64748B; margin-top: 8px;">Hai {{namaTampil}}, kami sudah memperbarui cara kami meminta izin atas data pribadimu, sesuai UU Pelindungan Data Pribadi. Data yang sudah kamu isi tetap aman dan tidak berubah.</p>
+    </div>
+    <div style="background: #F8FAFC; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #334155; line-height: 1.55;">
+      <p>• Datamu hanya dipakai untuk menyusun analisis dan laporan karirmu, dan untuk menghubungimu soal pembayaran.</p>
+      <p>• Kami tidak menjual datamu dan tidak membagikannya untuk iklan.</p>
+      <p>• Kamu bisa minta datamu dilihat, diperbaiki, atau dihapus kapan saja lewat tombol Bantuan.</p>
+    </div>
+    <div class="tap" onClick="{{toggleSetuju}}" role="checkbox" aria-checked="{{setujuAria}}" style="{{setujuWadah}}">
+      <div style="{{setujuKotak}}"><sc-if value="{{setujuCentang}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></sc-if></div>
+      <p style="font-size: 13px; color: #334155; line-height: 1.55;">Aku setuju data pribadiku (nama, tanggal lahir, nomor WhatsApp, email, CV, dan jawaban kuis) diolah Nawasena untuk menyusun analisis dan laporan karirku, sesuai <a href="privasi.html" target="_blank" rel="noopener" style="font-weight: 700; color: #0284C7; text-decoration: underline;">Kebijakan Privasi</a>.</p>
+    </div>
+  </div>
+  <div style="padding: 12px 20px 20px; display: flex; flex-direction: column; gap: 11px; border-top: 1px solid #F1F5F9; background: #FFFFFF; flex-shrink: 0;">
+    <div class="tap" onClick="{{setujuLanjutKlik}}" style="width: 100%; height: 54px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; font-family: Nunito, sans-serif; background: #FFD100; color: #0F172A; box-shadow: 0 6px 16px rgba(255,209,0,0.35);">Setuju dan lanjut
+    </div>
+    <p style="font-size: 12px; color: #64748B; text-align: center;">Tidak setuju? <span class="tap" onClick="{{keluarKlik}}" style="color: #0284C7; font-weight: 700;">Keluar dari akun</span></p>
   </div>
 </div>
 </sc-if>
@@ -1207,13 +1246,31 @@
       <p style="font-size: 14px; color: #64748B; margin-top: 8px;">{{tgtSub}}</p>
     </div>
     <div style="display: flex; flex-direction: column; gap: 10px;">
-      <textarea value="{{target}}" onChange="{{setTarget}}" rows="3" placeholder="{{tgtPh}}" style="width: 100%; min-height: 104px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 13px 16px; font-size: 14px; color: #1E293B; line-height: 1.5; resize: none;"></textarea>
-      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-        <sc-for list="{{tgtContoh}}" as="c">
-          <div class="tap" onClick="{{c.pick}}" style="border: 1.5px solid #E2E8F0; border-radius: 999px; padding: 8px 13px; font-size: 13px; font-weight: 600; color: #334155; background: #FFFFFF;">{{c.t}}
+      <sc-if value="{{tgtKiniAda}}">
+        <div style="font-size: 12.5px; color: #64748B;">Posisimu sekarang menurut CV: <b style="color: #0F172A;">{{tgtKini}}</b></div>
+      </sc-if>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+        <div style="font-size: 13px; font-weight: 700; color: #334155;">{{tgtPilihJudul}}</div>
+        <div style="font-size: 12px; font-weight: 700; color: #0284C7; white-space: nowrap;">{{tgtHitung}}</div>
+      </div>
+      <sc-if value="{{tgtMemuat}}">
+        <div style="display: flex; align-items: center; gap: 10px; background: #F0F9FF; border-radius: 12px; padding: 14px 15px; font-size: 13px; color: #0284C7; font-weight: 600;">
+          <div class="spin" style="width: 18px; height: 18px; flex-shrink: 0; border-radius: 999px; border: 2.5px solid #E0F2FE; border-top-color: #009FE3;"></div>Menyiapkan pilihan yang sesuai dengan CV-mu…
+        </div>
+      </sc-if>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <sc-for list="{{tgtOpsi}}" as="c">
+          <div class="tap" onClick="{{c.pick}}" role="checkbox" aria-checked="{{c.aria}}" style="{{c.st}}">
+            <div style="{{c.kotak}}"><sc-if value="{{c.pilih}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></sc-if></div>
+            <div style="min-width: 0;">
+              <div style="font-size: 14px; font-weight: 700; color: #0F172A; line-height: 1.3;">{{c.t}}</div>
+              <sc-if value="{{c.k}}"><div style="font-size: 12.5px; color: #64748B; margin-top: 2px; line-height: 1.35;">{{c.k}}</div></sc-if>
+            </div>
           </div>
         </sc-for>
       </div>
+      <div style="font-size: 13px; font-weight: 700; color: #334155; margin-top: 6px;">{{tgtTulisJudul}}</div>
+      <textarea value="{{target}}" onChange="{{setTarget}}" rows="2" placeholder="{{tgtPh}}" style="width: 100%; min-height: 76px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 12px 16px; font-size: 14px; color: #1E293B; line-height: 1.5; resize: none;"></textarea>
     </div>
     <div style="display: flex; gap: 11px; align-items: flex-start; background: #F8FAFC; border-radius: 12px; padding: 14px 15px;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#009FE3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>
@@ -3447,10 +3504,16 @@
         <h2 style="font-size: 31px; font-weight: 700;">Masukkan kodenya ya</h2>
         <p style="font-size: 16px; color: #64748B; margin-top: 10px;">Kode 6 angkanya barusan kami kirim ke <b style="color: #0F172A;">{{kontakTampil}}</b></p>
       </div>
-      <div style="display: flex; gap: 10px; max-width: 400px;">
-        <sc-for list="{{otpBoxes}}" as="b">
-          <input value="{{b.v}}" onChange="{{b.on}}" data-otp="{{bIndex}}" inputmode="numeric" autocomplete="one-time-code" style="{{b.st}}">
-        </sc-for>
+      <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px;">
+        <div style="position: relative; display: flex; gap: 10px;">
+          <sc-for list="{{otpBoxes}}" as="b">
+            <div style="{{b.st}}">{{b.v}}</div>
+          </sc-for>
+          <input data-otp-input="1" value="{{otpNilai}}" onChange="{{isiOtpKlik}}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="6" aria-label="Kode 6 angka" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: none; background: transparent; color: transparent; caret-color: transparent; cursor: text;">
+        </div>
+        <sc-if value="{{adaOtp}}">
+          <p style="font-size: 13px; color: #64748B;">Salah ketik? Tekan Backspace, atau <span class="tap" onClick="{{hapusOtp}}" style="color: #0284C7; font-weight: 700;">hapus semua kodenya</span></p>
+        </sc-if>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <p style="font-size: 13.5px; color: #64748B;">Kodenya belum masuk juga? Cek folder Spam atau Promosi dulu. <span class="tap" onClick="{{kirimUlangKlik}}" style="{{kirimUlangGaya}}">{{kirimUlangLabel}}</span></p>
@@ -3548,11 +3611,38 @@
             </div>
           </div>
         </sc-if>
+        <div class="tap" onClick="{{toggleSetuju}}" role="checkbox" aria-checked="{{setujuAria}}" style="{{setujuWadah}}">
+          <div style="{{setujuKotak}}"><sc-if value="{{setujuCentang}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></sc-if></div>
+          <p style="font-size: 13px; color: #334155; line-height: 1.55;">Aku setuju data pribadiku (nama, tanggal lahir, nomor WhatsApp, email, CV, dan jawaban kuis) diolah Nawasena untuk menyusun analisis dan laporan karirku, sesuai <a href="privasi.html" target="_blank" rel="noopener" style="font-weight: 700; color: #0284C7; text-decoration: underline;">Kebijakan Privasi</a>.</p>
+        </div>
       </div>
       <div class="tap" onClick="{{daftarLanjutKlik}}" style="width: 100%; height: 56px; border-radius: 9999px; display: flex; align-items: center; justify-content: center;  font-size: 14px; font-weight: 700; font-family: Nunito, sans-serif; background: #FFD100; color: #0F172A; box-shadow: 0 6px 16px rgba(255,209,0,0.35);">Lanjut
       </div>
       <p style="font-size: 13.5px; color: #64748B;">Sudah punya akun? <span class="tap" onClick="{{go_masuk}}" style="color: #0284C7; font-weight: 700;">Login di sini</span></p>
     </div>
+  </div>
+</div>
+</sc-if>
+<sc-if value="{{is_setuju}}">
+<div style="width: 100%; min-height: var(--tinggi); display: flex; align-items: center; justify-content: center; padding: 48px; background: #F0F9FF;">
+  <div style="width: 100%; max-width: 560px; background: #FFFFFF; border: 1px solid #E0F2FE; border-radius: 20px; padding: 36px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 60px rgba(2,132,199,0.10);">
+    <img src="aset/logo-nawasena.png" alt="Nawasena" style="height: 32px; width: auto; display: block; align-self: flex-start;">
+    <div>
+      <h2 style="font-size: 28px; font-weight: 700;">Satu hal dulu sebelum lanjut</h2>
+      <p style="font-size: 15px; color: #64748B; margin-top: 10px;">Hai {{namaTampil}}, kami sudah memperbarui cara kami meminta izin atas data pribadimu, sesuai UU Pelindungan Data Pribadi. Data yang sudah kamu isi tetap aman dan tidak berubah.</p>
+    </div>
+    <div style="background: #F8FAFC; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; color: #334155; line-height: 1.55;">
+      <p>• Datamu hanya dipakai untuk menyusun analisis dan laporan karirmu, dan untuk menghubungimu soal pembayaran.</p>
+      <p>• Kami tidak menjual datamu dan tidak membagikannya untuk iklan.</p>
+      <p>• Kamu bisa minta datamu dilihat, diperbaiki, atau dihapus kapan saja lewat tombol Bantuan.</p>
+    </div>
+    <div class="tap" onClick="{{toggleSetuju}}" role="checkbox" aria-checked="{{setujuAria}}" style="{{setujuWadah}}">
+      <div style="{{setujuKotak}}"><sc-if value="{{setujuCentang}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></sc-if></div>
+      <p style="font-size: 13px; color: #334155; line-height: 1.55;">Aku setuju data pribadiku (nama, tanggal lahir, nomor WhatsApp, email, CV, dan jawaban kuis) diolah Nawasena untuk menyusun analisis dan laporan karirku, sesuai <a href="privasi.html" target="_blank" rel="noopener" style="font-weight: 700; color: #0284C7; text-decoration: underline;">Kebijakan Privasi</a>.</p>
+    </div>
+    <div class="tap" onClick="{{setujuLanjutKlik}}" style="width: 100%; height: 56px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; font-family: Nunito, sans-serif; background: #FFD100; color: #0F172A; box-shadow: 0 6px 16px rgba(255,209,0,0.35);">Setuju dan lanjut
+    </div>
+    <p style="font-size: 13px; color: #64748B; text-align: center;">Tidak setuju? <span class="tap" onClick="{{keluarKlik}}" style="color: #0284C7; font-weight: 700;">Keluar dari akun</span></p>
   </div>
 </div>
 </sc-if>
@@ -4605,13 +4695,31 @@
         <p style="font-size: 16px; color: #64748B; margin-top: 8px;">{{tgtSub}}</p>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <textarea value="{{target}}" onChange="{{setTarget}}" rows="3" placeholder="{{tgtPh}}" style="width: 100%; min-height: 112px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 13px 16px; font-size: 14px; color: #1E293B; line-height: 1.5; resize: none;"></textarea>
-        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-          <sc-for list="{{tgtContoh}}" as="c">
-            <div class="tap" onClick="{{c.pick}}" style="border: 1.5px solid #E2E8F0; border-radius: 999px; padding: 8px 13px; font-size: 13px; font-weight: 600; color: #334155; background: #FFFFFF;">{{c.t}}
+        <sc-if value="{{tgtKiniAda}}">
+          <div style="font-size: 12.5px; color: #64748B;">Posisimu sekarang menurut CV: <b style="color: #0F172A;">{{tgtKini}}</b></div>
+        </sc-if>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px;">
+          <div style="font-size: 13px; font-weight: 700; color: #334155;">{{tgtPilihJudul}}</div>
+          <div style="font-size: 12px; font-weight: 700; color: #0284C7; white-space: nowrap;">{{tgtHitung}}</div>
+        </div>
+        <sc-if value="{{tgtMemuat}}">
+          <div style="display: flex; align-items: center; gap: 10px; background: #F0F9FF; border-radius: 12px; padding: 14px 15px; font-size: 13px; color: #0284C7; font-weight: 600;">
+            <div class="spin" style="width: 18px; height: 18px; flex-shrink: 0; border-radius: 999px; border: 2.5px solid #E0F2FE; border-top-color: #009FE3;"></div>Menyiapkan pilihan yang sesuai dengan CV-mu…
+          </div>
+        </sc-if>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <sc-for list="{{tgtOpsi}}" as="c">
+            <div class="tap" onClick="{{c.pick}}" role="checkbox" aria-checked="{{c.aria}}" style="{{c.st}}">
+              <div style="{{c.kotak}}"><sc-if value="{{c.pilih}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></sc-if></div>
+              <div style="min-width: 0;">
+                <div style="font-size: 14px; font-weight: 700; color: #0F172A; line-height: 1.3;">{{c.t}}</div>
+                <sc-if value="{{c.k}}"><div style="font-size: 12.5px; color: #64748B; margin-top: 2px; line-height: 1.35;">{{c.k}}</div></sc-if>
+              </div>
             </div>
           </sc-for>
         </div>
+        <div style="font-size: 13px; font-weight: 700; color: #334155; margin-top: 6px;">{{tgtTulisJudul}}</div>
+        <textarea value="{{target}}" onChange="{{setTarget}}" rows="2" placeholder="{{tgtPh}}" style="width: 100%; min-height: 76px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 12px 16px; font-size: 14px; color: #1E293B; line-height: 1.5; resize: none;"></textarea>
       </div>
       <div style="display: flex; gap: 11px; align-items: flex-start; background: #F8FAFC; border-radius: 12px; padding: 14px 15px;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#009FE3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>
@@ -6429,16 +6537,16 @@
 </div>
 </sc-if>
 </template>
-<script src="config.js?v=60d8cc71"></script>
-<script src="aset/vendor/supabase-2.117.2.js?v=16aeff36"></script>
-<script src="aset/vendor/morphdom-2.7.4.min.js?v=d5851599"></script>
-<script src="aset/data.js?v=b08c78d0"></script>
-<script src="aset/contoh-laporan.js?v=a94afbf0"></script>
-<script src="aset/api.js?v=43035e90"></script>
-<script src="aset/api-demo.js?v=184a4a81"></script>
+<script src="config.js?v=61bf8395"></script>
+<script src="aset/vendor/supabase-2.117.2.js?v=d3846343"></script>
+<script src="aset/vendor/morphdom-2.7.4.min.js?v=0b337db4"></script>
+<script src="aset/data.js?v=37ff04b7"></script>
+<script src="aset/contoh-laporan.js?v=887734dc"></script>
+<script src="aset/api.js?v=aef4886e"></script>
+<script src="aset/api-demo.js?v=a52f73e6"></script>
 <script src="aset/runtime.js?v=f9c0c7f6"></script>
-<script src="aset/app.js?v=18e067bf"></script>
-<script src="aset/vals.js?v=aeebe6ac"></script>
+<script src="aset/app.js?v=d8eecd0e"></script>
+<script src="aset/vals.js?v=ce1d7ced"></script>
 <script>window.App.mulai();</script>
 </body>
 </html>
