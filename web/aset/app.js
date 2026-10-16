@@ -51,7 +51,7 @@
     timerToast = setTimeout(function () { elToast.className = ''; }, 4200);
   }
   // Urutan alur untuk menentukan arah animasi (layar lebih awal = gerak mundur)
-  var URUTAN_LAYAR = ['muat', 'landing', 'masuk', 'daftar', 'masukKode', 'setuju', 'cekcv', 'unggah', 'susun', 'lampiran', 'previewcv',
+  var URUTAN_LAYAR = ['muat', 'landing', 'masuk', 'daftar', 'masukKode', 'cekcv', 'unggah', 'susun', 'lampiran', 'previewcv',
     'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan'];
   var GERAK_HEMAT = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
 
@@ -165,7 +165,7 @@
       nama: '', tglLahir: '', hp: '', email: '', akun: '', otp: ['', '', '', '', '', ''], kodeMode: 'masuk', kontakTampil: '',
       cvFileNama: '', cvFileInfo: '', lampFileNama: '', lampTautan: '',
       cv: null, cvStep: 1, entri: entriKosong(), skillKetik: { keahlian: '', tools: '', bahasa: '' }, profilMemuat: false,
-      jawab: [], hal: 0, tick: 0, target: '', targetPilih: [], saranTarget: null, saranMemuat: false,
+      jawab: [], hal: 0, tick: 0, target: '', targetPilih: [], saranTarget: null, saranMemuat: false, saranGagal: false,
       bayar: 'qris', bukti: null, salin: false, simpanQr: false,
       bagian: 0, peran: -1,
       butuh: -1, hargaVote: -1, tier: -1, sudahKirim: false, ideKirim: false, harap: '',
@@ -229,7 +229,7 @@
       if (l === 'menunggu' || l === 'berhasil' || (l === 'laporan' && !this.lengkapSiap())) {
         this._poll = setInterval(function () { self.segarkan(); }, 8000);
       }
-      if (l === 'intro' || l === 'soal' || l === 'target') this.muatSaranTarget();
+      if (l === 'target') this.muatSaranTarget();
       if (l === 'masukKode') this.jalankanHitungKode();
       if (l === 'masukKode') setTimeout(function () { var i = document.querySelector('[data-otp-input]'); if (i) i.focus(); }, 60);
     },
@@ -339,8 +339,6 @@
     arahkan: function () {
       var s = this.s, lv = levelDari(s.profil && s.profil.tgl_lahir);
       if (!s.profil) { this.set({ layar: 'daftar', email: (s.user && s.user.email) || s.email }); return; }
-      // akun lama yang belum pernah menyetujui pengolahan data pribadi (kolom ada tapi masih kosong)
-      if ('setuju_data' in s.profil && !s.profil.setuju_data) { this.set({ layar: 'setuju' }); return; }
       if (!s.cvRow) { this.set({ layar: lv === 'entry' ? 'cekcv' : 'unggah' }); return; }
       if (!s.jawaban || !s.jawaban.selesai) { this.set({ layar: (s.jawab.filter(Boolean).length ? 'soal' : 'intro') }); return; }
       if (!s.laporan && !s.jawaban.target_jenis) { this.set({ layar: 'target' }); return; }
@@ -413,12 +411,6 @@
       await API.kirimKodeDaftar(email);
       this.s.kodeDikirim = Date.now();
       this.set({ layar: 'masukKode', kodeMode: 'daftar', kontakTampil: email, otp: ['', '', '', '', '', ''], email: email });
-    },
-    setujuiData: async function () {
-      if (!this.s.setuju) { this.set({ tandaSetuju: true }); throw new Error('Centang dulu persetujuannya ya'); }
-      var p = await API.setujuiData();
-      this.s.profil = p || Object.assign({}, this.s.profil, { setuju_data: new Date().toISOString() });
-      this.arahkan();
     },
     simpanProfilDanLanjut: async function () {
       var s = this.s;
@@ -681,28 +673,22 @@
       this.s.targetDiketik = true;
       this.set({ targetPilih: a });
     },
-    opsiTargetBawaan: function (kerja) {
-      return (kerja
-        ? [['Analis data', 'mengolah data jadi bahan keputusan'], ['Management Trainee', 'program rotasi calon pemimpin'], ['Digital Marketing', 'kampanye dan konten digital'],
-           ['Business Analyst', 'menjembatani bisnis dan tim teknologi'], ['HR / Talent Acquisition', 'mencari dan merawat talenta'], ['Project Coordinator', 'mengatur jadwal, orang, dan dokumen']]
-        : [['Team Lead', 'memimpin tim kecil di bidangmu'], ['Manager', 'memegang target dan tim'], ['Senior Specialist', 'makin dalam di keahlianmu'],
-           ['Head of Department', 'mengarahkan satu fungsi'], ['Konsultan', 'membantu banyak klien'], ['Product Manager', 'menentukan arah produk']]
-      ).map(function (x) { return { t: x[0], k: x[1] }; });
-    },
-    // Pilihan target dari CV (fungsi saran-target). Dipanggil sejak kuis dimulai supaya sudah siap di layar target.
-    muatSaranTarget: function () {
+    // Pilihan target dari CV dan jawaban kuis (fungsi saran-target), dibuat saat layar target dibuka
+    // (kuis sudah selesai, jadi minat dan cara kerjanya ikut dibaca). Disimpan di browser supaya tidak dibuat ulang.
+    muatSaranTarget: function (paksa) {
       var self = this, s = this.s;
       if (!s.cvRow || !API.saranTarget || this._saranJalan) return;
-      var kunci = 'nws_saran_' + (API._uid || '') + '_' + (s.cvRow.diubah || '') + '_' + this.jenisTarget();
-      if (s.saranTarget && s.saranTarget._kunci === kunci) return;
-      try { var simpan = JSON.parse(window.localStorage.getItem(kunci) || 'null'); if (simpan && simpan.opsi && simpan.opsi.length) { s.saranTarget = simpan; return; } } catch (e) { /* abaikan */ }
-      this._saranJalan = true; s.saranMemuat = true;
+      var jw = s.jawaban || {};
+      var kunci = 'nws_saran2_' + (API._uid || '') + '_' + (s.cvRow.diubah || '') + '_' + (jw.selesai || '') + '_' + this.jenisTarget();
+      if (!paksa && s.saranTarget && s.saranTarget._kunci === kunci) return;
+      try { var simpan = JSON.parse(window.localStorage.getItem(kunci) || 'null'); if (!paksa && simpan && simpan.opsi && simpan.opsi.length) { s.saranTarget = simpan; return; } } catch (e) { /* abaikan */ }
+      this._saranJalan = true; s.saranMemuat = true; s.saranGagal = false;
       API.saranTarget().then(function (r) {
         if (r && r.opsi && r.opsi.length) {
           r._kunci = kunci; s.saranTarget = r;
           try { window.localStorage.setItem(kunci, JSON.stringify(r)); } catch (e) { /* abaikan */ }
-        }
-      }).catch(function (e) { console.warn('saran target', e); })
+        } else s.saranGagal = true;
+      }).catch(function (e) { console.warn('saran target', e); s.saranGagal = true; })
         .then(function () { self._saranJalan = false; s.saranMemuat = false; if (s.layar === 'target') self.render(); });
     },
     simpanTarget: async function (lewati) {

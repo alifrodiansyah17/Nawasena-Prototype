@@ -3,7 +3,7 @@
   'use strict';
   var App = window.App, C = window.NAWASENA_CONFIG, D = window.DATA, U = window.NawasenaUtil;
   var ITEMS = D.ITEMS, SKALA4 = ['Bukan aku', 'Aku banget'];
-  var LAYAR = ['muat', 'landing', 'masuk', 'masukKode', 'daftar', 'setuju', 'cekcv', 'unggah', 'lampiran', 'susun', 'previewcv',
+  var LAYAR = ['muat', 'landing', 'masuk', 'masukKode', 'daftar', 'cekcv', 'unggah', 'lampiran', 'susun', 'previewcv',
     'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan'];
 
   function lengkapContoh(s) { var b = s.lengkap && s.lengkap.bagian; return !!(b && b.rencana && b.rencana.contoh); }
@@ -77,7 +77,6 @@
       + 'background: ' + (s.setuju ? '#F0F9FF' : '#F8FAFC') + '; border: 1.5px solid ' + (tandaSetuju ? '#DC2626' : s.setuju ? '#009FE3' : '#E2E8F0') + ';';
     v.setujuKotak = 'width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; border-radius: 6px; display: flex; align-items: center; justify-content: center; '
       + 'background: ' + (s.setuju ? '#009FE3' : '#FFFFFF') + '; border: 1.5px solid ' + (tandaSetuju ? '#DC2626' : s.setuju ? '#009FE3' : '#94A3B8') + ';';
-    v.setujuLanjutKlik = this.aman(this.setujuiData, 'Menyimpan…');
     v.emailTampil = profil.email || s.email || 'emailmu';
     v.namaTampil = profil.nama || s.nama || 'Kamu';
 
@@ -239,11 +238,11 @@
       if (lama !== baru) self.render();   // perbarui hitungan pilihan
     };
     v.tgtJudul = tgtKerja ? 'Pekerjaan seperti apa yang ingin kamu coba cari tahu?' : 'Role apa yang ingin kamu capai berikutnya?';
-    v.tgtSub = tgtKerja ? 'Pilih yang paling bikin kamu penasaran, boleh lebih dari satu. Kalau tidak ada yang pas, tulis sendiri.'
-      : 'Pilihannya kami sesuaikan dengan posisi dan pengalamanmu sekarang. Boleh pilih lebih dari satu.';
-    v.tgtPh = tgtKerja ? 'Misalnya: ikut menentukan fitur aplikasi yang dipakai banyak orang' : 'Misalnya: Head of Product';
-    v.tgtTulisJudul = 'Atau tulis sendiri (opsional)';
-    v.tgtPilihJudul = tgtKerja ? 'Pilihan yang cocok dengan latar belakangmu' : 'Langkah berikutnya yang masuk akal buat kamu';
+    v.tgtSub = tgtKerja ? 'Pilihannya kami sesuaikan dengan latar belakang di CV-mu dan jawaban kuismu. Boleh pilih lebih dari satu, atau tulis sendiri.'
+      : 'Pilihannya kami sesuaikan dengan keahlian di CV-mu dan jawaban kuismu. Boleh pilih lebih dari satu, atau tulis sendiri.';
+    v.tgtPh = tgtKerja ? 'Ceritakan pekerjaan yang kamu bayangkan' : 'Tulis role yang kamu incar';
+    v.tgtTulisJudul = (saran.opsi && saran.opsi.length) ? 'Atau tulis sendiri (opsional)' : 'Tulis sendiri';
+    v.tgtPilihJudul = tgtKerja ? 'Pilihan yang cocok dengan latar belakang dan minatmu' : 'Pilihan yang cocok dengan keahlian dan cara kerjamu';
     v.tgtInfo = tgtKerja
       ? 'Kalau diisi, 3 dari 6 arah karir di laporanmu mengikuti pilihanmu. 3 lainnya dari kemampuan yang sudah terbentuk di kamu.'
       : 'Tiap role yang kamu pilih (maksimal ' + MAKS + ') dibahas sebagai satu arah karir di laporanmu. Sisanya diisi arah yang paling relevan dengan karir dan gaya kerjamu sekarang.';
@@ -252,7 +251,11 @@
     var jumlah = pilihan.length + ketik;
     v.tgtHitung = jumlah ? jumlah + ' dari maks ' + MAKS + ' dipilih' : 'Maksimal ' + MAKS;
     // pilihan dari CV (atau bawaan kalau belum ada), ditambah pilihan tersimpan yang tidak ada di daftar
-    var opsi = (saran.opsi && saran.opsi.length) ? saran.opsi.slice() : (v.tgtMemuat ? [] : self.opsiTargetBawaan(tgtKerja));
+    // hanya pilihan yang disesuaikan dengan CV dan kuis; kalau belum bisa dibuat, pengguna menulis sendiri
+    var opsi = (saran.opsi && saran.opsi.length) ? saran.opsi.slice() : [];
+    v.tgtGagal = !v.tgtMemuat && !opsi.length && !!s.saranGagal;
+    v.tgtCobaLagi = function () { self.muatSaranTarget(true); self.render(); };
+    v.tgtAdaOpsi = !v.tgtMemuat && !v.tgtGagal;
     var ada = {}; opsi.forEach(function (o) { ada[o.t.toLowerCase()] = 1; });
     pilihan.forEach(function (t) { if (!ada[t.toLowerCase()]) opsi.push({ t: t, k: '' }); });
     v.tgtOpsi = opsi.map(function (o) {

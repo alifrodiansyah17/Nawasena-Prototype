@@ -96,11 +96,6 @@
       }
       return cek(r);
     },
-    async setujuiData() {
-      var r = await sb.rpc('setujui_data');
-      if (r.error && /Could not find the function|PGRST202/i.test((r.error.message || '') + (r.error.code || ''))) return null;
-      return cek(r);
-    },
     async daftarSandi(email, sandi) {
       var d = cek(await sb.auth.signUp({ email: email, password: sandi }));
       if (!d.session) throw new Error('Akun belum bisa dibuat: "Confirm email" di Supabase masih aktif. Matikan dulu (lihat README).');
