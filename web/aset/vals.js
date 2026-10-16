@@ -29,8 +29,15 @@
   }
   function jalanBentuk(judul) {
     var m = /jadi\s+(I|T|V|π|M|X)\b/.exec(judul || '') || /\b(T|V|π|M|X)\b/.exec(judul || '');
-    return m ? m[1] : 'T';
+    return m ? m[1] : null;
   }
+  // Urutan tumbuhnya tipe karir: generalis → I/T → V/π → M/X. Tujuan tidak boleh mundur dari posisi sekarang.
+  var TINGKAT_BENTUK = { '—': 0, 'I': 1, 'T': 1, 'V': 2, 'π': 2, 'M': 3, 'X': 3 };
+  function bentukMaju(k, dari) {
+    if (!(k in TINGKAT_BENTUK)) return dari;
+    return (dari in TINGKAT_BENTUK) && TINGKAT_BENTUK[k] < TINGKAT_BENTUK[dari] ? dari : k;
+  }
+  function namaBentuk(k) { var b = BENTUK.filter(function (x) { return x.k === k; })[0]; return b ? b.nama : k; }
   var TEMPAT_WARNA = { 'Paling cocok': ['#16A34A', '#0F172A'], 'Cocok': ['#009FE3', '#FFFFFF'], 'Perlu ditimbang': ['#CCA700', '#0F172A'], 'Kurang cocok': ['#CCA700', '#0F172A'] };
   var UBIN_WARNA = ['#0284C7', '#16A34A', '#009FE3'];
 
@@ -348,17 +355,23 @@
     // ---------------------------------------------------------------- laporan: isi Bagian 2–6
     var r = lengkap.rencana || {}, A = lengkap.arahA || {}, B = lengkap.arahB || {};
     var b2 = r.b2 || {};
+    var b2kamu = (b2.kamu in TINGKAT_BENTUK) ? b2.kamu : '—', b2tuju = bentukMaju(b2.tuju, b2kamu);
     v.l2 = {
       bentuk: BENTUK.map(function (x) {
-        var kamu = b2.kamu === x.k, tuju = b2.tuju === x.k && !kamu;
+        var kamu = b2kamu === x.k, tuju = b2tuju === x.k && !kamu;
         return { nama: x.nama, sub: x.sub, arti: x.arti, contoh: (b2.contoh && b2.contoh[x.k]) || CONTOH_BENTUK[x.k], kamu: kamu, tuju: tuju,
           ikon: ikonBentuk(x.k, kamu || tuju ? '#009FE3' : '#94A3B8'),
           st: (kamu ? 'border: 2px solid #009FE3; background: #F5FBFF;' : (tuju ? 'border: 1.5px dashed #009FE3; background: #FFFFFF;' : 'border: 1px solid #E2E8F0; background: #FFFFFF;'))
             + ' border-radius: 12px; padding: 12px 13px; display: flex; flex-direction: column; gap: 5px;' };
       }),
       ikonTegak: ikonBentuk('I', '#0284C7'), ikonDatar: ikonBentuk('—', '#0284C7'), ikonKamu: ikonBentuk(b2.kamu || '—', '#FFD100'),
-      judul: b2.judul, teks: b2.teks, keahlian: b2.keahlian, keluasan: b2.keluasan, memimpin: b2.memimpin, catatan: b2.catatan,
-      jalan: (b2.jalan || []).map(function (x) { return { judul: x.judul, teks: x.teks, ref: x.ref, ikon: ikonBentuk(jalanBentuk(x.judul), '#009FE3') }; })
+      judul: b2.judul, teks: b2.teks, keahlian: b2.keahlian, keluasan: b2.keluasan, memimpin: b2.memimpin,
+      catatan: String(b2.catatan || '').replace(/^\s*yang perlu kamu timbang\s*(adalah|:)?\s*/i, ''),
+      jalan: (b2.jalan || []).map(function (x) {
+        var bt = bentukMaju(x.bentuk || jalanBentuk(x.judul) || b2tuju, b2kamu);
+        return { judul: x.judul, teks: x.teks, ref: x.ref, ikon: ikonBentuk(bt, '#009FE3'),
+          arah: bt === b2kamu ? 'Tetap ' + namaBentuk(bt) + ', makin dalam' : 'Menuju ' + namaBentuk(bt) };
+      })
     };
     var b3 = r.b3 || {};
     v.l3 = {

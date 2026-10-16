@@ -186,7 +186,7 @@
       if (gantiLayar) this.masukLayar(this.s.layar);
     },
 
-    render: function () { this.rt.render(this.vals()); },
+    render: function () { this.rt.render(this.vals(), this.s.layar); },
 
     // ------------------------------------------------------------ motion pindah layar
     // Maju = konten masuk dari kanan, mundur (Kembali) = dari kiri. Pindah halaman kuis,

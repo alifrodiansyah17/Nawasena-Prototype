@@ -125,13 +125,20 @@
     this.frag = t.content;
     this.root.innerHTML = '';
   };
-  Runtime.prototype.render = function (vals) {
+  Runtime.prototype.render = function (vals, kunci) {
     this.daftarFn = [];
     var wadah = document.createElement('div');
     wadah.id = this.root.firstElementChild ? this.root.firstElementChild.id || 'layar' : 'layar';
     wadah.id = 'layar';
     this.bangun(this.frag, vals, wadah);
-    if (!this.root.firstElementChild) { this.root.appendChild(wadah); return; }
+    if (!this.root.firstElementChild) { this.root.appendChild(wadah); this._kunci = kunci; return; }
+    // Pindah layar: ganti isi seluruhnya, supaya tidak ada sisa layar lama yang tertinggal
+    // (misalnya kalau DOM sempat diubah dari luar, seperti fitur terjemahan browser).
+    if (kunci !== undefined && kunci !== this._kunci) {
+      this._kunci = kunci;
+      this.root.replaceChild(wadah, this.root.firstElementChild);
+      return;
+    }
     window.morphdom(this.root.firstElementChild, wadah, {
       onBeforeElUpdated: function (from, to) {
         // biarkan input file dan elemen yang ditandai tetap

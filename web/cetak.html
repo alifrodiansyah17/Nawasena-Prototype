@@ -288,7 +288,7 @@
     if ((b2.jalan || []).length) blok(sub('Dua jalan dari sini', '#009FE3') + '<div class="dua">' + b2.jalan.map(function (j, i) {
       return kartu(i ? 'kuning' : 'biru', j.judul, j.teks, j.ref ? '<span class="chip ' + (i ? 'a' : 'b') + '">' + x(j.ref) + '</span>' : '');
     }).join('') + '</div>');
-    if (b2.catatan) blok('<div class="sorot"><i></i><div>Yang perlu kamu timbang: ' + x(b2.catatan) + '</div></div>');
+    if (b2.catatan) blok('<div class="sorot"><i></i><div>Yang perlu kamu timbang: ' + x(String(b2.catatan).replace(/^\s*yang perlu kamu timbang\s*(adalah|:)?\s*/i, '')) + '</div></div>');
 
     // ---- Bagian 3
     var b3 = r.b3 || {}, UW = [['#0284C7', '#F0F9FF'], ['#16A34A', '#F0FDF4'], ['#CA8A04', '#FEF9C3']];

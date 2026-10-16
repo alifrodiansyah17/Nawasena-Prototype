@@ -133,18 +133,27 @@ function bersihkan(x: any): any {
 }
 
 async function tanyaGemini<T>(opsi: { system: string; pesan: string; skema: Record<string, unknown>; maxTokens?: number }): Promise<HasilClaude<T>> {
-  // Model utama, lalu model cadangan kalau yang utama sedang penuh (503/429).
-  const model = [Deno.env.get("GEMINI_MODEL") || "gemini-3.5-flash", Deno.env.get("GEMINI_MODEL_CADANGAN") || "gemini-2.5-flash"];
-  let m = 0;
+  // Model utama, lalu model cadangan kalau sedang penuh (503/429). Percobaan diulang bergantian antar model
+  // selama masih ada waktu: panggilan baru tidak dimulai lewat GEMINI_BATAS_MS (bawaan 75 dtk), supaya
+  // fungsi tetap selesai sebelum batas 150 detik Supabase.
+  const model = [...new Set([
+    Deno.env.get("GEMINI_MODEL") || "gemini-3.5-flash",
+    Deno.env.get("GEMINI_MODEL_CADANGAN") || "gemini-2.5-flash",
+    "gemini-3.6-flash",
+  ])];
+  const mulai = Date.now(), batas = Number(Deno.env.get("GEMINI_BATAS_MS") ?? "75000");
+  const tidur = (ms: number) => new Promise((s) => setTimeout(s, ms));
+  let m = 0, gagalIsi = 0;
   const maks = (opsi.maxTokens ?? 16000) + 8000;   // ruang tambahan untuk "thinking" model
   let pakaiSkema = true, terakhir = "";
-  for (let coba = 1; coba <= 4; coba++) {
+  for (let coba = 1; Date.now() - mulai < batas; coba++) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model[m])}:generateContent`;
     const pesan = pakaiSkema ? opsi.pesan
       : `${opsi.pesan}\n\nJawab HANYA dengan satu objek JSON yang mengikuti JSON Schema ini persis (semua field wajib diisi):\n${JSON.stringify(opsi.skema)}`;
     const r = await fetch(url, {
       method: "POST",
       headers: { "x-goog-api-key": env("GEMINI_API_KEY"), "content-type": "application/json" },
+      signal: AbortSignal.timeout(Math.max(20000, 140000 - (Date.now() - mulai))),   // jangan lewati batas fungsi
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: opsi.system }] },
         contents: [{ role: "user", parts: [{ text: pesan }] }],
@@ -160,8 +169,9 @@ async function tanyaGemini<T>(opsi: { system: string; pesan: string; skema: Reco
       terakhir = `Gemini ${model[m]} ${r.status}: ${t.slice(0, 500)}`;
       if (r.status === 400 && pakaiSkema && /schema/i.test(t)) { pakaiSkema = false; continue; }
       if (r.status === 429 || r.status >= 500) {
-        if (m < model.length - 1 && model[m + 1] !== model[m]) { m++; continue; }
-        await new Promise((s) => setTimeout(s, 5000)); continue;
+        m = (m + 1) % model.length;
+        if (m === 0) await tidur(Math.min(3000 * coba, 10000));   // semua model sudah dicoba: tunggu sebentar
+        continue;
       }
       throw new Error(terakhir);
     }
@@ -169,8 +179,8 @@ async function tanyaGemini<T>(opsi: { system: string; pesan: string; skema: Reco
     const kand = res.candidates?.[0];
     // deno-lint-ignore no-explicit-any
     const teks = (kand?.content?.parts || []).filter((p: any) => !p.thought && typeof p.text === "string").map((p: any) => p.text).join("");
-    if (kand?.finishReason === "MAX_TOKENS") { terakhir = "Jawaban Gemini terpotong (MAX_TOKENS)"; continue; }
-    if (!teks) { terakhir = `Gemini tidak mengembalikan teks (${kand?.finishReason || res.promptFeedback?.blockReason || "tanpa alasan"})`; continue; }
+    if (kand?.finishReason === "MAX_TOKENS") { terakhir = "Jawaban Gemini terpotong (MAX_TOKENS)"; if (++gagalIsi >= 3) break; continue; }
+    if (!teks) { terakhir = `Gemini tidak mengembalikan teks (${kand?.finishReason || res.promptFeedback?.blockReason || "tanpa alasan"})`; if (++gagalIsi >= 3) break; continue; }
     try {
       const bersih = teks.trim().replace(/^```(?:json)?\s*/i, "").replace(/```$/, "");
       return {
@@ -179,6 +189,7 @@ async function tanyaGemini<T>(opsi: { system: string; pesan: string; skema: Reco
       };
     } catch {
       terakhir = "JSON dari Gemini tidak bisa dibaca";
+      if (++gagalIsi >= 3) break;
     }
   }
   throw new Error(terakhir || "Gemini gagal");

@@ -11,6 +11,8 @@ ATURAN BAHASA (wajib):
 - Jangan pakai metafora yang perlu diterjemahkan. Tulis langsung maksudnya.
 - Tulis "karir", bukan "karier".
 - Jangan menyebut istilah teknis kuis (RIASEC, Big Five, Holland, skor 3–12, konstruk). Pakai bahasa biasa: "minat", "cara kerja", "kuat banget".
+- Jangan menulis angka skor kuis dalam bentuk apa pun (mis. "12/12", "skor 9", "nilai 10 dari 12"). Sebut saja "kuat banget", "kuat", atau jumlah jawaban di ujung skala.
+- Bahasa CV pengguna (Indonesia atau Inggris) bukan masalah dan tidak perlu dikomentari.
 - Jangan memuji berlebihan dan jangan menghakimi. Kelemahan ditulis sebagai hal yang bisa dilatih.
 
 ATURAN ISI (wajib):
@@ -75,7 +77,12 @@ export function skemaRencana(idPeran: string[]) {
       keahlian: s("bukti keahlian dari CV, 1–2 kalimat"),
       keluasan: s("bukti keluasan dari CV, 1–2 kalimat"),
       memimpin: s("sinyal memimpin dari kuis + CV, 1–2 kalimat"),
-      jalan: arr(obj({ judul: s("mis. 'Menebal jadi T'"), teks: s("2 kalimat"), ref: s("mis. 'Arah 1 dan 3 di Bagian 5'") }), "TEPAT 2 jalan dari sini"),
+      jalan: arr(obj({
+        judul: s("mis. 'Menebal jadi T'"),
+        bentuk: { type: "string", enum: [...BENTUK], description: "tipe karir yang dituju jalan ini; tidak boleh lebih awal dari 'kamu' (urutan: — → I/T → V/π → M/X)" },
+        teks: s("2 kalimat"),
+        ref: s("mis. 'Arah 1 dan 3 di Bagian 5'"),
+      }), "TEPAT 2 jalan dari sini"),
       catatan: s("'Yang perlu kamu timbang': 1–2 kalimat, TANPA awalan label"),
       contoh: obj({ I: s(), "—": s(), T: s(), V: s(), "π": s(), M: s(), X: s() }),
     }),
@@ -90,7 +97,10 @@ export function skemaRencana(idPeran: string[]) {
     }),
     b4: obj({
       pembuka: s("2 kalimat tentang kondisi CV"),
-      banding: arr(obj({ sblm: s("kutipan ASLI dari CV"), sdh: s("versi yang lebih kuat, bahasa yang sama dengan CV; angka yang belum ada ditulis [kurung siku]") }), "TEPAT 2 pasang"),
+      banding: arr(obj({
+        sblm: s("kutipan ASLI dari CV, persis seperti tertulis"),
+        sdh: s("versi yang lebih kuat dari kalimat yang SAMA, WAJIB dalam bahasa yang sama dengan sblm (sblm bahasa Inggris → sdh bahasa Inggris); angka yang belum ada ditulis [kurung siku]"),
+      }), "TEPAT 2 pasang"),
       segera: arr(jp, "TEPAT 3 yang paling cepat terasa efeknya"),
       kuat: arr(jp, "TEPAT 2 yang bikin CV makin kuat"),
       sorot: s("1 kalimat"),
@@ -134,6 +144,17 @@ Aturan enam arah:
 - Tidak ada arah yang dobel.
 - Setiap arah WAJIB punya peran_id dari TABEL REFERENSI PERAN. Nama arah boleh lebih spesifik dari nama di tabel
   (mis. 'Financial Analyst · Corporate Finance' untuk financial_analyst), tapi peran_id harus yang paling dekat. peran_id tidak boleh dobel.
+
+Aturan tipe karir (Bagian 2):
+- Urutan tumbuhnya: — (generalis) → I atau T → V atau π → M atau X. 'tuju' dan 'bentuk' tiap jalan TIDAK boleh lebih awal dari 'kamu'.
+- Kalau 'kamu' sudah M atau X, 'tuju' sama dengan 'kamu', dan dua jalan menjelaskan cara makin matang di tipe itu
+  (mis. memimpin di bidang yang lebih luas, atau menambah satu keahlian dalam), bukan turun ke T.
+- 'catatan' ditulis langsung isinya, tanpa awalan "Yang perlu kamu timbang".
+
+Aturan catatan CV (Bagian 4):
+- Bahasa CV bukan masalah. Jangan menyarankan mengganti bahasa CV.
+- 'sblm' dikutip persis dari CV. 'sdh' adalah versi lebih kuat dari kalimat yang sama, dalam bahasa yang sama dengan 'sblm'.
+- Saran 'segera' dan 'kuat' membantu menyusun CV lebih baik dalam bahasa yang dipakai CV itu.
 `;
 
 /** Label kelompok arah ke-k (0–5). Diisi sistem supaya selalu sama dengan janji di layar target. */

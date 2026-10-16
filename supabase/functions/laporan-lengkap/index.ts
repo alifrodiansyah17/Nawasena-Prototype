@@ -59,6 +59,18 @@ Deno.serve(async (req) => {
   }
 });
 
+// Tipe karir tidak boleh "mundur": tuju dan bentuk tiap jalan minimal setingkat dengan posisi sekarang.
+const TINGKAT: Record<string, number> = { "—": 0, I: 1, T: 1, V: 2, "π": 2, M: 3, X: 3 };
+function rapikanTipe(b2?: Record<string, unknown>) {
+  if (!b2) return;
+  const kamu = typeof b2.kamu === "string" && b2.kamu in TINGKAT ? b2.kamu : "—";
+  const maju = (k: unknown) => (typeof k === "string" && k in TINGKAT && TINGKAT[k] >= TINGKAT[kamu] ? k : kamu);
+  b2.kamu = kamu;
+  b2.tuju = maju(b2.tuju);
+  if (Array.isArray(b2.jalan)) b2.jalan = (b2.jalan as Record<string, unknown>[]).map((j) => ({ ...j, bentuk: maju(j.bentuk) }));
+  if (typeof b2.catatan === "string") b2.catatan = b2.catatan.replace(/^\s*yang perlu kamu timbang\s*(adalah|:)?\s*/i, "");
+}
+
 async function jalankanPotongan(userId: string, langkah: string) {
   const db = adminDb();
   try {
@@ -93,6 +105,7 @@ async function jalankanPotongan(userId: string, langkah: string) {
           return { ...a, peran_id: id, kel: kelArah(k.targetJenis, i) };
         });
       }
+      rapikanTipe(data.b2 as Record<string, unknown> | undefined);
       if (contoh) data.contoh = true;
       isi = { rencana: data };
     } else {
