@@ -15,12 +15,12 @@ export interface Konteks {
   cvSumber: string;
   target: string;                         // jawaban pertanyaan target karir ('' kalau dilewati)
   targetJenis: "pekerjaan" | "role" | null; // pertanyaan yang ditampilkan ke pengguna
-  targetDaftar: string[];                 // target yang dipilih/ditulis, dipisah ';' di aplikasi (maks 5)
+  targetDaftar: string[];                 // target yang dipilih/ditulis, dipisah ';' di aplikasi
 }
 
 /** Pecah jawaban target jadi daftar. Aplikasi menyimpan beberapa pilihan dipisah ';'. */
 export function pecahTarget(t: string): string[] {
-  return String(t || "").split(/\s*[;\n]\s*/).map((x) => x.trim()).filter(Boolean).slice(0, 5);
+  return String(t || "").split(/\s*[;\n]\s*/).map((x) => x.trim()).filter(Boolean).slice(0, 12);
 }
 
 export const PERTANYAAN_TARGET = {

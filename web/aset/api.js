@@ -165,7 +165,6 @@
       await sb.from('cv').update({ diubah: new Date().toISOString() }).eq('user_id', uid());
     },
     async profilCV(susun) { return fungsi('profil-cv', { susun: susun }); },
-    async saranTarget() { return fungsi('saran-target', {}); },
 
     // ---------- kuis & analisis
     async simpanJawaban(data, hal, selesai) {

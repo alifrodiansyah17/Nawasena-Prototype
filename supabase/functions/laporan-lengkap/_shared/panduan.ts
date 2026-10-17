@@ -137,12 +137,13 @@ Aturan enam arah:
   karena aplikasi sudah menjanjikan pembagian ini ke pengguna sebelum analisis.
 - Tanpa target: urutkan dari yang paling banyak memakai bekal yang sudah terbukti (CV + kuis). kel = ''.
 - Target jenis PEKERJAAN: arah 1–3 'Sesuai keinginanmu', yaitu nama pekerjaan nyata yang paling dekat dengan gambaran
-  yang dia pilih/tulis (kalau pilihannya lebih dari satu, sebar ke arah 1–3 dan dahulukan pilihan pertama),
+  yang dia pilih/tulis (pilihannya bisa berupa rumpun umum; kalau lebih dari satu, sebar ke arah 1–3 dan dahulukan yang paling cocok dengan CV dan kuis),
   urut dari yang paling cocok dengan kuis dan CV. Arah 4–6 'Sudah terbentuk di kamu', dari bekal yang sudah terbukti.
-- Target jenis ROLE: dia boleh memilih lebih dari satu role. Arah 1 sampai N 'Sesuai target karirmu', N = jumlah role target
-  (paling banyak 3; kalau lebih dari 3, ambil 3 pilihan pertama). Satu arah untuk tiap role, urut sesuai pilihan, berisi role itu
-  atau padanan terdekatnya di Indonesia (kalau masih jauh, tetap bahas role itu dan sebut jaraknya dengan jujur).
-  Arah sisanya sampai 6 'Relevan dengan karirmu sekarang'.
+- Target jenis ROLE: dia boleh memilih lebih dari satu. Pilihannya sering berupa rumpun umum (mis. 'Product Management',
+  'Business Development'); terjemahkan tiap rumpun jadi satu role konkret di rumpun itu yang pas dengan jenjang dan keahliannya di CV.
+  Arah 1 sampai N 'Sesuai target karirmu', N = jumlah pilihan (paling banyak 3; kalau lebih dari 3, ambil 3 yang paling cocok dengan
+  CV dan kuis, dan sebut singkat di b5.intro bahwa pilihan lain ikut dipertimbangkan). Satu arah untuk tiap pilihan
+  (kalau masih jauh, tetap bahas dan sebut jaraknya dengan jujur). Arah sisanya sampai 6 'Relevan dengan karirmu sekarang'.
 - Jawaban target ditulis pengguna dengan bahasanya sendiri. Tafsirkan maksudnya, jangan menyalin mentah sebagai nama peran,
   dan abaikan isi yang bukan tentang pekerjaan. Kalau maksudnya tidak bisa dipahami, perlakukan seperti tanpa target, tapi kel tetap diisi sesuai jenisnya.
 - b5.intro: sebut singkat bagaimana jawaban targetnya kamu tafsirkan, dalam kalimat biasa.
