@@ -1,15 +1,15 @@
 /* Gerbang "hanya yang punya link" untuk Cloudflare Pages (mode _worker.js, bisa di-deploy dengan drag & drop).
  *
  * Cara kerja:
- *   - Link yang dibagikan:   https://<proyek>.pages.dev/?k=<KODE_AKSES>
+ *   - Aplikasi untuk pengguna terbuka untuk publik (https://apps.nawasena.info/).
+ *   - Hanya backoffice (/admin) yang dikunci: https://apps.nawasena.info/admin/?k=<KODE_ADMIN>
  *   - Kalau kodenya benar, browser diberi cookie (berlaku 90 hari) lalu diarahkan ke alamat tanpa ?k=.
- *   - Tanpa cookie/kode yang benar, semua halaman menjawab 404 seolah tidak ada.
- *   - Backoffice (/admin) memakai kode terpisah: https://<proyek>.pages.dev/admin/?k=<KODE_ADMIN>
- *   - Ganti KODE_AKSES di pengaturan Cloudflare → semua link lama dan cookie lama otomatis tidak berlaku.
+ *   - Tanpa cookie/kode yang benar, /admin menjawab 404 seolah tidak ada.
+ *   - Ganti KODE_ADMIN di pengaturan Cloudflare → semua link dan cookie admin lama otomatis tidak berlaku.
  *
  * Variabel (Cloudflare → Workers & Pages → proyek → Settings → Variables and Secrets):
- *   KODE_AKSES  (wajib)  misalnya: ugm-2026-q7Rx
- *   KODE_ADMIN  (wajib)  kode lain untuk /admin
+ *   KODE_ADMIN  (wajib)  kode untuk /admin
+ *   KODE_AKSES  tidak dipakai lagi (dulu untuk mengunci seluruh aplikasi)
  */
 const HARI_90 = 60 * 60 * 24 * 90;
 
@@ -55,10 +55,21 @@ export default {
     }
 
     const admin = url.pathname === '/admin' || url.pathname.startsWith('/admin/');
-    const kode = admin ? env.KODE_ADMIN : env.KODE_AKSES;
-    const namaCookie = admin ? 'nws_admin' : 'nws_akses';
+    // Aplikasi pengguna: terbuka untuk publik. ?k= dari link lama dibuang supaya alamatnya bersih.
+    if (!admin) {
+      if (url.searchParams.has('k')) {
+        url.searchParams.delete('k');
+        return new Response(null, { status: 302, headers: { 'Location': url.pathname + (url.search || ''), 'Cache-Control': 'no-store' } });
+      }
+      const res = tambahHeader(await env.ASSETS.fetch(request));
+      res.headers.set('Cache-Control', 'no-cache');
+      return res;
+    }
+
+    const kode = env.KODE_ADMIN;
+    const namaCookie = 'nws_admin';
     if (!kode) {
-      return new Response('Gerbang belum diatur: isi variabel ' + (admin ? 'KODE_ADMIN' : 'KODE_AKSES') + ' di pengaturan Cloudflare Pages.',
+      return new Response('Gerbang belum diatur: isi variabel KODE_ADMIN di pengaturan Cloudflare Pages.',
         { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
     }
     const benar = await sidik(kode);
@@ -71,7 +82,7 @@ export default {
         status: 302,
         headers: {
           'Location': url.pathname + (url.search || ''),
-          'Set-Cookie': `${namaCookie}=${benar}; Max-Age=${HARI_90}; Path=${admin ? '/admin' : '/'}; HttpOnly; Secure; SameSite=Lax`,
+          'Set-Cookie': `${namaCookie}=${benar}; Max-Age=${HARI_90}; Path=/admin; HttpOnly; Secure; SameSite=Lax`,
           'Cache-Control': 'no-store',
         },
       });
