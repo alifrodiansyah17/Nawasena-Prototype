@@ -192,8 +192,14 @@ async function tanyaGemini<T>(opsi: { system: string; pesan: string; skema: Reco
     const t = await r.text();
     if (!r.ok) {
       terakhir = `Gemini ${model[m]} ${r.status}: ${t.slice(0, 500)}`;
-      if (r.status === 400 && pakaiTanpaPikir && /thinking/i.test(t)) { pakaiTanpaPikir = false; continue; }   // model ini wajib "thinking"
-      if (r.status === 400 && pakaiSkema && /schema/i.test(t)) { pakaiSkema = false; continue; }
+      if (r.status === 400) {
+        // Model menolak isi permintaan (pesannya sering umum: "invalid argument"). Lepas pengaturan tambahan satu per satu:
+        // dulu "tanpa thinking" (tidak didukung semua model), lalu skema JSON; kalau masih ditolak, pindah ke model lain.
+        if (pakaiTanpaPikir) { pakaiTanpaPikir = false; continue; }
+        if (pakaiSkema && /schema|invalid argument/i.test(t)) { pakaiSkema = false; continue; }
+        istirahat[model[m]] = Date.now() + 10 * 60000;
+        continue;
+      }
       if (r.status === 429) { istirahat[model[m]] = Date.now() + tungguDari(t); continue; }
       if (r.status >= 500) { istirahat[model[m]] = Date.now() + 8000; continue; }
       throw new Error(terakhir);
