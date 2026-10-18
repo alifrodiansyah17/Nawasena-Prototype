@@ -165,7 +165,7 @@
       nama: '', tglLahir: '', hp: '', email: '', akun: '', otp: ['', '', '', '', '', ''], kodeMode: 'masuk', kontakTampil: '',
       cvFileNama: '', cvFileInfo: '', lampFileNama: '', lampTautan: '',
       cv: null, cvStep: 1, entri: entriKosong(), skillKetik: { keahlian: '', tools: '', bahasa: '' }, profilMemuat: false,
-      jawab: [], hal: 0, tick: 0, target: '', targetPilih: [],
+      jawab: [], hal: 0, tick: 0, target: '', targetPilih: [], saranTarget: null, saranMemuat: false, saranGagal: false,
       bayar: 'qris', bukti: null, salin: false, simpanQr: false,
       bagian: 0, peran: -1,
       butuh: -1, hargaVote: -1, tier: -1, sudahKirim: false, ideKirim: false, harap: '',
@@ -229,6 +229,7 @@
       if (l === 'menunggu' || l === 'berhasil' || (l === 'laporan' && !this.lengkapSiap())) {
         this._poll = setInterval(function () { self.segarkan(); }, 8000);
       }
+      if (l === 'target') this.muatSaranTarget();
       if (l === 'masukKode') this.jalankanHitungKode();
       if (l === 'masukKode') setTimeout(function () { var i = document.querySelector('[data-otp-input]'); if (i) i.focus(); }, 60);
     },
@@ -654,28 +655,49 @@
     // Pertanyaan ikut level dari usia (lama kerja baru terbaca dari CV saat analisis):
     // 'pekerjaan' untuk yang baru mulai, 'role' untuk yang sudah bekerja.
     jenisTarget: function () { return levelDari(this.s.profil && this.s.profil.tgl_lahir) === 'entry' ? 'pekerjaan' : 'role'; },
-    // Pilihan target: rumpun role umum, boleh pilih berapa saja, plus tulis sendiri.
+    // Pilihan target: rekomendasi role dari CV dan hasil kuis (fungsi saran-target), boleh pilih sampai 6.
+    // Tiap pilihan dibahas sebagai satu arah karir di laporan (laporan punya 6 arah).
     // Disimpan sebagai satu teks dipisah '; ' (server memecahnya lagi).
+    MAKS_TARGET: 6,
+    // cadangan kalau rekomendasi belum bisa disusun
     ROLE_UMUM: ['Product Management', 'Business Development', 'Business Analyst', 'Data & Analytics', 'Software Engineering',
-      'UI/UX Design', 'Marketing', 'Digital Marketing', 'Sales', 'Finance & Accounting', 'Human Resources', 'Operations',
-      'Supply Chain', 'Project Management', 'Consulting', 'Customer Success', 'Legal & Compliance', 'Research',
-      'Content & Creative', 'Public Relations', 'Education & Training', 'Engineering'],
-    daftarTarget: function () {
-      var d = (this.s.targetPilih || []).slice(), t = String(this.s.target || '').replace(/\s+/g, ' ').trim();
-      if (t) d.push(t);
-      return d;
-    },
+      'UI/UX Design', 'Marketing', 'Sales', 'Finance & Accounting', 'Human Resources', 'Operations', 'Project Management',
+      'Consulting', 'Customer Success', 'Research', 'Content & Creative'],
+    daftarTarget: function () { return (this.s.targetPilih || []).slice(); },
     pilihTarget: function (t) {
       var a = (this.s.targetPilih || []).slice(), i = -1;
       a.forEach(function (x, k) { if (x.toLowerCase() === t.toLowerCase()) i = k; });
-      if (i >= 0) a.splice(i, 1); else a.push(t);
+      if (i >= 0) a.splice(i, 1);
+      else {
+        if (a.length >= this.MAKS_TARGET) { toast('Maksimal ' + this.MAKS_TARGET + ' pilihan ya. Lepas satu dulu kalau mau ganti.'); return; }
+        a.push(t);
+      }
       this.s.targetDiketik = true;
       this.set({ targetPilih: a });
+    },
+    // Disiapkan saat layar target dibuka (kuis sudah selesai) dan disimpan di browser supaya tidak dibuat ulang.
+    muatSaranTarget: function (paksa) {
+      var self = this, s = this.s;
+      if (!s.cvRow || !API.saranTarget || this._saranJalan) return;
+      var jw = s.jawaban || {};
+      var kunci = 'nws_saran3_' + (API._uid || '') + '_' + (s.cvRow.diubah || '') + '_' + (jw.selesai || '') + '_' + this.jenisTarget();
+      if (!paksa && s.saranTarget && s.saranTarget._kunci === kunci) return;
+      try { var simpan = JSON.parse(window.localStorage.getItem(kunci) || 'null'); if (!paksa && simpan && simpan.opsi && simpan.opsi.length) { s.saranTarget = simpan; return; } } catch (e) { /* abaikan */ }
+      this._saranJalan = true; s.saranMemuat = true; s.saranGagal = false;
+      if (s.layar === 'target') this.render();
+      API.saranTarget().then(function (r) {
+        if (r && r.opsi && r.opsi.length) {
+          r._kunci = kunci; s.saranTarget = r;
+          try { window.localStorage.setItem(kunci, JSON.stringify(r)); } catch (e) { /* abaikan */ }
+        } else s.saranGagal = true;
+      }).catch(function (e) { console.warn('saran target', e); s.saranGagal = true; })
+        .then(function () { self._saranJalan = false; s.saranMemuat = false; if (s.layar === 'target') self.render(); });
     },
     simpanTarget: async function (lewati) {
       var daftar = lewati ? [] : this.daftarTarget();
       var teks = daftar.join('; ');
       if (!lewati && !daftar.length) throw new Error('Pilih minimal satu, atau tekan lewati');
+      if (daftar.length > this.MAKS_TARGET) throw new Error('Maksimal ' + this.MAKS_TARGET + ' pilihan ya');
       if (teks.length > 300) throw new Error('Pilihan dan tulisanmu kepanjangan. Kurangi sedikit ya, cukup yang paling kamu incar.');
       var jenis = this.jenisTarget(), jw = this.s.jawaban || {};
       if (!(jw.target_jenis === jenis && (jw.target || '') === teks)) await API.simpanTarget(teks, jenis);

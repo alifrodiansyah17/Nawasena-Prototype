@@ -48,6 +48,15 @@
     async simpanJawaban(data, hal, selesai) { await tunda(200); db.jawaban = Object.assign({}, db.jawaban || {}, { data: data, hal: hal, selesai: selesai ? new Date().toISOString() : null }); },
     async daftarSandi(email, sandi) { await tunda(400); calon = email; API._uid = 'demo-user'; return { id: API._uid, email: email }; },
     async masukSandi(akun, sandi) { await tunda(400); if (!db.profil) throw new Error('Email atau nomor ini belum terdaftar. Coba daftar dulu ya.'); API._uid = 'demo-user'; },
+    async saranTarget() {
+      await tunda(900);
+      return { opsi: [
+        { t: 'Financial Analyst', k: 'memakai pengalaman model keuangan di CV-mu' }, { t: 'Project Control', k: 'cocok dengan sukamu mengatur dan rapi' },
+        { t: 'Management Trainee', k: 'kuat mengambil alih dan tenang ditekan' }, { t: 'Risk Management', k: 'nyambung dengan magang risikomu' },
+        { t: 'Business Analyst', k: 'suka mengulik sebab dan pola' }, { t: 'Valuation & Advisory', k: 'dekat dengan proyek valuasimu' },
+        { t: 'Learning & Development', k: 'peka pada orang dan suka menjelaskan' }, { t: 'Operations', k: 'nyaman dengan aturan dan urutan jelas' },
+        { t: 'Corporate Strategy', k: 'gabungan angka dan pengambilan keputusan' }, { t: 'Supply Chain', k: 'suka merapikan alur kerja' }] };
+    },
     async simpanTarget(target, jenis) { await tunda(200); db.jawaban = Object.assign({}, db.jawaban || {}, { target: target, target_jenis: jenis }); },
     async mulaiAnalisis() {
       var sidik = JSON.stringify([db.cv && db.cv.teks, db.jawaban && db.jawaban.data, db.jawaban && db.jawaban.target, (db.lampiran || []).map(function (l) { return l.id; })]);

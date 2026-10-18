@@ -136,14 +136,12 @@ Aturan enam arah:
 - Kelompok arah mengikuti JENIS PERTANYAAN TARGET yang dijawab pengguna (lihat data), bukan level CV,
   karena aplikasi sudah menjanjikan pembagian ini ke pengguna sebelum analisis.
 - Tanpa target: urutkan dari yang paling banyak memakai bekal yang sudah terbukti (CV + kuis). kel = ''.
-- Target jenis PEKERJAAN: arah 1–3 'Sesuai keinginanmu', yaitu nama pekerjaan nyata yang paling dekat dengan gambaran
-  yang dia pilih/tulis (pilihannya bisa berupa rumpun umum; kalau lebih dari satu, sebar ke arah 1–3 dan dahulukan yang paling cocok dengan CV dan kuis),
-  urut dari yang paling cocok dengan kuis dan CV. Arah 4–6 'Sudah terbentuk di kamu', dari bekal yang sudah terbukti.
-- Target jenis ROLE: dia boleh memilih lebih dari satu. Pilihannya sering berupa rumpun umum (mis. 'Product Management',
-  'Business Development'); terjemahkan tiap rumpun jadi satu role konkret di rumpun itu yang pas dengan jenjang dan keahliannya di CV.
-  Arah 1 sampai N 'Sesuai target karirmu', N = jumlah pilihan (paling banyak 3; kalau lebih dari 3, ambil 3 yang paling cocok dengan
-  CV dan kuis, dan sebut singkat di b5.intro bahwa pilihan lain ikut dipertimbangkan). Satu arah untuk tiap pilihan
-  (kalau masih jauh, tetap bahas dan sebut jaraknya dengan jujur). Arah sisanya sampai 6 'Relevan dengan karirmu sekarang'.
+- Ada target (jenis PEKERJAAN maupun ROLE): pengguna memilih 1–6 role dari rekomendasi yang disusun dari CV dan kuisnya.
+  Arah 1 sampai N mengikuti pilihannya, N = jumlah pilihan (paling banyak 6), satu arah untuk tiap pilihan, urut sesuai pilihan.
+  Pilihan berupa nama role umum (mis. 'Business Analyst', 'Product Management'); jadikan role konkret di Indonesia yang pas dengan
+  jenjang dan keahliannya di CV. kel arah 1..N: 'Sesuai keinginanmu' (PEKERJAAN) atau 'Sesuai target karirmu' (ROLE).
+  Arah sisanya sampai 6 dari bekal yang sudah terbukti di CV dan kuis: kel 'Sudah terbentuk di kamu' (PEKERJAAN)
+  atau 'Relevan dengan karirmu sekarang' (ROLE). Kalau sebuah pilihan masih jauh dari bekalnya, tetap bahas dan sebut jaraknya dengan jujur.
 - Jawaban target ditulis pengguna dengan bahasanya sendiri. Tafsirkan maksudnya, jangan menyalin mentah sebagai nama peran,
   dan abaikan isi yang bukan tentang pekerjaan. Kalau maksudnya tidak bisa dipahami, perlakukan seperti tanpa target, tapi kel tetap diisi sesuai jenisnya.
 - b5.intro: sebut singkat bagaimana jawaban targetnya kamu tafsirkan, dalam kalimat biasa.
@@ -167,11 +165,12 @@ Aturan catatan CV (Bagian 4):
 /** Label kelompok arah ke-k (0–5). Diisi sistem supaya selalu sama dengan janji di layar target. */
 export function kelArah(jenis: "pekerjaan" | "role" | null, k: number, nTarget = 1): string {
   if (!jenis) return "";
-  if (jenis === "pekerjaan") return k < 3 ? "Sesuai keinginanmu" : "Sudah terbentuk di kamu";
-  return k < jumlahArahTarget(nTarget) ? "Sesuai target karirmu" : "Relevan dengan karirmu sekarang";
+  const pilihan = k < jumlahArahTarget(nTarget);
+  if (jenis === "pekerjaan") return pilihan ? "Sesuai keinginanmu" : "Sudah terbentuk di kamu";
+  return pilihan ? "Sesuai target karirmu" : "Relevan dengan karirmu sekarang";
 }
-/** Target ROLE: satu arah per role yang dipilih, paling banyak 3 (sama dengan janji di layar target). */
-export function jumlahArahTarget(nTarget: number): number { return Math.min(3, Math.max(1, nTarget || 1)); }
+/** Satu arah per role yang dipilih, paling banyak 6 (sama dengan janji di layar target). */
+export function jumlahArahTarget(nTarget: number): number { return Math.min(6, Math.max(1, nTarget || 1)); }
 
 // ---------------------------------------------------------------- Rincian arah (dua potongan paralel)
 const peran = obj({
