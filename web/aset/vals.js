@@ -57,6 +57,7 @@
     v.waBase = 'https://wa.me/' + C.WHATSAPP;
     v.waTampil = '+' + String(C.WHATSAPP).replace(/^(\d{2})(\d{3})(\d{4})(\d+)$/, '$1 $2-$3-$4');
     v.emailDukungan = C.EMAIL_DUKUNGAN || 'support@nawasena.info';
+    v.emailKontak = C.EMAIL_KONTAK || 'kotakpos@nawasena.info';   // kontak umum (Tentang Nawasena); support@ khusus kendala
     v.tahun = new Date().getFullYear();
     v.hargaTeks = U.rp(C.HARGA);
     v.janjiCek = C.JANJI_CEK;

@@ -26,7 +26,8 @@ window.NAWASENA_CONFIG = {
 
   // Kontak bantuan (WhatsApp, format 62…)
   WHATSAPP: '6281567666969',
-  EMAIL_DUKUNGAN: 'support@nawasena.info',
+  EMAIL_DUKUNGAN: 'support@nawasena.info',   // khusus kendala
+  EMAIL_KONTAK: 'kotakpos@nawasena.info',     // kontak umum di bagian Tentang Nawasena
 
   // Lama pengecekan pembayaran yang dijanjikan ke pengguna
   JANJI_CEK: '1×24 jam di hari kerja',
