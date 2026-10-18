@@ -35,8 +35,19 @@
     },
     masuk: async function () {
       this.set({ galatMasuk: '' });
-      var r = await sb.auth.signInWithPassword({ email: this.s.emailAdmin.trim(), password: this.s.sandiAdmin });
-      if (r.error) { this.set({ galatMasuk: 'Email atau kata sandi salah.' }); return; }
+      // Email selalu huruf kecil tanpa spasi (keyboard HP sering membuat huruf pertama kapital).
+      // Kalau gagal dan kata sandinya berakhiran/berawalan spasi (sering terselip dari keyboard HP), coba sekali tanpa spasi itu.
+      var email = String(this.s.emailAdmin || '').trim().toLowerCase(), sandi = String(this.s.sandiAdmin || '');
+      if (!email || !sandi) { this.set({ galatMasuk: 'Isi email dan kata sandinya dulu.' }); return; }
+      var r = await sb.auth.signInWithPassword({ email: email, password: sandi });
+      if (r.error && sandi.trim() !== sandi) r = await sb.auth.signInWithPassword({ email: email, password: sandi.trim() });
+      if (r.error) {
+        var m = r.error.message || '';
+        this.set({ galatMasuk: /rate|too many/i.test(m) ? 'Terlalu sering mencoba. Tunggu beberapa menit lalu coba lagi.'
+          : /confirm/i.test(m) ? 'Email akun ini belum dikonfirmasi. Hubungi pemilik backoffice.'
+          : 'Email atau kata sandi salah. Tekan ikon mata untuk mengecek kata sandi yang terketik (huruf besar/kecil berpengaruh).' });
+        return;
+      }
       await this.setelahMasuk(r.data.user);
     },
     setelahMasuk: async function (user) {
@@ -105,6 +116,10 @@
       v.layarMuat = s.layar === 'muat'; v.layarMasuk = s.layar === 'masuk'; v.layarBo = s.layar === 'bo';
       v.emailAdmin = s.emailAdmin; v.sandiAdmin = s.sandiAdmin; v.galatMasuk = s.galatMasuk;
       v.setEmailAdmin = function (e) { self.s.emailAdmin = e.target.value; };
+      v.sandiTipe = s.lihatSandi ? 'text' : 'password';
+      v.lihatSandiKlik = function () { self.set({ lihatSandi: !s.lihatSandi }); };
+      v.lihatSandiLabel = s.lihatSandi ? 'Sembunyikan kata sandi' : 'Lihat kata sandi';
+      v.mataBuka = !s.lihatSandi; v.mataTutup = !!s.lihatSandi;
       v.setSandiAdmin = function (e) { self.s.sandiAdmin = e.target.value; };
       v.masukAdminKlik = function () { sibuk(true); self.masuk().finally(function () { sibuk(false); }); };
       if (s.layar !== 'bo') return v;

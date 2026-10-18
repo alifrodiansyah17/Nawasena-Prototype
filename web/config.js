@@ -18,6 +18,8 @@ window.NAWASENA_CONFIG = {
   QRIS_GAMBAR: 'aset/qris.png',          // ganti file web/public/aset/qris.png dengan QRIS statis Nawasena
   QRIS_NAMA: 'NAWASENA',
   QRIS_NMID: 'ID1234567890123',
+  // Metode pembayaran yang ditampilkan. Untuk menyalakan lagi transfer bank: ['qris', 'transfer']
+  METODE_BAYAR: ['qris'],
   BANK_NAMA: 'Bank BCA',
   BANK_NOMOR: '1234567890',
   BANK_ATAS_NAMA: 'Nawasena Indonesia',

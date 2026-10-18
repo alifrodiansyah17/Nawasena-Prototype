@@ -85,6 +85,10 @@
     var sandiMode = !C.VERIFIKASI_EMAIL;
     v.modeSandi = sandiMode;
     v.sandi = s.sandi || ''; v.setSandi = function (e) { s.sandi = e.target.value; };
+    v.sandiTipe = s.lihatSandi ? 'text' : 'password';
+    v.lihatSandiKlik = function () { self.set({ lihatSandi: !s.lihatSandi }); };
+    v.lihatSandiLabel = s.lihatSandi ? 'Sembunyikan kata sandi' : 'Lihat kata sandi';
+    v.mataBuka = !s.lihatSandi; v.mataTutup = !!s.lihatSandi;
     v.catatanEmail = sandiMode ? 'Kami pakai buat menghubungimu soal laporan dan pembayaran' : 'Ini juga yang kamu pakai buat masuk lagi nanti';
     v.labelKirim = sandiMode ? 'Masuk' : 'Kirim kodenya ke email';
     v.catatanMasuk = sandiMode
@@ -314,7 +318,9 @@
     var sudahSusun = s.cvRow && s.cvRow.sumber === 'susun';
     v.paketNama = sudahSusun ? 'Peta potensimu + CV rapi' : 'Peta potensimu lengkap';
     v.paketSub = sudahSusun ? '6 bagian peta potensimu + CV rapi, sekali bayar' : '6 bagian peta potensimu, sekali bayar';
-    v.metode = D.BAYAR.map(function (b) {
+    var aktif = C.METODE_BAYAR || ['qris', 'transfer'];
+    if (aktif.indexOf(s.bayar) < 0) s.bayar = aktif[0];
+    v.metode = D.BAYAR.filter(function (b) { return aktif.indexOf(b[0]) >= 0; }).map(function (b) {
       var sel = (s.bayar === b[0]);
       return { nama: b[1], sub: b[2], sel: sel, pick: self.pilih('bayar', b[0]),
         st: 'border-radius: 12px; padding: 15px 16px; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; gap: 13px; min-height: 68px; border: 1.5px solid '

@@ -57,11 +57,14 @@
     </div>
     <div style="display: flex; flex-direction: column; gap: 6px;">
       <div style="font-size: 13px; font-weight: 600; color: #334155;">Email</div>
-      <input type="email" autocomplete="username" value="{{emailAdmin}}" onChange="{{setEmailAdmin}}" style="height: 48px; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 14px; font-size: 14px;">
+      <input type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" value="{{emailAdmin}}" onChange="{{setEmailAdmin}}" style="height: 48px; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 14px; font-size: 14px;">
     </div>
     <div style="display: flex; flex-direction: column; gap: 6px;">
       <div style="font-size: 13px; font-weight: 600; color: #334155;">Kata sandi</div>
-      <input type="password" autocomplete="current-password" value="{{sandiAdmin}}" onChange="{{setSandiAdmin}}" style="height: 48px; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 14px; font-size: 14px;">
+      <div style="position: relative;">
+        <input type="{{sandiTipe}}" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" value="{{sandiAdmin}}" onChange="{{setSandiAdmin}}" style="height: 48px; width: 100%; box-sizing: border-box; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 52px 0 14px; font-size: 14px;">
+        <span class="tap" onClick="{{lihatSandiKlik}}" role="button" aria-label="{{lihatSandiLabel}}" title="{{lihatSandiLabel}}" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #64748B; cursor: pointer;"><sc-if value="{{mataBuka}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></sc-if><sc-if value="{{mataTutup}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.9 10.9 0 0112 5c6.4 0 10 7 10 7a17.6 17.6 0 01-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a10.7 10.7 0 005.4-1.4"/><path d="M9.9 9.9a3 3 0 004.2 4.2"/></svg></sc-if></span>
+      </div>
     </div>
     <sc-if value="{{galatMasuk}}"><p style="font-size: 13px; color: #B91C1C;">{{galatMasuk}}</p></sc-if>
     <div class="tap" onClick="{{masukAdminKlik}}" style="height: 50px; border-radius: 9999px; background: #FFD100; color: #0F172A; display: flex; align-items: center; justify-content: center; font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px;">Masuk</div>
@@ -385,10 +388,10 @@
 
 </sc-if>
 </template>
-<script src="../config.js"></script>
-<script src="../aset/vendor/supabase-2.117.2.js"></script>
-<script src="../aset/vendor/morphdom-2.7.4.min.js"></script>
-<script src="../aset/runtime.js"></script>
-<script src="../aset/admin.js"></script>
+<script src="../config.js?v=db9609e3"></script>
+<script src="../aset/vendor/supabase-2.117.2.js?v=d3846343"></script>
+<script src="../aset/vendor/morphdom-2.7.4.min.js?v=0b337db4"></script>
+<script src="../aset/runtime.js?v=34f7ee4f"></script>
+<script src="../aset/admin.js?v=54ba9d15"></script>
 </body>
 </html>

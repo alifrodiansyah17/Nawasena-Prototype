@@ -208,7 +208,7 @@
       <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Kata sandi
         </div>
-        <input type="password" autocomplete="current-password" value="{{sandi}}" onChange="{{setSandi}}" placeholder="Kata sandi yang kamu buat waktu daftar" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 500;">
+        <div style="position: relative;"><input type="{{sandiTipe}}" autocomplete="current-password" value="{{sandi}}" onChange="{{setSandi}}" placeholder="Kata sandi yang kamu buat waktu daftar" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 500; width: 100%; padding-right: 52px;"><span class="tap" onClick="{{lihatSandiKlik}}" role="button" aria-label="{{lihatSandiLabel}}" title="{{lihatSandiLabel}}" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #64748B;"><sc-if value="{{mataBuka}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></sc-if><sc-if value="{{mataTutup}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.9 10.9 0 0112 5c6.4 0 10 7 10 7a17.6 17.6 0 01-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a10.7 10.7 0 005.4-1.4"/><path d="M9.9 9.9a3 3 0 004.2 4.2"/></svg></sc-if></span></div>
       </div>
     </sc-if>
     <div style="background: #F5FBFF; border: 1px solid #E0F2FE; border-radius: 12px; padding: 14px 16px; font-size: 13px; line-height: 1.55; color: #334155;">{{catatanMasuk}}
@@ -315,7 +315,7 @@
       <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Buat kata sandi
         </div>
-        <input type="password" autocomplete="new-password" value="{{sandi}}" onChange="{{setSandi}}" placeholder="Minimal 6 huruf atau angka" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 500;">
+        <div style="position: relative;"><input type="{{sandiTipe}}" autocomplete="new-password" value="{{sandi}}" onChange="{{setSandi}}" placeholder="Minimal 6 huruf atau angka" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 500; width: 100%; padding-right: 52px;"><span class="tap" onClick="{{lihatSandiKlik}}" role="button" aria-label="{{lihatSandiLabel}}" title="{{lihatSandiLabel}}" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #64748B;"><sc-if value="{{mataBuka}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></sc-if><sc-if value="{{mataTutup}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.9 10.9 0 0112 5c6.4 0 10 7 10 7a17.6 17.6 0 01-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a10.7 10.7 0 005.4-1.4"/><path d="M9.9 9.9a3 3 0 004.2 4.2"/></svg></sc-if></span></div>
         <div style="font-size: 12px; color: #64748B; padding-left: 2px;">Simpan baik-baik, ini dipakai buat masuk lagi nanti
         </div>
       </div>
@@ -1449,7 +1449,7 @@
     <sc-if value="{{modeUjiCoba}}">
     <div style="margin-top: 6px; display: flex; gap: 10px; align-items: flex-start; background: #FEF9C3; border: 1px solid #FACC15; border-radius: 12px; padding: 12px 14px;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#713F12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
-      <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu transfer sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
+      <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu bayar sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
     </div>
     </sc-if>
     <div style="padding-top: 8px;">
@@ -1533,7 +1533,7 @@
     <sc-if value="{{modeUjiCoba}}">
     <div style="margin-top: 6px; display: flex; gap: 10px; align-items: flex-start; background: #FEF9C3; border: 1px solid #FACC15; border-radius: 12px; padding: 12px 14px;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#713F12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
-      <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu transfer sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
+      <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu bayar sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
     </div>
     </sc-if>
     <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 17px 18px; display: flex; flex-direction: column; gap: 13px;">
@@ -1608,7 +1608,7 @@
     <sc-if value="{{modeUjiCoba}}">
     <div style="margin-top: 6px; display: flex; gap: 10px; align-items: flex-start; background: #FEF9C3; border: 1px solid #FACC15; border-radius: 12px; padding: 12px 14px;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#713F12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
-      <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu transfer sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
+      <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu bayar sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
     </div>
     </sc-if>
     <div style="background: #F5FBFF; border: 1px solid #E0F2FE; border-radius: 12px; padding: 17px 18px; display: flex; flex-direction: column; gap: 6px;">
@@ -3404,7 +3404,7 @@
         <div style="display: flex; flex-direction: column; gap: 6px;">
           <div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Kata sandi
           </div>
-          <input type="password" autocomplete="current-password" value="{{sandi}}" onChange="{{setSandi}}" placeholder="Kata sandi yang kamu buat waktu daftar" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 500;">
+          <div style="position: relative;"><input type="{{sandiTipe}}" autocomplete="current-password" value="{{sandi}}" onChange="{{setSandi}}" placeholder="Kata sandi yang kamu buat waktu daftar" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 500; width: 100%; padding-right: 52px;"><span class="tap" onClick="{{lihatSandiKlik}}" role="button" aria-label="{{lihatSandiLabel}}" title="{{lihatSandiLabel}}" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #64748B;"><sc-if value="{{mataBuka}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></sc-if><sc-if value="{{mataTutup}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.9 10.9 0 0112 5c6.4 0 10 7 10 7a17.6 17.6 0 01-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a10.7 10.7 0 005.4-1.4"/><path d="M9.9 9.9a3 3 0 004.2 4.2"/></svg></sc-if></span></div>
         </div>
       </sc-if>
       <div style="background: #F5FBFF; border: 1px solid #E0F2FE; border-radius: 12px; padding: 14px 16px; font-size: 13px; line-height: 1.55; color: #334155;">{{catatanMasuk}}
@@ -3563,7 +3563,7 @@
           <div style="display: flex; flex-direction: column; gap: 6px;">
             <div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Buat kata sandi
             </div>
-            <input type="password" autocomplete="new-password" value="{{sandi}}" onChange="{{setSandi}}" placeholder="Minimal 6 huruf atau angka" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 500;">
+            <div style="position: relative;"><input type="{{sandiTipe}}" autocomplete="new-password" value="{{sandi}}" onChange="{{setSandi}}" placeholder="Minimal 6 huruf atau angka" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 500; width: 100%; padding-right: 52px;"><span class="tap" onClick="{{lihatSandiKlik}}" role="button" aria-label="{{lihatSandiLabel}}" title="{{lihatSandiLabel}}" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #64748B;"><sc-if value="{{mataBuka}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></sc-if><sc-if value="{{mataTutup}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.9 10.9 0 0112 5c6.4 0 10 7 10 7a17.6 17.6 0 01-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a10.7 10.7 0 005.4-1.4"/><path d="M9.9 9.9a3 3 0 004.2 4.2"/></svg></sc-if></span></div>
             <div style="font-size: 12px; color: #64748B; padding-left: 2px;">Simpan baik-baik, ini dipakai buat masuk lagi nanti
             </div>
           </div>
@@ -4879,7 +4879,7 @@
         <div style="display: flex; gap: 10px; align-items: flex-start; background: #FEF9C3; border: 1px solid #FACC15; border-radius: 12px; padding: 12px 14px;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#713F12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/>
           </svg>
-          <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu transfer sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
+          <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu bayar sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
         </div>
       </sc-if>
       <div>
@@ -4964,7 +4964,7 @@
           <div style="display: flex; gap: 10px; align-items: flex-start; background: #FEF9C3; border: 1px solid #FACC15; border-radius: 12px; padding: 12px 14px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#713F12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/>
             </svg>
-            <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu transfer sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
+            <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu bayar sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
           </div>
         </sc-if>
         <div>
@@ -5042,7 +5042,7 @@
           <div style="display: flex; gap: 10px; align-items: flex-start; background: #FEF9C3; border: 1px solid #FACC15; border-radius: 12px; padding: 12px 14px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#713F12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/>
             </svg>
-            <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu transfer sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
+            <p style="font-size: 13px; line-height: 1.5; color: #713F12;"><b>Mode uji coba.</b> Tidak perlu bayar sungguhan. Unggah gambar apa saja sebagai bukti bayar, nanti tim Nawasena yang konfirmasi.</p>
           </div>
         </sc-if>
         <div>
@@ -6457,7 +6457,7 @@
 </div>
 </sc-if>
 </template>
-<script src="config.js?v=61bf8395"></script>
+<script src="config.js?v=db9609e3"></script>
 <script src="aset/vendor/supabase-2.117.2.js?v=d3846343"></script>
 <script src="aset/vendor/morphdom-2.7.4.min.js?v=0b337db4"></script>
 <script src="aset/data.js?v=37ff04b7"></script>
@@ -6466,7 +6466,7 @@
 <script src="aset/api-demo.js?v=a286b32a"></script>
 <script src="aset/runtime.js?v=34f7ee4f"></script>
 <script src="aset/app.js?v=6ed141f9"></script>
-<script src="aset/vals.js?v=596f34a6"></script>
+<script src="aset/vals.js?v=1633ab48"></script>
 <script>window.App.mulai();</script>
 </body>
 </html>
