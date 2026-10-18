@@ -5,7 +5,7 @@
   var BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   var ALASAN = ['Nominal tidak sesuai tagihan', 'Bukti tidak terbaca', 'Dana belum masuk ke rekening', 'Bukti untuk pesanan lain'];
   var LBL = { menunggu: 'Menunggu', ok: 'Terkonfirmasi', tolak: 'Ditolak' };
-  var PST = { menunggu: 'color: #0F172A; background: #FFF3B0;', ok: 'color: #15803D; background: #DCFCE7;', tolak: 'color: #991B1B; background: #FEE2E2;' };
+  var PST = { menunggu: 'color: #0F172A; background: #FEF9C3;', ok: 'color: #15803D; background: #DCFCE7;', tolak: 'color: #991B1B; background: #FEE2E2;' };
   var pillBase = 'justify-self: start; display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; border-radius: 999px; padding: 4px 10px; ';
   var baruOn = 'font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #FFFFFF; background: #0284C7; border-radius: 999px; padding: 2px 7px; flex-shrink: 0;';
 
@@ -23,7 +23,7 @@
 
   var BO = {
     s: { layar: 'muat', emailAdmin: '', sandiAdmin: '', galatMasuk: '', adminNama: '', view: 'bayar', filter: 'menunggu', pilih: null,
-      tolakBuka: false, alasan: -1, periode: 'minggu', cari: '', rows: [], admins: {}, buktiUrl: {}, baru: {} },
+      tolakBuka: false, alasan: -1, periode: 'minggu', cari: '', rows: [], admins: {}, buktiUrl: {}, baru: {}, kwitansi: {}, kwitansiUrl: {} },
     set: function (o) { Object.assign(this.s, o); this.rt.render(this.vals()); },
 
     mulai: async function () {
@@ -84,19 +84,50 @@
       if (!r.error) { this.s.buktiUrl[d.id] = r.data.signedUrl; this.set({}); }
     },
     cari: function (id) { return this.s.rows.filter(function (x) { return x.id === id; })[0]; },
+    // Receipt pembayaran: dipilih admin, dibaca jadi base64, dikirim bersama aksi "ok" (wajib) atau "kwitansi".
+    pilihKwitansi: function () {
+      var self = this, d = this.cari(this.s.pilih); if (!d) return;
+      var inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'application/pdf,image/png,image/jpeg';
+      inp.onchange = function () {
+        var f = inp.files && inp.files[0]; if (!f) return;
+        if (!/^(application\/pdf|image\/png|image\/jpeg)$/.test(f.type)) { toast('Receipt harus PDF, JPG, atau PNG'); return; }
+        if (f.size > 5 * 1024 * 1024) { toast('Receipt maksimal 5 MB'); return; }
+        var r = new FileReader();
+        r.onload = function () {
+          var data = String(r.result || '').split(',')[1] || '';
+          self.s.kwitansi[d.id] = { nama: f.name, tipe: f.type, data: data, ukuran: f.size };
+          self.set({});
+        };
+        r.onerror = function () { toast('File tidak terbaca, coba lagi'); };
+        r.readAsDataURL(f);
+      };
+      inp.click();
+    },
+    siapkanKwitansi: async function () {
+      var d = this.cari(this.s.pilih);
+      if (!d || !d.kwitansi_path || this.s.kwitansiUrl[d.id]) return;
+      var r = await sb.storage.from('kwitansi').createSignedUrl(d.kwitansi_path, 900);
+      if (!r.error) { this.s.kwitansiUrl[d.id] = r.data.signedUrl; this.set({}); }
+    },
     aksi: async function (aksi, alasan) {
       var d = this.cari(this.s.pilih); if (!d) return;
+      var kw = this.s.kwitansi[d.id];
+      if ((aksi === 'ok' || aksi === 'kwitansi') && !kw) { toast('Unggah receipt pembayaran dulu. Receipt wajib sebelum konfirmasi.'); return; }
       sibuk(true);
       try {
         var s = (await sb.auth.getSession()).data.session;
         var res = await fetch(C.SUPABASE_URL + '/functions/v1/konfirmasi', {
           method: 'POST', headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + s.access_token },
-          body: JSON.stringify({ pesanan_id: d.id, aksi: aksi, alasan: alasan })
+          body: JSON.stringify({ pesanan_id: d.id, aksi: aksi, alasan: alasan, kwitansi: kw ? { nama: kw.nama, tipe: kw.tipe, data: kw.data } : undefined })
         });
         var j = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(j.galat || ('Gagal (' + res.status + ')'));
-        delete this.s.baru[d.id];
-        toast(aksi === 'ok' ? 'Pembayaran dikonfirmasi. Laporan pengguna sedang disusun.' : (aksi === 'tolak' ? 'Penolakan terkirim ke pengguna.' : 'Dikembalikan ke Menunggu.'), true);
+        delete this.s.baru[d.id]; delete this.s.kwitansi[d.id]; delete this.s.kwitansiUrl[d.id];
+        var surel = j.email === false ? ' Tapi email receipt belum terkirim, cek pengaturan SMTP.' : '';
+        toast(aksi === 'ok' ? 'Pembayaran dikonfirmasi dan receipt dikirim ke email pengguna.' + surel
+          : aksi === 'kwitansi' ? 'Receipt tersimpan dan dikirim ke email pengguna.' + surel
+          : (aksi === 'tolak' ? 'Penolakan terkirim ke pengguna.' : 'Dikembalikan ke Menunggu.'), !surel);
         this.s.tolakBuka = false; this.s.alasan = -1;
         await this.muat();
       } catch (e) { toast(e.message); }
@@ -160,11 +191,11 @@
         var sel = s.pilih === r.id;
         return { tgl: tgl(r.dikirim), jam: jam(r.dikirim), nama: r.profil ? r.profil.nama : '-', email: r.profil ? r.profil.email : '', pesanan: r.kode,
           metodeK: r.metode === 'qris' ? 'QRIS' : 'Transfer', nominal: rp(r.nominal),
-          pick: function () { self.set({ pilih: r.id, tolakBuka: false, alasan: -1 }); self.siapkanBukti(); },
+          pick: function () { self.set({ pilih: r.id, tolakBuka: false, alasan: -1 }); self.siapkanBukti(); self.siapkanKwitansi(); },
           baruSt: s.baru[r.id] ? baruOn : 'display: none;', nomSt: 'font-size: 13px; font-weight: 700; color: #1E293B;',
           pill: LBL[r.status], pillSt: pillBase + PST[r.status],
           st: 'display: grid; grid-template-columns: 64px minmax(0,1fr) 132px 78px 84px 112px; gap: 10px; align-items: center; padding: 13px 18px; border-bottom: 1px solid #F1F5F9; '
-            + (sel ? 'background: #F5FBFF; box-shadow: inset 3px 0 0 #009FE3;' : (s.baru[r.id] ? 'background: #F0FDF4;' : '')) };
+            + (sel ? 'background: #F0F9FF; box-shadow: inset 3px 0 0 #009FE3;' : (s.baru[r.id] ? 'background: #F0FDF4;' : '')) };
       });
       v.kosong = tampil.length === 0;
 
@@ -188,14 +219,30 @@
       v.bisaBatal = st !== 'menunggu' && !!d.id && d.dicek_oleh === s.uid && !!d.dicek && (Date.now() - new Date(d.dicek).getTime() < 15 * 60000);
       v.batalkan = function () { if (window.confirm('Kembalikan pesanan ini ke Menunggu?')) self.aksi('batal'); };
       v.tolakBuka = s.tolakBuka; v.tolakTutup = !s.tolakBuka;
-      v.konfirmasi = function () { if (window.confirm('Konfirmasi pembayaran ' + d.kode + ' (' + v.dNama + ')?')) self.aksi('ok'); };
+      // receipt: wajib diunggah sebelum konfirmasi, lalu dikirim ke email pengguna
+      var kw = s.kwitansi[d.id];
+      v.kwAda = !!kw; v.kwKosong = !kw;
+      v.kwNama = kw ? kw.nama : ''; v.kwUkuran = kw ? (kw.ukuran < 1048576 ? Math.max(1, Math.round(kw.ukuran / 1024)) + ' KB' : (kw.ukuran / 1048576).toFixed(1) + ' MB') : '';
+      v.kwSt = 'border: 2px dashed ' + (kw ? '#0284C7' : '#7DD3FC') + '; background: ' + (kw ? '#F0F9FF' : '#F8FAFC') + '; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer;';
+      v.pilihKwitansi = function () { self.pilihKwitansi(); };
+      v.dKwitansi = !!d.kwitansi_path; v.dTanpaKwitansi = st === 'ok' && !d.kwitansi_path;
+      v.dKwitansiNama = d.kwitansi_nama || 'receipt';
+      v.dKwitansiInfo = d.kwitansi_terkirim ? 'Terkirim ke ' + v.dEmail + ' · ' + tgl(d.kwitansi_terkirim) + ', ' + jam(d.kwitansi_terkirim) : 'Tersimpan, email belum terkirim';
+      v.bukaKwitansi = function () { var u = s.kwitansiUrl[d.id]; if (u) window.open(u, '_blank'); else { toast('Receipt sedang dimuat, coba lagi'); self.siapkanKwitansi(); } };
+      v.kirimKwitansi = function () { if (window.confirm('Simpan receipt dan kirim ke ' + v.dEmail + '?')) self.aksi('kwitansi'); };
+      v.konfirmasiSt = 'flex: 1; height: 48px; border-radius: 9999px; font-size: 14px; font-weight: 700; font-family: Nunito, sans-serif; display: flex; align-items: center; justify-content: center; gap: 7px; '
+        + (kw ? 'background: #16A34A; color: #FFFFFF; box-shadow: 0 6px 14px rgba(22,163,74,0.25); cursor: pointer;' : 'background: #E2E8F0; color: #64748B; cursor: not-allowed;');
+      v.konfirmasi = function () {
+        if (!kw) { toast('Unggah receipt pembayaran dulu. Receipt wajib sebelum konfirmasi.'); return; }
+        if (window.confirm('Konfirmasi pembayaran ' + d.kode + ' (' + v.dNama + ') dan kirim receipt ke ' + v.dEmail + '?')) self.aksi('ok');
+      };
       v.bukaTolak = function () { self.set({ tolakBuka: true, alasan: -1 }); };
       v.tutupTolak = function () { self.set({ tolakBuka: false, alasan: -1 }); };
       v.kirimTolak = function () { if (s.alasan >= 0) self.aksi('tolak', ALASAN[s.alasan]); };
       v.alasanList = ALASAN.map(function (a, i) {
         var on = s.alasan === i;
         return { label: a, pick: function () { self.set({ alasan: i }); },
-          st: 'padding: 7px 11px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1.5px solid ' + (on ? '#0284C7; background: #FFF3B0; color: #0F172A;' : '#E2E8F0; background: #FFFFFF; color: #64748B;') };
+          st: 'padding: 7px 11px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1.5px solid ' + (on ? '#0284C7; background: #FEF9C3; color: #0F172A;' : '#E2E8F0; background: #FFFFFF; color: #64748B;') };
       });
       v.kirimTolakSt = 'height: 42px; padding: 0 16px; border-radius: 12px; display: flex; align-items: center; font-size: 14px; font-weight: 700; '
         + (s.alasan >= 0 ? 'background: #0284C7; color: #FFFFFF; cursor: pointer;' : 'background: #E2E8F0; color: #64748B; cursor: not-allowed;');

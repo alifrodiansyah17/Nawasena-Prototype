@@ -16,12 +16,10 @@
     var d = new Date(iso);
     return String(d.getHours()).padStart(2, '0') + '.' + String(d.getMinutes()).padStart(2, '0');
   }
+  // Usia dihitung dari tahun lahir saja: lahir 1999 bulan apa pun = 27 tahun di 2026
   function umur(tgl) {
     if (!tgl) return 0;
-    var t = new Date(tgl + 'T00:00:00'), n = new Date();
-    var u = n.getFullYear() - t.getFullYear();
-    if (n.getMonth() < t.getMonth() || (n.getMonth() === t.getMonth() && n.getDate() < t.getDate())) u--;
-    return u;
+    return new Date().getFullYear() - parseInt(String(tgl).slice(0, 4), 10);
   }
   function levelDari(tgl) { var u = umur(tgl); return u <= 25 ? 'entry' : (u <= 30 ? 'mid' : 'senior'); }
   function emailValid(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e || '').trim()); }
@@ -323,7 +321,7 @@
       this.s.laporan = d.laporan; this.s.lengkap = d.lengkap; this.s.pesanan = d.pesanan;
       if (d.jawaban && Array.isArray(d.jawaban.data)) { this.s.jawab = d.jawaban.data.slice(); this.s.hal = Math.min(5, d.jawaban.hal || 0); }
       if (d.jawaban && d.jawaban.target_jenis && !this.s.targetDiketik) {
-        this.s.targetPilih = String(d.jawaban.target || '').split(/\s*;\s*/).filter(Boolean); this.s.target = '';
+        this.s.targetPilih = String(d.jawaban.target || '').split(/\s*;\s*/).filter(Boolean).slice(0, this.MAKS_TARGET); this.s.target = '';
       }
       if (d.cv && d.cv.sumber === 'susun' && d.cv.susun) this.s.cv = d.cv.susun;
       if (!this.s.cv) this.s.cv = cvKosong(d.profil);
@@ -665,10 +663,10 @@
     // Pertanyaan ikut level dari usia (lama kerja baru terbaca dari CV saat analisis):
     // 'pekerjaan' untuk yang baru mulai, 'role' untuk yang sudah bekerja.
     jenisTarget: function () { return levelDari(this.s.profil && this.s.profil.tgl_lahir) === 'entry' ? 'pekerjaan' : 'role'; },
-    // Pilihan target: rekomendasi role dari CV dan hasil kuis (fungsi saran-target), boleh pilih sampai 6.
-    // Tiap pilihan dibahas sebagai satu arah karir di laporan (laporan punya 6 arah).
+    // Pilihan target: rekomendasi role dari CV dan hasil kuis (fungsi saran-target), pilih satu.
+    // Pilihan itu dibahas sebagai arah karir pertama di laporan; arah lainnya dari bekal sekarang.
     // Disimpan sebagai satu teks dipisah '; ' (server memecahnya lagi).
-    MAKS_TARGET: 6,
+    MAKS_TARGET: 1,
     // cadangan kalau rekomendasi belum bisa disusun
     ROLE_UMUM: ['Product Management', 'Business Development', 'Business Analyst', 'Data & Analytics', 'Software Engineering',
       'UI/UX Design', 'Marketing', 'Sales', 'Finance & Accounting', 'Human Resources', 'Operations', 'Project Management',
@@ -678,6 +676,7 @@
       var a = (this.s.targetPilih || []).slice(), i = -1;
       a.forEach(function (x, k) { if (x.toLowerCase() === t.toLowerCase()) i = k; });
       if (i >= 0) a.splice(i, 1);
+      else if (this.MAKS_TARGET === 1) a = [t];   // satu pilihan: ketuk yang lain langsung mengganti
       else {
         if (a.length >= this.MAKS_TARGET) { toast('Maksimal ' + this.MAKS_TARGET + ' pilihan ya. Lepas satu dulu kalau mau ganti.'); return; }
         a.push(t);

@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
 - Jangan menyodorkan bidang yang tidak ada hubungannya dengan CV maupun kuisnya.`;
 
     const tugas = `Tugas: susun TEPAT 10 rekomendasi role untuk layar "Kami rasa kamu bakal cocok di sini".
-Pengguna akan memilih sampai 6, dan tiap pilihan dibahas sebagai satu arah karir di laporannya.
+Pengguna akan memilih SATU, dan pilihannya dibahas sebagai arah karir pertama di laporannya.
 - t = nama role UMUM tanpa jenjang (mis. 'Business Analyst', 'Product Management', 'Financial Analyst', 'Digital Marketing'),
   yang benar-benar dipakai di lowongan Indonesia, maksimal 32 huruf. Jangan tulis 'Senior', 'Junior', 'Head', 'Lead', 'Manager', atau nama perusahaan.
 - k = alasan singkat maksimal 10 kata yang menyebut kaitannya dengan CV atau kuisnya, mis. 'memakai pengalaman risetmu di CV' atau 'cocok dengan sukamu mengulik data'.

@@ -5,7 +5,8 @@
 //   2. arahA    → rincian arah 1–3                         (jalan bersamaan dengan arahB)
 //   3. arahB    → rincian arah 4–6 + tempat kerja + Bagian 6
 // Pemicu: fungsi `konfirmasi` (admin), atau aplikasi pengguna kalau statusnya belum/gagal/macet.
-import { adminDb, CORS, esc, json, kirimEmail, latar, panggilanInternal, penggunaDari, picuFungsi } from "./_shared/umum.ts";
+import { adminDb, CORS, esc, json, latar, panggilanInternal, penggunaDari, picuFungsi } from "./_shared/umum.ts";
+import { bungkusEmail, kirimEmail } from "./_shared/surel.ts";
 import { ambilKonteks } from "./_shared/konteks.ts";
 import { tanyaClaude } from "./_shared/claude.ts";
 import { GAYA, kelArah, skemaArahA, skemaArahB, skemaRencana, TUGAS_ARAH_A, TUGAS_ARAH_B, TUGAS_RENCANA } from "./_shared/panduan.ts";
@@ -143,9 +144,9 @@ async function jalankanPotongan(userId: string, langkah: string) {
     }
     if (hasil === "siap") {
       const url = Deno.env.get("APP_URL") || "";
-      await kirimEmail(k.email, "Peta potensimu sudah lengkap",
+      await kirimEmail(k.email, "Peta potensimu sudah lengkap", bungkusEmail(
         `<p>Halo ${esc(k.nama)},</p><p>Keenam bagian peta potensimu sudah bisa dibaca.</p>` +
-        (url ? `<p><a href="${url}">Buka peta potensimu</a></p>` : "") + `<p>— Nawasena</p>`);
+        (url ? `<p><a href="${url}" style="color:#0284C7;font-weight:bold">Buka peta potensimu</a></p>` : "") + `<p>— Nawasena</p>`));
     }
   } catch (e) {
     console.error(`potongan ${langkah} gagal`, e);

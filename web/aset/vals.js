@@ -38,7 +38,7 @@
     return (dari in TINGKAT_BENTUK) && TINGKAT_BENTUK[k] < TINGKAT_BENTUK[dari] ? dari : k;
   }
   function namaBentuk(k) { var b = BENTUK.filter(function (x) { return x.k === k; })[0]; return b ? b.nama : k; }
-  var TEMPAT_WARNA = { 'Paling cocok': ['#16A34A', '#0F172A'], 'Cocok': ['#009FE3', '#FFFFFF'], 'Perlu ditimbang': ['#CCA700', '#0F172A'], 'Kurang cocok': ['#CCA700', '#0F172A'] };
+  var TEMPAT_WARNA = { 'Paling cocok': ['#16A34A', '#0F172A'], 'Cocok': ['#009FE3', '#FFFFFF'], 'Perlu ditimbang': ['#CA8A04', '#0F172A'], 'Kurang cocok': ['#CA8A04', '#0F172A'] };
   var UBIN_WARNA = ['#0284C7', '#16A34A', '#009FE3'];
 
   function wa(pesan) { return 'https://wa.me/' + C.WHATSAPP + '?text=' + encodeURIComponent(pesan); }
@@ -55,6 +55,9 @@
     LAYAR.forEach(function (n) { v['is_' + n] = (s.layar === n); });
     ['landing', 'daftar', 'masuk', 'bayar', 'instruksi', 'paywall'].forEach(function (n) { v['go_' + n] = self.ke(n); });
     v.waBase = 'https://wa.me/' + C.WHATSAPP;
+    v.waTampil = '+' + String(C.WHATSAPP).replace(/^(\d{2})(\d{3})(\d{4})(\d+)$/, '$1 $2-$3-$4');
+    v.emailDukungan = C.EMAIL_DUKUNGAN || 'support@nawasena.info';
+    v.tahun = new Date().getFullYear();
     v.hargaTeks = U.rp(C.HARGA);
     v.janjiCek = C.JANJI_CEK;
     v.modeUjiCoba = !!C.MODE_UJI_COBA;
@@ -189,7 +192,7 @@
         var on = dipilih.indexOf(t) >= 0;
         return { t: (on ? '✓ ' : '+ ') + t, on: self.togelSkill(g, t),
           st: 'border: 1.5px solid ' + (on ? '#009FE3' : '#E2E8F0') + '; border-radius: 999px; padding: 9px 14px; font-size: 13px; font-weight: 600; color: '
-            + (on ? '#0284C7' : '#334155') + '; background: ' + (on ? '#F5FBFF' : '#FFFFFF') + ';' };
+            + (on ? '#0284C7' : '#334155') + '; background: ' + (on ? '#F0F9FF' : '#FFFFFF') + ';' };
       });
       v['ketik_' + g] = s.skillKetik[g];
       v['setKetik_' + g] = function (ev) { self.s.skillKetik[g] = ev.target.value; };
@@ -236,10 +239,10 @@
     // ---------------------------------------------------------------- target karir (sesudah kuis, opsional)
     var pilihan = s.targetPilih || [], MAKS = self.MAKS_TARGET, saran = s.saranTarget || {};
     v.tgtJudul = 'Kami rasa kamu bakal cocok di sini';
-    v.tgtSub = 'Role ini kami susun dari latar belakang di CV-mu dan hasil kuismu. Pilih sampai ' + MAKS + ' yang paling bikin kamu tertarik.';
+    v.tgtSub = 'Role ini kami susun dari latar belakang di CV-mu dan hasil kuismu. Pilih satu yang paling bikin kamu tertarik.';
     v.tgtPilihJudul = 'Rekomendasi untukmu';
-    v.tgtInfo = 'Tiap role yang kamu pilih dibahas sebagai satu arah karir di laporanmu. Kalau kamu memilih kurang dari ' + MAKS + ', sisanya kami isi dengan arah yang paling cocok dengan bekalmu sekarang.';
-    v.tgtHitung = pilihan.length ? pilihan.length + ' dari ' + MAKS + ' dipilih' : 'Maksimal ' + MAKS;
+    v.tgtInfo = 'Role yang kamu pilih dibahas sebagai arah karir pertama di laporanmu. Arah lainnya kami isi dengan yang paling cocok dengan bekalmu sekarang.';
+    v.tgtHitung = MAKS === 1 ? (pilihan.length ? '1 dipilih' : 'Pilih satu') : (pilihan.length ? pilihan.length + ' dari ' + MAKS + ' dipilih' : 'Maksimal ' + MAKS);
     var adaSaran = !!(saran.opsi && saran.opsi.length);
     v.tgtMemuat = !!s.saranMemuat && !adaSaran;
     v.tgtBayang = [1, 2, 3, 4, 5, 6];
@@ -255,7 +258,7 @@
         t: o.t, k: o.k, pilih: on, aria: on ? 'true' : 'false',
         st: 'display: flex; gap: 12px; align-items: flex-start; border-radius: 12px; padding: 12px 14px; cursor: pointer; '
           + 'background: ' + (on ? '#F0F9FF' : '#FFFFFF') + '; border: 1.5px solid ' + (on ? '#009FE3' : '#E2E8F0') + ';',
-        kotak: 'width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; border-radius: 6px; display: flex; align-items: center; justify-content: center; '
+        kotak: 'width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; border-radius: ' + (MAKS === 1 ? '999px' : '6px') + '; display: flex; align-items: center; justify-content: center; '
           + 'background: ' + (on ? '#009FE3' : '#FFFFFF') + '; border: 1.5px solid ' + (on ? '#009FE3' : '#94A3B8') + ';',
         pick: function () { self.pilihTarget(o.t); }
       };
@@ -302,6 +305,7 @@
     v.paling = (b1.paling || []).map(function (x) { return { j: x.j, c: x.c, p: x.p }; });
     v.dilatih = (b1.dilatih || []).map(function (x) { return { j: x.j, p: x.p }; });
     var tn = b1.tokoh_nyata || {}, tf = b1.tokoh_fiksi || {};
+    v.tampilTokoh = lv === 'entry';   // tokoh pembanding hanya untuk level entry
     v.tokohNama = tn.nama; v.tokohPeran = tn.peran; v.tokohWhy = tn.why;
     v.fiksiNama = tf.nama; v.fiksiAsal = tf.asal; v.fiksiWhy = tf.why;
     v.ctaHasil = p && p.status === 'ok' ? 'Baca peta potensimu' : (p ? 'Lihat status pembayaran' : 'Raih karirmu sekarang');
@@ -338,7 +342,7 @@
     v.pilihBuktiKlik = function () { self.pilihBukti(); };
     v.kirimBuktiKlik = this.aman(this.kirimBukti, 'Mengirim bukti…');
     v.kirimSt = 'width: 100%; height: 54px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; font-family: Nunito, sans-serif; '
-      + (s.bukti ? 'background: #FFD100; color: #0F172A; box-shadow: 0 6px 16px rgba(255,209,0,0.35); cursor: pointer;' : 'background: #FFD100; color: #0F172A; opacity: 0.4; cursor: not-allowed;');
+      + (s.bukti ? 'background: #FACC15; color: #0F172A; box-shadow: 0 6px 16px rgba(250,204,21,0.35); cursor: pointer;' : 'background: #FACC15; color: #0F172A; opacity: 0.4; cursor: not-allowed;');
     v.keMetode = function () { self.set({ layar: 'bayar' }); };
     v.psKode = p ? p.kode : ''; v.psJumlah = U.rp(p ? p.nominal : C.HARGA);
     v.psKirim = p ? U.tglIndo(p.dikirim || p.dibuat) + ', ' + U.jamIndo(p.dikirim || p.dibuat) : '';
@@ -399,10 +403,10 @@
         var kamu = b2kamu === x.k, tuju = b2tuju === x.k && !kamu;
         return { nama: x.nama, sub: x.sub, arti: x.arti, contoh: (b2.contoh && b2.contoh[x.k]) || CONTOH_BENTUK[x.k], kamu: kamu, tuju: tuju,
           ikon: ikonBentuk(x.k, kamu || tuju ? '#009FE3' : '#94A3B8'),
-          st: (kamu ? 'border: 2px solid #009FE3; background: #F5FBFF;' : (tuju ? 'border: 1.5px dashed #009FE3; background: #FFFFFF;' : 'border: 1px solid #E2E8F0; background: #FFFFFF;'))
+          st: (kamu ? 'border: 2px solid #009FE3; background: #F0F9FF;' : (tuju ? 'border: 1.5px dashed #009FE3; background: #FFFFFF;' : 'border: 1px solid #E2E8F0; background: #FFFFFF;'))
             + ' border-radius: 12px; padding: 12px 13px; display: flex; flex-direction: column; gap: 5px;' };
       }),
-      ikonTegak: ikonBentuk('I', '#0284C7'), ikonDatar: ikonBentuk('—', '#0284C7'), ikonKamu: ikonBentuk(b2.kamu || '—', '#FFD100'),
+      ikonTegak: ikonBentuk('I', '#0284C7'), ikonDatar: ikonBentuk('—', '#0284C7'), ikonKamu: ikonBentuk(b2.kamu || '—', '#FACC15'),
       judul: b2.judul, teks: b2.teks, keahlian: b2.keahlian, keluasan: b2.keluasan, memimpin: b2.memimpin,
       catatan: String(b2.catatan || '').replace(/^\s*yang perlu kamu timbang\s*(adalah|:)?\s*/i, ''),
       jalan: (b2.jalan || []).map(function (x) {
@@ -477,7 +481,7 @@
     v.cukupSudah = !!s.ideKirim && bb.status === 'siap';
     v.butuhList = D.BUTUH.map(function (b, i) {
       return { no: b.no, pilih: b.pilih, on: function () { self.set({ butuh: i, hargaVote: -1, tier: -1, sudahKirim: false, ideKirim: false, harap: '' }); },
-        st: 'border: 1.5px solid ' + (s.butuh === i ? '#009FE3' : '#E2E8F0') + '; border-radius: 12px; padding: 13px 15px; display: flex; align-items: center; gap: 11px; background: ' + (s.butuh === i ? '#F5FBFF' : '#FFFFFF') + ';' };
+        st: 'border: 1.5px solid ' + (s.butuh === i ? '#009FE3' : '#E2E8F0') + '; border-radius: 12px; padding: 13px 15px; display: flex; align-items: center; gap: 11px; background: ' + (s.butuh === i ? '#F0F9FF' : '#FFFFFF') + ';' };
     });
     v.ofrNama = bb.nama; v.ofrApa = bb.apa; v.ofrKenapa = bb.kenapa; v.ofrAdaKenapa = !!bb.kenapa;
     v.ofrDetail = bb.detail.map(function (d) { return { k: d[0], v: d[1] }; }); v.ofrAdaDetail = bb.detail.length > 0;
@@ -487,7 +491,7 @@
     v.ofrTiers = tr.map(function (t, i) {
       var on = (s.tier === i);
       return { nama: t.nama, harga: t.harga, satuan: t.satuan, ringkas: t.ringkas, isi: t.isi.map(function (x) { return { t: x }; }), on: self.pilih('tier', i),
-        st: 'border: 2px solid ' + (on ? '#009FE3' : '#E2E8F0') + '; border-radius: 12px; padding: 16px 17px; background: ' + (on ? '#F5FBFF' : '#FFFFFF') + '; display: flex; flex-direction: column; gap: 11px;',
+        st: 'border: 2px solid ' + (on ? '#009FE3' : '#E2E8F0') + '; border-radius: 12px; padding: 16px 17px; background: ' + (on ? '#F0F9FF' : '#FFFFFF') + '; display: flex; flex-direction: column; gap: 11px;',
         dot: 'width: 20px; height: 20px; flex-shrink: 0; border-radius: 999px; border: ' + (on ? '6px solid #009FE3' : '1.5px solid #CBD5E1') + ';' };
     });
     v.ofrAdaHarga = !!bb.harga; v.ofrHarga = bb.harga;
@@ -500,7 +504,7 @@
     v.hargaList = D.HARGA_OPSI.map(function (t, i) {
       return { t: t, on: self.pilih('hargaVote', i),
         st: 'flex-grow: 1; flex-basis: 0; text-align: center; padding: 9px 6px; border-radius: 11px; font-size: 12px; font-weight: 700; border: 1.5px solid '
-          + (s.hargaVote === i ? '#009FE3' : '#E2E8F0') + '; color: ' + (s.hargaVote === i ? '#009FE3' : '#64748B') + '; background: ' + (s.hargaVote === i ? '#F5FBFF' : '#FFFFFF') + ';' };
+          + (s.hargaVote === i ? '#009FE3' : '#E2E8F0') + '; color: ' + (s.hargaVote === i ? '#009FE3' : '#64748B') + '; background: ' + (s.hargaVote === i ? '#F0F9FF' : '#FFFFFF') + ';' };
     });
     v.bintangBelum = (s.bintang === 0) && !s.nilaiKirim;
     v.bintangAda = (s.bintang > 0) && !s.nilaiKirim;
@@ -508,14 +512,14 @@
     v.bintangKata = D.BINTANG_KATA[s.bintang] || '';
     v.bintangList = [1, 2, 3, 4, 5].map(function (n) {
       var isi = (n <= s.bintang);
-      return { on: self.pilih('bintang', n), st: 'width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: ' + (isi ? '#FFD100' : '#E2E8F0') + ';',
-        f: isi ? '#FFD100' : 'none', g: isi ? '#FFD100' : '#CBD5E1' };
+      return { on: self.pilih('bintang', n), st: 'width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: ' + (isi ? '#FACC15' : '#E2E8F0') + ';',
+        f: isi ? '#FACC15' : 'none', g: isi ? '#FACC15' : '#CBD5E1' };
     });
     v.tingkatList = D.TINGKATKAN.map(function (t, i) {
       var on = !!s.tingkat[i];
       return { t: t, on: function () { var tk = Object.assign({}, self.s.tingkat); if (tk[i]) delete tk[i]; else tk[i] = true; self.set({ tingkat: tk }); },
         st: 'border: 1.5px solid ' + (on ? '#009FE3' : '#E2E8F0') + '; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700; color: '
-          + (on ? '#009FE3' : '#64748B') + '; background: ' + (on ? '#F5FBFF' : '#FFFFFF') + ';' };
+          + (on ? '#009FE3' : '#64748B') + '; background: ' + (on ? '#F0F9FF' : '#FFFFFF') + ';' };
     });
     v.masukan = s.masukan; v.setMasukan = this.isi('masukan');
     v.kirimNilaiKlik = this.aman(this.kirimNilai, 'Mengirim…');

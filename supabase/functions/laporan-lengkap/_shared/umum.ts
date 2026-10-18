@@ -93,12 +93,10 @@ export function latar(p: Promise<unknown>) {
   else p.catch((e) => console.error(e));
 }
 
+/** Usia dari tahun lahir saja (lahir 1999 bulan apa pun = 27 tahun di 2026). Tahun dihitung di WIB. */
 export function umur(tglLahir: string, hari = new Date()): number {
-  const t = new Date(tglLahir + "T00:00:00Z");
-  let u = hari.getUTCFullYear() - t.getUTCFullYear();
-  const m = hari.getUTCMonth() - t.getUTCMonth();
-  if (m < 0 || (m === 0 && hari.getUTCDate() < t.getUTCDate())) u--;
-  return u;
+  const tahunIni = new Date(hari.getTime() + 7 * 3600 * 1000).getUTCFullYear();
+  return tahunIni - parseInt(String(tglLahir).slice(0, 4), 10);
 }
 
 /** Level dari usia: Entry ≤ 25, Mid 26–30, Senior > 30 (tidak pernah ditampilkan ke pengguna). */
@@ -116,21 +114,4 @@ export function tanggalIndo(d = new Date()): string {
 /** Amankan teks sebelum masuk ke HTML email. */
 export function esc(s: unknown): string {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
-}
-
-/** Kirim email lewat Resend kalau RESEND_API_KEY diisi. Kalau tidak, dilewati diam-diam. */
-export async function kirimEmail(ke: string, judul: string, html: string): Promise<void> {
-  const key = Deno.env.get("RESEND_API_KEY");
-  const dari = Deno.env.get("EMAIL_PENGIRIM") ?? "Nawasena <support@nawasena.info>";
-  if (!key) return;
-  try {
-    const r = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: dari, to: [ke], subject: judul, html }),
-    });
-    if (!r.ok) console.error("email gagal", r.status, await r.text());
-  } catch (e) {
-    console.error("email gagal", e);
-  }
 }

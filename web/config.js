@@ -15,9 +15,9 @@ window.NAWASENA_CONFIG = {
   MODE_UJI_COBA: true,
 
   // Pembayaran manual
-  QRIS_GAMBAR: 'aset/qris.png',          // ganti file web/public/aset/qris.png dengan QRIS statis Nawasena
-  QRIS_NAMA: 'NAWASENA',
-  QRIS_NMID: 'ID1234567890123',
+  QRIS_GAMBAR: 'aset/qris.png',          // QRIS statis GoPay Merchant Nawasena (dipotong dari poster aslinya)
+  QRIS_NAMA: 'NAWASENA, EDUKASI',
+  QRIS_NMID: 'ID1026615276171',
   // Metode pembayaran yang ditampilkan. Untuk menyalakan lagi transfer bank: ['qris', 'transfer']
   METODE_BAYAR: ['qris'],
   BANK_NAMA: 'Bank BCA',
@@ -26,6 +26,7 @@ window.NAWASENA_CONFIG = {
 
   // Kontak bantuan (WhatsApp, format 62…)
   WHATSAPP: '6281567666969',
+  EMAIL_DUKUNGAN: 'support@nawasena.info',
 
   // Lama pengecekan pembayaran yang dijanjikan ke pengguna
   JANJI_CEK: '1×24 jam di hari kerja',
