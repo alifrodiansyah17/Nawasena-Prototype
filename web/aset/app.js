@@ -272,25 +272,29 @@
 
     // ------------------------------------------------------------ tombol kembali HP/browser
     // Satu entri riwayat "penjaga" selalu dipasang di atas halaman. Saat pengguna menekan kembali,
-    // entri itu terpakai, lalu aplikasi menjalankan tombol Kembali di layar yang sedang tampil dan
-    // memasang penjaganya lagi. Di layar paling awal, tekan kembali dua kali untuk benar-benar keluar.
+    // entri itu terpakai, lalu aplikasi mundur satu langkah di alurnya dan memasang penjaganya lagi.
+    // Di layar yang tidak punya langkah sebelumnya, tekan kembali dua kali untuk benar-benar keluar.
+    // Chrome melewati entri riwayat yang dipasang tanpa sentuhan pengguna, jadi setiap kali penjaga
+    // dipasang di luar sentuhan, satu penjaga lagi dipasang pada sentuhan berikutnya.
     pasangTombolKembali: function () {
-      var self = this;
+      var self = this, perluUlang = false;
       if (!window.history || !history.pushState) return;
-      var jaga = function () { try { history.pushState({ nws: 1 }, ''); } catch (e) { /* abaikan */ } };
+      var jaga = function (disentuh) { try { history.pushState({ nws: 1 }, ''); perluUlang = !disentuh; } catch (e) { /* abaikan */ } };
       try { history.replaceState({ nws: 0 }, ''); } catch (e) { return; }
-      jaga();
+      jaga(false);
+      var saatSentuh = function () { if (perluUlang) jaga(true); };
+      ['click', 'keydown', 'touchend'].forEach(function (ev) { window.addEventListener(ev, saatSentuh, true); });
       window.addEventListener('popstate', function () {
-        if (self.mundurSistem()) { self._keluarSiap = 0; jaga(); return; }
+        if (self.mundurSistem()) { self._keluarSiap = 0; jaga(false); return; }
         if (self._keluarSiap && Date.now() - self._keluarSiap < 2500) { history.back(); return; }
         self._keluarSiap = Date.now();
-        jaga();
+        jaga(false);
         toast('Tekan kembali sekali lagi untuk keluar.');
       });
     },
     // Jalankan langkah mundur di dalam aplikasi. false = tidak ada lagi yang bisa dimundurkan.
     mundurSistem: function () {
-      var s = this.s;
+      var s = this.s, v;
       if (document.getElementById('sibuk').classList.contains('tampil')) return true;   // sedang memproses: abaikan
       if (s.layar === 'laporan') {
         if (s.peran >= 0) { this.set({ peran: -1 }); return true; }
@@ -299,12 +303,18 @@
       }
       if (s.layar === 'soal') { this.halMundur(); return true; }
       if (s.layar === 'susun') { this.cvMundur(); return true; }
-      // layar lain: pakai tombol Kembali (panah kiri) yang tampil di layar itu
-      var tombol = Array.prototype.filter.call(document.querySelectorAll('#layar .tap'), function (el) {
-        return el.offsetParent !== null && el.querySelector('path[d="M15 18l-6-6 6-6"]');
-      })[0];
-      if (tombol) { tombol.click(); return true; }
-      return false;
+      // Langkah sebelumnya untuk tiap layar, sama dengan tombol Kembali di layar itu (HP dan desktop)
+      var PETA = {
+        masuk: 'go_landing', daftar: 'go_landing', masukKode: 'kodeKembali',
+        cekcv: 'keluarKlik', unggah: 'kembaliDariUnggah', lampiran: 'kembaliLampiran', previewcv: 'ubahCVKlik',
+        intro: 'kembaliIntro', target: 'kembaliKeSoal', hasil: 'kembaliDariHasil',
+        paywall: 'keHasil', bayar: 'go_paywall', instruksi: 'keMetode', menunggu: 'keHasil', ditolak: 'keHasil'
+      };
+      if (!PETA[s.layar]) return false;
+      v = this.vals();
+      if (typeof v[PETA[s.layar]] !== 'function') return false;
+      v[PETA[s.layar]]();
+      return true;
     },
 
     muatData: async function () {

@@ -128,7 +128,9 @@
     v.cvFileNama = s.cvFileNama; v.cvFileInfo = s.cvFileInfo;
     v.pilihCVKlik = function () { self.pilihCV(); };
     v.lanjutUnggahKlik = function () { self.lanjutDariUnggah(); };
-    v.kembaliDariUnggah = function () { if (lv === 'entry') self.set({ layar: 'cekcv' }); else U.toast('CV-mu dibutuhkan untuk menyusun peta potensimu'); };
+    // Pengguna berpengalaman langsung masuk ke layar unggah, jadi di sana tombol mundurnya berarti keluar akun
+    v.unggahBisaMundur = lv === 'entry'; v.unggahHarusKeluar = !v.unggahBisaMundur;
+    v.kembaliDariUnggah = function () { if (lv === 'entry') self.set({ layar: 'cekcv' }); else v.keluarKlik(); };
     v.lampiranJudul = (lv === 'entry') ? 'Ada transkrip atau sertifikat?' : 'Ada contoh hasil kerjamu?';
     v.lampiranSub = (lv === 'entry')
       ? 'Opsional. Kalau ada, pemetaan arah karirmu jadi lebih tepat.'
