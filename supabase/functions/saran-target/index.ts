@@ -1,6 +1,6 @@
 // POST /functions/v1/saran-target — rekomendasi role untuk layar "Kami rasa kamu bakal cocok di sini" (sesudah kuis).
 // Dibaca dari CV (jabatan, jenjang, keahlian) DAN jawaban kuis (minat, cara kerja), lalu 10 role umum yang cocok,
-// masing-masing dengan alasan singkat. Pengguna memilih sampai 6; kalau gagal, aplikasi menampilkan daftar umum.
+// masing-masing dengan alasan singkat. Pengguna memilih satu; kalau gagal, aplikasi menampilkan daftar umum.
 // _shared/ diambil dari ../laporan-lengkap/_shared saat deploy.
 import { adminDb, CORS, json, levelUsia, penggunaDari, umur } from "./_shared/umum.ts";
 import { tanyaClaude } from "./_shared/claude.ts";
