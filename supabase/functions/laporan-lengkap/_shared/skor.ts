@@ -73,7 +73,8 @@ export function hitungSkor(jawab: (number | null)[]): Skor {
 export function ringkasUntukAI(jawab: number[], skor: Skor, items: string[]): string {
   const baris = HAL.map((h, i) => {
     const b = [0, 1, 2].map((j) => `   - "${items[i * 3 + j]}" → ${jawab[i * 3 + j]}/4`).join("\n");
-    return `${h.k} · ${h.lab}: ${skor.nilai[h.k]}/12 (${band(skor.nilai[h.k])})\n${b}`;
+    // tanpa kode singkat (E, Cs, To, …) supaya kode internal tidak ikut tertulis di laporan
+    return `${h.lab}: ${skor.nilai[h.k]}/12 (${band(skor.nilai[h.k])})\n${b}`;
   });
   return baris.join("\n") + `\n\nPola menjawab: ${skor.pola.catatan}`;
 }

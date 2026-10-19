@@ -6,6 +6,7 @@ import { adminDb, CORS, json, latar, penggunaDari } from "./_shared/umum.ts";
 import { ambilKonteks } from "./_shared/konteks.ts";
 import { tanyaClaude } from "./_shared/claude.ts";
 import { GAYA, skemaBagian1, TUGAS_BAGIAN1 } from "./_shared/panduan.ts";
+import { rapikanIsi } from "./_shared/rapikan.ts";
 
 const BATAS_MACET_MS = 4 * 60 * 1000;
 
@@ -87,7 +88,7 @@ async function susunBagian1(userId: string) {
 
     const tn = nyata.find((t) => t.id === data.tokoh_nyata?.id) || nyata[0];
     const tf = fiksi.find((t) => t.id === data.tokoh_fiksi?.id) || fiksi[0];
-    const bagian1 = {
+    const bagian1 = rapikanIsi({
       ...data,
       peran_kini: (data.tahun_kerja ?? 0) > 0 ? String(data.peran_kini || "").trim() : "",
       tokoh_nyata: { nama: tn.nama, peran: tn.keterangan, why: data.tokoh_nyata?.why || "" },
@@ -96,7 +97,7 @@ async function susunBagian1(userId: string) {
       dilatih: (data.dilatih || []).slice(0, 3),
       level_cv: (data.tahun_kerja ?? 0) < 3 ? "entry" : (data.tahun_kerja < 8 ? "mid" : "senior"),
       contoh: !!contoh,
-    };
+    });   // rapikanIsi: buang kode internal kuis dan kurung siku di sekitar angka
     await db.from("laporan").update({
       status: "siap", skor: k.skor, bagian1, galat: null, diubah: new Date().toISOString(),
     }).eq("user_id", userId);

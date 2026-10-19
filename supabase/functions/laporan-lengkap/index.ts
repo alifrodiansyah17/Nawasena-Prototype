@@ -9,7 +9,8 @@ import { adminDb, CORS, esc, json, latar, panggilanInternal, penggunaDari, picuF
 import { bungkusEmail, kirimEmail } from "./_shared/surel.ts";
 import { ambilKonteks } from "./_shared/konteks.ts";
 import { tanyaClaude } from "./_shared/claude.ts";
-import { GAYA, kelArah, skemaArahA, skemaArahB, skemaRencana, TUGAS_ARAH_A, TUGAS_ARAH_B, TUGAS_RENCANA } from "./_shared/panduan.ts";
+import { GAYA, jumlahArahTarget, kelArah, skemaArahA, skemaArahB, skemaRencana, TUGAS_ARAH_A, TUGAS_ARAH_B, TUGAS_RENCANA } from "./_shared/panduan.ts";
+import { bahasaTeks, rapikanIsi } from "./_shared/rapikan.ts";
 
 const SEMUA = ["rencana", "arahA", "arahB"];
 const LABEL_GAJI = ["a. Saat masuk peran ini:", "b. 2–4 tahun di peran ini:", "c. Senior atau manajer:"];
@@ -60,6 +61,22 @@ Deno.serve(async (req) => {
   }
 });
 
+/** Pelanggaran aturan di rencana: arah 1..N bukan pilihan pengguna, atau 'sdh' Bagian 4 tidak memakai bahasa CV. */
+function cekRencana(data: Record<string, unknown>, pilihan: string[], bahasaCv: string): string[] {
+  const salah: string[] = [];
+  const arah = (Array.isArray(data.arah) ? data.arah : []) as { nama?: string }[];
+  const inti = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  pilihan.forEach((p, i) => {
+    const nama = String(arah[i]?.nama || "");
+    if (!inti(nama).startsWith(inti(p))) salah.push(`arah ${i + 1} harus diawali «${p}» (pilihan pengguna), bukan «${nama}»`);
+  });
+  const b4 = (data.b4 || {}) as { banding?: { sblm?: string; sdh?: string }[] };
+  (b4.banding || []).forEach((b, i) => {
+    if (b.sdh && bahasaTeks(b.sdh) !== bahasaCv) salah.push(`b4.banding ${i + 1}: 'sdh' harus bahasa ${bahasaCv}, sama dengan CV`);
+  });
+  return salah;
+}
+
 // Tipe karir tidak boleh "mundur": tuju dan bentuk tiap jalan minimal setingkat dengan posisi sekarang.
 const TINGKAT: Record<string, number> = { "—": 0, I: 1, T: 1, V: 2, "π": 2, M: 3, X: 3 };
 function rapikanTipe(b2?: Record<string, unknown>) {
@@ -81,6 +98,13 @@ async function jalankanPotongan(userId: string, langkah: string) {
     const { data: lap } = await db.from("laporan").select("bagian1").eq("user_id", userId).single();
     const b1 = JSON.stringify(lap?.bagian1 || {});
     const levelCv = (lap?.bagian1 as Record<string, string>)?.level_cv || k.levelUsia;
+    // Fakta yang sudah tampil di sampul dan Bagian 1: semua bagian lain wajib memakai angka yang sama.
+    const bg1 = (lap?.bagian1 || {}) as { tahun_kerja?: number; peran_kini?: string };
+    const bahasaCv = bahasaTeks(k.teks.split("=== CV")[1]?.split("=== LAMPIRAN")[0] || "");
+    const pilihan = k.targetDaftar.slice(0, jumlahArahTarget(k.targetDaftar.length));
+    const fakta = `=== FAKTA TETAP (sudah tampil di sampul dan Bagian 1; wajib sama di semua bagian) ===\n` +
+      (bg1.peran_kini ? `Jabatan sekarang: ${bg1.peran_kini}\nLama pengalaman kerja penuh waktu: ${Math.round(Number(bg1.tahun_kerja) || 0)} tahun (tulis angka ini, bukan angka lain dari CV)\n` : "Belum pernah bekerja penuh waktu.\n") +
+      `Bahasa CV: ${bahasaCv}` + (pilihan.length && k.targetJenis ? `\nArah 1 sampai ${pilihan.length} WAJIB: ${pilihan.map((x, i) => `${i + 1}. ${x}`).join("; ")}` : "");
 
     // Tabel referensi peran dan gaji (PRD R4): gaji tidak pernah ditulis model.
     const { data: peranRows } = await db.from("peran_referensi").select("id, nama, rumpun, fungsi, gaji_masuk, gaji_menengah, gaji_senior").eq("aktif", true).order("id");
@@ -92,10 +116,22 @@ async function jalankanPotongan(userId: string, langkah: string) {
       const tabel = peran.map((p) => `${p.id} | ${p.nama} | ${p.rumpun} | ${p.fungsi}`).join("\n");
       const { data, contoh } = await tanyaClaude<Record<string, unknown>>({
         system: GAYA,
-        pesan: `${k.teks}\nLevel dari lama kerja di CV: ${levelCv}\n\n=== BAGIAN 1 YANG SUDAH DIBACA PENGGUNA (konteks, jangan diulang) ===\n${b1}\n\n=== TABEL REFERENSI PERAN (id | nama | rumpun | fungsi) ===\n${tabel}\n\n${TUGAS_RENCANA}`,
+        pesan: `${k.teks}\nLevel dari lama kerja di CV: ${levelCv}\n\n${fakta}\n\n=== BAGIAN 1 YANG SUDAH DIBACA PENGGUNA (konteks, jangan diulang) ===\n${b1}\n\n=== TABEL REFERENSI PERAN (id | nama | rumpun | fungsi) ===\n${tabel}\n\n${TUGAS_RENCANA}`,
         skema: skemaRencana(peran.map((p) => p.id)),
         maxTokens: 16000,
       });
+      // Cek dua aturan yang sering dilanggar model; kalau dilanggar, minta tulis ulang sekali dengan catatan perbaikannya.
+      const salah = cekRencana(data, pilihan, bahasaCv);
+      if (salah.length && !contoh) {
+        console.warn("rencana diulang:", salah.join(" | "));
+        const ulang = await tanyaClaude<Record<string, unknown>>({
+          system: GAYA,
+          pesan: `${k.teks}\nLevel dari lama kerja di CV: ${levelCv}\n\n${fakta}\n\n=== BAGIAN 1 YANG SUDAH DIBACA PENGGUNA (konteks, jangan diulang) ===\n${b1}\n\n=== TABEL REFERENSI PERAN (id | nama | rumpun | fungsi) ===\n${tabel}\n\n${TUGAS_RENCANA}\n\nPERBAIKAN WAJIB (versi sebelumnya salah di sini):\n- ${salah.join("\n- ")}`,
+          skema: skemaRencana(peran.map((p) => p.id)),
+          maxTokens: 16000,
+        }).catch((e) => { console.error("ulang rencana gagal", e); return null; });
+        if (ulang && cekRencana(ulang.data, pilihan, bahasaCv).length <= salah.length) Object.assign(data, ulang.data);
+      }
       if (Array.isArray(data.arah)) {
         const dipakai = new Set<string>();
         data.arah = (data.arah as Record<string, unknown>[]).map((a, i) => {
@@ -116,7 +152,7 @@ async function jalankanPotongan(userId: string, langkah: string) {
       const a = langkah === "arahA";
       const { data } = await tanyaClaude<Record<string, unknown>>({
         system: GAYA,
-        pesan: `${k.teks}\nLevel dari lama kerja di CV: ${levelCv}\n\n=== BAGIAN 1 ===\n${b1}\n\n=== RENCANA BAGIAN 2–5 (sudah ditulis, ikuti) ===\n${JSON.stringify(rencana)}\n\n${a ? TUGAS_ARAH_A : TUGAS_ARAH_B}`,
+        pesan: `${k.teks}\nLevel dari lama kerja di CV: ${levelCv}\n\n${fakta}\n\n=== BAGIAN 1 ===\n${b1}\n\n=== RENCANA BAGIAN 2–5 (sudah ditulis, ikuti) ===\n${JSON.stringify(rencana)}\n\n${a ? TUGAS_ARAH_A : TUGAS_ARAH_B}`,
         skema: a ? skemaArahA() : skemaArahB(),
         maxTokens: 16000,
       });
@@ -133,6 +169,7 @@ async function jalankanPotongan(userId: string, langkah: string) {
       isi = { [langkah]: data };
     }
 
+    isi = rapikanIsi(isi);   // buang kode internal kuis dan kurung siku di sekitar angka
     const { data: hasil, error } = await db.rpc("simpan_potongan", { p_user: userId, p_kunci: langkah, p_isi: isi, p_semua: SEMUA });
     if (error) throw error;
 

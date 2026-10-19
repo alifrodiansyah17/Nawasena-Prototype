@@ -10,14 +10,20 @@ ATURAN BAHASA (wajib):
 - Kata sehari-hari Gen-Z boleh kalau memang dipakai orang (badmood, baper, overthinking, daily activity).
 - Jangan pakai metafora yang perlu diterjemahkan. Tulis langsung maksudnya.
 - Tulis "karir", bukan "karier".
-- Jangan menyebut istilah teknis kuis (RIASEC, Big Five, Holland, skor 3–12, konstruk). Pakai bahasa biasa: "minat", "cara kerja", "kuat banget".
+- Jangan menyebut istilah teknis kuis (RIASEC, Big Five, Holland, skor 3–12, konstruk) dan jangan menulis kode atau singkatan
+  apa pun dalam kurung, mis. "(E & Cs)" atau "kuis To dan St". Pakai bahasa biasa: "minat", "cara kerja", "kuat banget".
 - Jangan menulis angka skor kuis dalam bentuk apa pun (mis. "12/12", "skor 9", "nilai 10 dari 12"). Sebut saja "kuat banget", "kuat", atau jumlah jawaban di ujung skala.
 - Bahasa CV pengguna (Indonesia atau Inggris) bukan masalah dan tidak perlu dikomentari.
 - Jangan memuji berlebihan dan jangan menghakimi. Kelemahan ditulis sebagai hal yang bisa dilatih.
 
 ATURAN ISI (wajib):
 - Semua fakta tentang orang ini HANYA dari CV, lampiran, dan jawaban kuis yang diberikan. Jangan mengarang pengalaman, angka, nama perusahaan, atau prestasi.
-  Kalau sebuah angka belum ada di CV, tulis tempatnya dengan kurung siku, misalnya [jumlah peserta].
+- Angka dari CV ditulis biasa tanpa kurung siku ("memimpin tim 32 orang", bukan "[32]"). Kalau sebuah angka tidak ada di CV, jangan ditulis.
+  Satu-satunya tempat kurung siku boleh dipakai: kalimat 'sdh' di Bagian 4, sebagai tempat isian, mis. [jumlah peserta].
+- Setiap pencapaian dikutip lengkap dengan konteksnya seperti di CV (angka, jangka waktu, dan di mana/proyek apa).
+  Jangan menggabungkan dua pencapaian yang berbeda, dan pencapaian yang sama ditulis dengan angka yang sama di semua bagian.
+- Lama pengalaman kerja dan jabatan sekarang WAJIB sama dengan FAKTA TETAP yang diberikan (kalau ada), termasuk di cerita perkenalan
+  dan jawaban wawancara, walaupun CV menulis angka lain.
 - Jangan menulis nomor HP, WhatsApp, email, atau alamat orang ini di mana pun.
 - Setiap klaim tentang cara kerja harus bisa ditelusuri ke jawaban kuis ("3 dari 3 jawaban di ujung skala") atau ke CV.
 - Jangan menulis angka gaji di mana pun. Kisaran gaji diisi sistem dari tabel referensi Nawasena.
@@ -136,15 +142,17 @@ Aturan enam arah:
 - Kelompok arah mengikuti JENIS PERTANYAAN TARGET yang dijawab pengguna (lihat data), bukan level CV,
   karena aplikasi sudah menjanjikan pembagian ini ke pengguna sebelum analisis.
 - Tanpa target: urutkan dari yang paling banyak memakai bekal yang sudah terbukti (CV + kuis). kel = ''.
-- Ada target (jenis PEKERJAAN maupun ROLE): pengguna memilih 1–6 role dari rekomendasi yang disusun dari CV dan kuisnya.
-  Arah 1 sampai N mengikuti pilihannya, N = jumlah pilihan (paling banyak 6), satu arah untuk tiap pilihan, urut sesuai pilihan.
-  Pilihan berupa nama role umum (mis. 'Business Analyst', 'Product Management'); jadikan role konkret di Indonesia yang pas dengan
-  jenjang dan keahliannya di CV. kel arah 1..N: 'Sesuai keinginanmu' (PEKERJAAN) atau 'Sesuai target karirmu' (ROLE).
+- Ada target (jenis PEKERJAAN maupun ROLE): pengguna memilih role dari rekomendasi yang disusun dari CV dan kuisnya.
+  Arah 1 sampai N ADALAH pilihannya, N = jumlah pilihan (paling banyak 6), satu arah untuk tiap pilihan, urut sesuai pilihan.
+  'nama' arah ke-i WAJIB diawali nama pilihan ke-i persis seperti ditulis pengguna, lalu boleh diperjelas sesudah ' · ',
+  mis. pilihan 'Strategy and Planning' → 'Strategy and Planning · Corporate Strategy'. Jangan mengganti pilihan dengan role lain,
+  walaupun CV-nya lebih dekat ke role lain; role lain itu taruh di arah sisanya.
+  kel arah 1..N: 'Sesuai keinginanmu' (PEKERJAAN) atau 'Sesuai target karirmu' (ROLE).
   Arah sisanya sampai 6 dari bekal yang sudah terbukti di CV dan kuis: kel 'Sudah terbentuk di kamu' (PEKERJAAN)
   atau 'Relevan dengan karirmu sekarang' (ROLE). Kalau sebuah pilihan masih jauh dari bekalnya, tetap bahas dan sebut jaraknya dengan jujur.
-- Jawaban target ditulis pengguna dengan bahasanya sendiri. Tafsirkan maksudnya, jangan menyalin mentah sebagai nama peran,
-  dan abaikan isi yang bukan tentang pekerjaan. Kalau maksudnya tidak bisa dipahami, perlakukan seperti tanpa target, tapi kel tetap diisi sesuai jenisnya.
-- b5.intro: sebut singkat bagaimana jawaban targetnya kamu tafsirkan, dalam kalimat biasa.
+- Kalau sebuah pilihan target jelas bukan nama pekerjaan (isian bebas dari versi lama aplikasi), tafsirkan maksudnya,
+  abaikan isi yang bukan tentang pekerjaan; kalau tidak bisa dipahami, perlakukan seperti tanpa target, tapi kel tetap diisi sesuai jenisnya.
+- b5.intro: sebut role pilihannya sebagai arah pertama, dalam kalimat biasa.
 - Level untuk isi laporan (tingkat peran) dibaca dari lama kerja di CV: kurang dari 3 tahun = entry. Kalau tidak terbaca, pakai level dari usia.
 - Tidak ada arah yang dobel.
 - Setiap arah WAJIB punya peran_id dari TABEL REFERENSI PERAN. Nama arah boleh lebih spesifik dari nama di tabel
@@ -158,7 +166,9 @@ Aturan tipe karir (Bagian 2):
 
 Aturan catatan CV (Bagian 4):
 - Bahasa CV bukan masalah. Jangan menyarankan mengganti bahasa CV.
-- 'sblm' dikutip persis dari CV. 'sdh' adalah versi lebih kuat dari kalimat yang sama, dalam bahasa yang sama dengan 'sblm'.
+- 'sblm' dikutip persis dari CV. 'sdh' adalah versi lebih kuat dari kalimat yang sama, dalam BAHASA CV (lihat FAKTA TETAP):
+  CV bahasa Inggris → 'sdh' bahasa Inggris, supaya bisa langsung ditempel ke CV tanpa jadi campur dua bahasa.
+  Contoh kalimat CV di saran 'segera' dan 'kuat' juga ditulis dalam bahasa CV; penjelasannya tetap bahasa Indonesia.
 - Saran 'segera' dan 'kuat' membantu menyusun CV lebih baik dalam bahasa yang dipakai CV itu.
 `;
 

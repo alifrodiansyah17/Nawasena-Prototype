@@ -2,6 +2,22 @@
  * Kalau NAWASENA_CONFIG.MODE_DEMO = true, api-demo.js yang dipakai (tanpa server). */
 (function () {
   'use strict';
+
+  // Pembersih teks laporan (sama dengan supabase/functions/laporan-lengkap/_shared/rapikan.ts), supaya laporan
+  // yang sudah tersimpan juga bersih: kode internal kuis "(E & Cs)" / "kuis To dan St" dan kurung siku di angka "[32]".
+  var KODE = '(?:Cs|Ex|Ag|St|To|R|I|A|S|E|C|O)', SAMBUNG = '\\s*(?:&|dan|,|/)\\s*';
+  var KURUNG_KODE = new RegExp('\\s*\\((?:sesuai |dari |lihat )?(?:kuis |hasil kuis )?' + KODE + '(?:' + SAMBUNG + KODE + ')*\\)', 'g');
+  var KUIS_KODE = new RegExp('\\b(kuis|hasil kuis)\\s+' + KODE + '(?:' + SAMBUNG + KODE + ')*\\b', 'g');
+  var KURUNG_ANGKA = /\[\s*((?:[-+]?(?:IDR|Rp|USD|\$)?\s?[-+]?\d[\d.,]*\s?(?:%|[KMBkmb]|rb|jt|juta|miliar|M)?))\s*\]/g;
+  function rapikanLaporan(x) {
+    if (typeof x === 'string') {
+      return x.replace(KURUNG_KODE, '').replace(KUIS_KODE, '$1').replace(KURUNG_ANGKA, '$1')
+        .replace(/ {2,}/g, ' ').replace(/\s+([.,;:!?])/g, '$1');
+    }
+    if (Array.isArray(x)) return x.map(rapikanLaporan);
+    if (x && typeof x === 'object') { var o = {}; Object.keys(x).forEach(function (k) { o[k] = rapikanLaporan(x[k]); }); return o; }
+    return x;
+  }
   var C = window.NAWASENA_CONFIG;
   if (C.MODE_DEMO) return; // api-demo.js akan mengisi window.API
 
@@ -126,9 +142,12 @@
         sb.from('laporan_lengkap').select('*').eq('user_id', u).maybeSingle(),
         sb.from('pesanan').select('*').eq('user_id', u).order('dibuat', { ascending: false }).limit(1)
       ]);
+      var lap = cek(r[4]), lengkap = cek(r[5]);
+      if (lap && lap.bagian1) lap.bagian1 = rapikanLaporan(lap.bagian1);
+      if (lengkap && lengkap.bagian) lengkap.bagian = rapikanLaporan(lengkap.bagian);
       return {
         profil: cek(r[0]), cv: cek(r[1]), lampiran: cek(r[2]) || [], jawaban: cek(r[3]),
-        laporan: cek(r[4]), lengkap: cek(r[5]), pesanan: (cek(r[6]) || [])[0] || null
+        laporan: lap, lengkap: lengkap, pesanan: (cek(r[6]) || [])[0] || null
       };
     },
 
