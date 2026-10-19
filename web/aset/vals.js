@@ -135,11 +135,12 @@
     // Pengguna berpengalaman langsung masuk ke layar unggah, jadi di sana tombol mundurnya berarti keluar akun
     v.unggahBisaMundur = lv === 'entry'; v.unggahHarusKeluar = !v.unggahBisaMundur;
     v.kembaliDariUnggah = function () { if (lv === 'entry') self.set({ layar: 'cekcv' }); else v.keluarKlik(); };
-    v.lampiranJudul = (lv === 'entry') ? 'Ada transkrip atau sertifikat?' : 'Ada contoh hasil kerjamu?';
+    // Semua level ditanya portofolio (transkrip dan sertifikat tidak diminta lagi); contohnya menyesuaikan level
+    v.lampiranJudul = 'Punya portofolio apa?';
     v.lampiranSub = (lv === 'entry')
-      ? 'Opsional. Kalau ada, pemetaan arah karirmu jadi lebih tepat.'
-      : 'Opsional, tapi disarankan. Portofolio bikin pemetaan arah karirmu jauh lebih akurat.';
-    v.lampiranTautan = (lv === 'entry') ? 'drive.google.com/...' : 'behance.net/namakamu';
+      ? 'Opsional. Misalnya proyek kuliah, karya desain, tulisan, kode di GitHub, atau dokumentasi kegiatan. Kalau ada, arah karirmu jadi lebih tepat.'
+      : 'Opsional, tapi disarankan. Misalnya laporan proyek, presentasi, studi kasus, karya desain, atau kode hasil kerjamu. Portofolio bikin arah karirmu jauh lebih akurat.';
+    v.lampiranTautan = (lv === 'entry') ? 'drive.google.com/... atau github.com/...' : 'behance.net/namakamu atau drive.google.com/...';
     v.lampiranList = (s.lampiran || []).map(function (l) {
       return { nama: l.tautan ? l.tautan : (l.nama_file || 'Berkas'), hapus: self.aman(async function () { await window.API.hapusLampiran(l.id); self.set({ lampiran: self.s.lampiran.filter(function (x) { return x.id !== l.id; }) }); }) };
     });

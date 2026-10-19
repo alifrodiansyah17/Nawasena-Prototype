@@ -522,8 +522,7 @@
           if (f.size > 5 * 1048576) throw new Error('Ukuran file maksimal 5 MB');
           var teks = '';
           try { teks = await bacaPdf(f); } catch (e) { teks = ''; }
-          var jenis = levelDari(self.s.profil.tgl_lahir) === 'entry' ? 'transkrip' : 'portofolio';
-          var l = await API.simpanLampiran(jenis, f, teks);
+          var l = await API.simpanLampiran('portofolio', f, teks);
           self.set({ lampiran: self.s.lampiran.concat([l]), lampFileNama: f.name });
         }, 'Mengunggah…')();
       });
