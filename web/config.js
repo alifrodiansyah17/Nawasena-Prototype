@@ -12,7 +12,7 @@ window.NAWASENA_CONFIG = {
   HARGA: 25000,
 
   // Uji coba: tampilkan label 'tidak perlu transfer sungguhan' di layar pembayaran
-  MODE_UJI_COBA: true,
+  MODE_UJI_COBA: false,
 
   // Pembayaran manual
   QRIS_GAMBAR: 'aset/qris.png',          // QRIS statis GoPay Merchant Nawasena (dipotong dari poster aslinya)
