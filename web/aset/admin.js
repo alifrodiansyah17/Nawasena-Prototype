@@ -158,10 +158,12 @@
       v.adminNama = s.adminNama; v.adminInisial = String(s.adminNama || 'A').charAt(0).toUpperCase();
       v.keluarKlik = async function () { await sb.auth.signOut(); location.reload(); };
       v.hargaTeks = rp(C.HARGA);
-      v.viewBayar = s.view === 'bayar'; v.viewUang = s.view === 'uang';
+      v.viewBayar = s.view === 'bayar'; v.viewUang = s.view === 'uang'; v.viewAmb = s.view === 'amb';
       v.keViewBayar = function () { self.set({ view: 'bayar' }); }; v.keViewUang = function () { self.set({ view: 'uang' }); };
+      v.keViewAmb = function () { self.set({ view: 'amb' }); if (self.muatAmb) self.muatAmb(); };
       var mSt = function (on) { return 'display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 11px; font-size: 14px; font-weight: 600; ' + (on ? 'background: #38BDF8; color: #0F172A;' : 'color: #FFFFFF;'); };
-      v.mBayarSt = mSt(v.viewBayar); v.mUangSt = mSt(v.viewUang);
+      v.mBayarSt = mSt(v.viewBayar); v.mUangSt = mSt(v.viewUang); v.mAmbSt = mSt(v.viewAmb);
+      if (v.viewAmb && self.valsAmb) self.valsAmb(v);
 
       var semua = s.rows, hariIni = kunciHari(new Date().toISOString());
       var hit = { menunggu: 0, ok: 0, tolak: 0, semua: semua.length }, okHari = 0, tolakHari = 0, uHari = 0, palingLama = null;
@@ -204,7 +206,7 @@
       v.dNama = d.profil ? d.profil.nama : '-'; v.dEmail = d.profil ? d.profil.email : ''; v.dPesanan = d.kode || '';
       v.dMetode = d.metode === 'transfer' ? 'Transfer bank' : 'QRIS'; v.dFile = d.bukti_nama || '';
       v.dTujuan = d.metode === 'transfer' ? C.BANK_NAMA + ' · ' + C.BANK_NOMOR : 'QRIS ' + C.QRIS_NAMA + ' · NMID ' + C.QRIS_NMID;
-      v.dTagihan = rp(d.nominal || C.HARGA);
+      v.dTagihan = rp(d.nominal || C.HARGA) + (d.potongan ? ' (potongan referral ' + rp(d.potongan) + ')' : '');
       v.dWaktu = d.dikirim ? tgl(d.dikirim) + ' ' + wib(d.dikirim).getFullYear() + ', ' + jam(d.dikirim) : '';
       v.dBuktiUrl = s.buktiUrl[d.id] || '';
       v.dGambar = !!v.dBuktiUrl && !/\.pdf$/i.test(d.bukti_path || '');
@@ -287,5 +289,6 @@
     }
   };
   window.BO = BO;
+  window.BOUtil = { sb: sb, rp: rp, tgl: tgl, jam: jam, toast: toast, sibuk: sibuk };
   BO.mulai();
 })();

@@ -92,6 +92,10 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/>
         </svg><span style="flex-grow: 1;">Uang masuk</span>
       </div>
+      <div class="tap" onClick="{{keViewAmb}}" style="{{mAmbSt}}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 14.6c1.8.8 2.8 2.6 3 5.4"/>
+        </svg><span style="flex-grow: 1;">Ambassador</span>
+      </div>
     </div>
     <div style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-top: 1px solid rgba(255,255,255,0.12);">
       <div style="width: 32px; height: 32px; border-radius: 999px; background: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">{{adminInisial}}
@@ -413,15 +417,182 @@
         </div>
       </div>
     </sc-if>
+    <sc-if value="{{viewAmb}}">
+      <div style="display: flex; flex-direction: column; gap: 18px; height: 100%; min-height: 0;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
+          <div>
+            <h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Ambassador</h1>
+            <p style="font-size: 14px; color: #64748B; margin-top: 5px;">Kode referral, target pengisian kuesioner microsite, paid user dari tiap ambassador, dan bagi hasilnya.</p>
+          </div>
+          <div class="tap" onClick="{{tambahAmbKlik}}" style="height: 44px; padding: 0 18px; border-radius: 9999px; background: #FACC15; color: #0F172A; font-size: 14px; font-weight: 800; font-family: Nunito, sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tambah ambassador
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px 18px;">
+            <div style="font-size: 12.5px; color: #64748B; font-weight: 600;">Ambassador aktif</div>
+            <div style="font-family: Nunito, sans-serif; font-size: 30px; font-weight: 800; color: #0F172A; margin-top: 4px;">{{ambNAktif}}</div>
+            <div style="font-size: 12px; color: #64748B;">dari {{ambNSemua}} terdaftar</div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px 18px;">
+            <div style="font-size: 12.5px; color: #64748B; font-weight: 600;">Isian microsite periode berjalan</div>
+            <div style="font-family: Nunito, sans-serif; font-size: 30px; font-weight: 800; color: #0284C7; margin-top: 4px;">{{ambMicroRingkas}}</div>
+            <div style="font-size: 12px; color: #64748B;">isian / total target</div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px 18px;">
+            <div style="font-size: 12.5px; color: #64748B; font-weight: 600;">Paid user dari ambassador</div>
+            <div style="font-family: Nunito, sans-serif; font-size: 30px; font-weight: 800; color: #15803D; margin-top: 4px;">{{ambPaidTotal}}</div>
+            <div style="font-size: 12px; color: #64748B;">pembayaran terkonfirmasi</div>
+          </div>
+          <div style="background: #FEFCE8; border: 1px solid #FDE68A; border-radius: 16px; padding: 16px 18px;">
+            <div style="font-size: 12.5px; color: #713F12; font-weight: 600;">Komisi belum dibayar</div>
+            <div style="font-family: Nunito, sans-serif; font-size: 30px; font-weight: 800; color: #0F172A; margin-top: 4px;">{{ambSisaTotal}}</div>
+            <div style="font-size: 12px; color: #713F12;">semua ambassador</div>
+          </div>
+        </div>
+        <sc-if value="{{adaGalatMicro}}">
+          <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #991B1B;">{{ambGalatMicro}}. Angka isian microsite mungkin belum terbaru.</div>
+        </sc-if>
+        <div style="display: flex; gap: 18px; flex-grow: 1; min-height: 0;">
+          <div style="flex-grow: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; display: flex; flex-direction: column; overflow: hidden;">
+            <div style="padding: 12px 14px; border-bottom: 1px solid #F1F5F9;">
+              <div style="display: flex; align-items: center; gap: 8px; height: 38px; border: 1.5px solid #E2E8F0; border-radius: 11px; padding: 0 12px; color: #64748B; font-size: 13px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input value="{{ambCari}}" onChange="{{setAmbCari}}" placeholder="Cari kode, nama, atau kampus" style="border: none; outline: none; width: 100%; font-size: 13px; color: #1E293B; background: transparent;"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 92px minmax(0,1fr) 130px 70px 96px 96px; gap: 10px; padding: 10px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748B;"><span>Kode</span><span>Ambassador</span><span>Microsite</span><span>Paid</span><span>Komisi</span><span>Belum dibayar</span></div>
+            <div class="scroll" style="flex-grow: 1;">
+              <sc-for list="{{ambRows}}" as="r">
+                <div class="row" onClick="{{r.pick}}" style="{{r.st}}">
+                  <span style="font-size: 13px; font-weight: 800; color: #0284C7; letter-spacing: 0.03em;">{{r.kode}}</span>
+                  <div style="min-width: 0;"><div style="font-size: 14px; font-weight: 700; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{r.nama}}</div><div style="display: flex; gap: 6px; align-items: center; margin-top: 2px;"><span style="font-size: 12px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{r.kampus}}</span><span style="{{r.pillSt}}">{{r.pill}}</span></div></div>
+                  <div><div style="font-size: 13px; font-weight: 700; color: #0F172A;">{{r.micro}}</div><div style="height: 6px; border-radius: 999px; background: #F1F5F9; margin: 5px 0 3px; overflow: hidden;"><div style="{{r.barSt}}"></div></div><div style="font-size: 11px; color: #64748B;">{{r.microSub}}</div></div>
+                  <div><div style="font-size: 14px; font-weight: 800; color: #15803D;">{{r.paid}}</div><div style="font-size: 11px; color: #64748B;">{{r.daftar}} daftar</div></div>
+                  <span style="font-size: 13px; font-weight: 700; color: #1E293B;">{{r.komisi}}</span>
+                  <span style="{{r.sisaSt}}">{{r.sisa}}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ambKosong}}">
+                <div style="padding: 48px 20px; text-align: center; color: #94A3B8; font-size: 14px;">Belum ada ambassador. Tekan “Tambah ambassador” untuk membuat kode referral pertama.</div>
+              </sc-if>
+            </div>
+          </div>
+          <div class="scroll" style="width: 420px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+            <sc-if value="{{tanpaAmb}}">
+              <div style="padding: 40px 10px; text-align: center; color: #94A3B8; font-size: 14px;">Pilih ambassador di daftar untuk melihat detailnya.</div>
+            </sc-if>
+            <sc-if value="{{formAmb}}">
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <h3 style="font-size: 20px; font-weight: 800;">Ambassador baru</h3>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Nama lengkap<input value="{{fNama}}" onChange="{{setFNama}}" placeholder="Rani Putri" style="{{kotakSt}}"></label>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Kode referral<input value="{{fKode}}" onChange="{{setFKode}}" placeholder="Otomatis dari nama" maxlength="12" style="{{kotakSt}} font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;"><span style="font-weight: 500; color: #64748B;">4–12 huruf/angka. Dibuat otomatis dari nama, boleh diganti.</span></label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Email<input type="email" value="{{fEmail}}" onChange="{{setFEmail}}" placeholder="rani@email.com" style="{{kotakSt}}"></label>
+                  <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">No. WhatsApp<input value="{{fHp}}" onChange="{{setFHp}}" placeholder="0812…" style="{{kotakSt}}"></label>
+                </div>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Kampus / komunitas<input value="{{fKampus}}" onChange="{{setFKampus}}" placeholder="Universitas Gadjah Mada" style="{{kotakSt}}"></label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Komisi per paid user (Rp)<input inputmode="numeric" value="{{fKomisi}}" onChange="{{setFKomisi}}" style="{{kotakSt}}"></label>
+                  <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Potongan untuk user (Rp)<input inputmode="numeric" value="{{fPotongan}}" onChange="{{setFPotongan}}" style="{{kotakSt}}"></label>
+                </div>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Catatan (opsional)<input value="{{fCatatan}}" onChange="{{setFCatatan}}" placeholder="Rekening/e-wallet untuk komisi, dll." style="{{kotakSt}}"></label>
+                <div style="display: flex; gap: 10px; margin-top: 4px;">
+                  <div class="tap" onClick="{{simpanAmbKlik}}" style="flex: 1; height: 44px; border-radius: 9999px; background: #0284C7; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center;">Buat ambassador</div>
+                  <div class="tap" onClick="{{batalAmbKlik}}" style="height: 44px; padding: 0 16px; display: flex; align-items: center; font-size: 14px; font-weight: 700; color: #64748B;">Batal</div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{detailAmb}}">
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; justify-content: space-between; gap: 10px; align-items: flex-start;">
+                  <div style="min-width: 0;">
+                    <div style="display: inline-block; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: #0284C7; background: #E0F2FE; border-radius: 8px; padding: 3px 9px;">{{dAmbKode}}</div>
+                    <h3 style="font-size: 21px; font-weight: 800; margin-top: 8px;">{{dAmbNama}}</h3>
+                    <div style="font-size: 13px; color: #64748B; margin-top: 3px;">{{dAmbKampus}}</div>
+                    <div style="font-size: 12.5px; color: #64748B; margin-top: 2px;">{{dAmbKontak}}</div>
+                  </div>
+                  <sc-if value="{{dAmbAktif}}"><div class="tap" onClick="{{nonaktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #64748B; flex-shrink: 0;">Nonaktifkan</div></sc-if>
+                  <sc-if value="{{dAmbNonaktif}}"><div class="tap" onClick="{{aktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #0284C7; flex-shrink: 0;">Aktifkan lagi</div></sc-if>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Link untuk dibagikan</div>
+                  <div style="display: flex; gap: 8px; align-items: center; background: #F8FAFC; border-radius: 10px; padding: 8px 10px;"><div style="flex-grow: 1; min-width: 0;"><div style="font-size: 11.5px; color: #64748B;">Microsite (kuesioner)</div><div style="font-size: 12.5px; font-weight: 700; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{linkMicro}}</div></div><div class="tap" onClick="{{salinMicroKlik}}" style="font-size: 12.5px; font-weight: 800; color: #0284C7; flex-shrink: 0;">Salin</div></div>
+                  <div style="display: flex; gap: 8px; align-items: center; background: #F8FAFC; border-radius: 10px; padding: 8px 10px;"><div style="flex-grow: 1; min-width: 0;"><div style="font-size: 11.5px; color: #64748B;">Aplikasi (kode terisi otomatis)</div><div style="font-size: 12.5px; font-weight: 700; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{linkApp}}</div></div><div class="tap" onClick="{{salinAppKlik}}" style="font-size: 12.5px; font-weight: 800; color: #0284C7; flex-shrink: 0;">Salin</div></div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #F1F5F9; padding-top: 14px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;"><div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Setelan</div><sc-if value="{{sFormTutup}}"><div class="tap" onClick="{{ubahSetelanKlik}}" style="font-size: 12.5px; font-weight: 800; color: #0284C7;">Ubah</div></sc-if></div>
+                  <sc-if value="{{sFormTutup}}"><div style="font-size: 13px; color: #1E293B; line-height: 1.5;">{{dAmbSetelan}}</div></sc-if>
+                  <sc-if value="{{sFormBuka}}">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: #334155;">Komisi (Rp)<input inputmode="numeric" value="{{sKomisi}}" onChange="{{setSKomisi}}" style="{{kotakSt}}"></label>
+                      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: #334155;">Potongan user (Rp)<input inputmode="numeric" value="{{sPotongan}}" onChange="{{setSPotongan}}" style="{{kotakSt}}"></label>
+                      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: #334155;">Email<input value="{{sEmail}}" onChange="{{setSEmail}}" style="{{kotakSt}}"></label>
+                      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: #334155;">No. WhatsApp<input value="{{sHp}}" onChange="{{setSHp}}" style="{{kotakSt}}"></label>
+                    </div>
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: #334155;">Kampus / komunitas<input value="{{sKampus}}" onChange="{{setSKampus}}" style="{{kotakSt}}"></label>
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: #334155;">Catatan<input value="{{sCatatan}}" onChange="{{setSCatatan}}" style="{{kotakSt}}"></label>
+                    <div style="display: flex; gap: 10px;"><div class="tap" onClick="{{simpanSetelanKlik}}" style="height: 38px; padding: 0 16px; border-radius: 10px; background: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center;">Simpan</div><div class="tap" onClick="{{batalSetelanKlik}}" style="height: 38px; padding: 0 10px; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: #64748B;">Batal</div></div>
+                  </sc-if>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #F1F5F9; padding-top: 14px;">
+                  <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Kuesioner microsite</div>
+                  <sc-if value="{{dTargetAda}}">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-family: Nunito, sans-serif; font-size: 20px; font-weight: 800; color: #0F172A;">{{dTargetTeks}}</span><span style="font-size: 13px; font-weight: 800; color: #0284C7;">{{dTargetPersen}}</span></div>
+                    <div style="height: 10px; border-radius: 999px; background: #F1F5F9; overflow: hidden;"><div style="{{dTargetBarSt}}"></div></div>
+                    <div style="font-size: 12px; color: #64748B;">Periode {{dTargetPeriode}} · total sepanjang program {{dMicroTotal}} isian</div>
+                  </sc-if>
+                  <sc-if value="{{dTargetKosong}}"><div style="font-size: 13px; color: #64748B;">Belum ada target. Total isian lewat link ambassador ini: <b style="color: #0F172A;">{{dMicroTotal}}</b>.</div></sc-if>
+                  <sc-for list="{{dTargetList}}" as="t">
+                    <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #1E293B; padding: 6px 0; border-bottom: 1px dashed #F1F5F9;"><span>{{t.teks}}</span><span style="display: flex; gap: 12px;"><b>{{t.target}}</b><span class="tap" onClick="{{t.hapus}}" style="color: #94A3B8; font-weight: 700;">Hapus</span></span></div>
+                  </sc-for>
+                  <div style="display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 70px; gap: 8px; align-items: end;">
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Mulai<input type="date" value="{{tMulai}}" onChange="{{setTMulai}}" style="{{kotakSt}} padding: 0 8px;"></label>
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Selesai<input type="date" value="{{tSelesai}}" onChange="{{setTSelesai}}" style="{{kotakSt}} padding: 0 8px;"></label>
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Target<input inputmode="numeric" value="{{tTarget}}" onChange="{{setTTarget}}" placeholder="50" style="{{kotakSt}}"></label>
+                  </div>
+                  <div class="tap" onClick="{{tambahTargetKlik}}" style="align-self: flex-start; height: 36px; padding: 0 14px; border-radius: 10px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 13px; font-weight: 800; display: flex; align-items: center;">Tetapkan target</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #F1F5F9; padding-top: 14px;">
+                  <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Paid user ({{dPaid}}) · {{dDaftar}} daftar pakai kode</div>
+                  <sc-for list="{{dPaidList}}" as="p">
+                    <div style="display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed #F1F5F9;"><div style="min-width: 0;"><div style="font-size: 13px; font-weight: 700; color: #0F172A;">{{p.nama}}</div><div style="font-size: 11.5px; color: #64748B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{p.kode}} · {{p.tgl}} · bayar {{p.bayar}}</div></div><div style="font-size: 13px; font-weight: 800; color: #15803D; flex-shrink: 0;">{{p.komisi}}</div></div>
+                  </sc-for>
+                  <sc-if value="{{dPaidKosong}}"><div style="font-size: 13px; color: #94A3B8;">Belum ada paid user dari kode ini.</div></sc-if>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #F1F5F9; padding-top: 14px;">
+                  <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Bagi hasil</div>
+                  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <div style="background: #F8FAFC; border-radius: 10px; padding: 9px 10px;"><div style="font-size: 11px; color: #64748B;">Total komisi</div><div style="font-size: 14px; font-weight: 800; color: #0F172A;">{{dKomisi}}</div></div>
+                    <div style="background: #F8FAFC; border-radius: 10px; padding: 9px 10px;"><div style="font-size: 11px; color: #64748B;">Sudah dibayar</div><div style="font-size: 14px; font-weight: 800; color: #15803D;">{{dDibayar}}</div></div>
+                    <div style="background: #FEFCE8; border-radius: 10px; padding: 9px 10px;"><div style="font-size: 11px; color: #713F12;">Belum dibayar</div><div style="font-size: 14px; font-weight: 800; color: #0F172A;">{{dSisa}}</div></div>
+                  </div>
+                  <sc-for list="{{dBayarList}}" as="k">
+                    <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 6px 0; border-bottom: 1px dashed #F1F5F9;"><span style="color: #64748B;">{{k.tgl}} · {{k.catatan}}</span><b style="color: #0F172A;">{{k.jumlah}}</b></div>
+                  </sc-for>
+                  <div style="display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; align-items: end;">
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Jumlah dibayar (Rp)<input inputmode="numeric" value="{{kJumlah}}" onChange="{{setKJumlah}}" placeholder="0" style="{{kotakSt}}"></label>
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Tanggal<input type="date" value="{{kTanggal}}" onChange="{{setKTanggal}}" style="{{kotakSt}} padding: 0 8px;"></label>
+                  </div>
+                  <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Catatan<input value="{{kCatatan}}" onChange="{{setKCatatan}}" placeholder="mis. transfer BCA / GoPay" style="{{kotakSt}}"></label>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="tap" onClick="{{catatKomisiKlik}}" style="height: 38px; padding: 0 14px; border-radius: 10px; background: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center;">Catat pembayaran komisi</div>
+                    <div class="tap" onClick="{{isiSisaKlik}}" style="font-size: 12.5px; font-weight: 700; color: #0284C7;">Isi sisa</div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
   </div>
 </div>
 
 </sc-if>
 </template>
-<script src="../config.js?v=0889ef51"></script>
+<script src="../config.js?v=c1b4f4a0"></script>
 <script src="../aset/vendor/supabase-2.117.2.js?v=d3846343"></script>
 <script src="../aset/vendor/morphdom-2.7.4.min.js?v=0b337db4"></script>
 <script src="../aset/runtime.js?v=34f7ee4f"></script>
-<script src="../aset/admin.js?v=51e7e99e"></script>
+<script src="../aset/admin.js?v=24432c89"></script>
+<script src="../aset/admin-amb.js?v=f2d9603a"></script>
 </body>
 </html>

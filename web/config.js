@@ -26,6 +26,11 @@ window.NAWASENA_CONFIG = {
 
   // Kontak bantuan (WhatsApp, format 62…)
   WHATSAPP: '6281567666969',
+  // Program ambassador: alamat yang dibagikan + data isian kuesioner microsite (proyek Supabase microsite, kunci publik)
+  APP_URL: 'https://apps.nawasena.info',
+  MICROSITE_URL: 'https://nawasena.me',
+  MICROSITE_SUPABASE_URL: 'https://nstptyfovwkvsatupggu.supabase.co',
+  MICROSITE_KEY: 'sb_publishable_aeMcq31AtgStn7SWizfAgw_1A4mx5ZV',
   EMAIL_DUKUNGAN: 'support@nawasena.info',   // khusus kendala
   EMAIL_KONTAK: 'kotakpos@nawasena.info',     // kontak umum di bagian Tentang Nawasena
 

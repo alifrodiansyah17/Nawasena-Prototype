@@ -59,7 +59,17 @@
     v.emailDukungan = C.EMAIL_DUKUNGAN || 'support@nawasena.info';
     v.emailKontak = C.EMAIL_KONTAK || 'kotakpos@nawasena.info';   // kontak umum (Tentang Nawasena); support@ khusus kendala
     v.tahun = new Date().getFullYear();
-    v.hargaTeks = U.rp(C.HARGA);
+    // Harga setelah potongan kode referral (kalau ada). Pesanan yang sudah lunas tidak terpengaruh.
+    var ref = s.referral || {}, potongan = ref.kode ? (ref.potongan || 0) : 0;
+    v.hargaTeks = U.rp(C.HARGA - potongan);
+    v.hargaNormalTeks = U.rp(C.HARGA);
+    v.kodeRef = s.kodeRef || '';
+    v.setKodeRef = function (e) { self.s.kodeRef = String(e.target.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12); };
+    v.refAda = !!ref.kode; v.refBelum = !ref.kode;
+    v.refKode = ref.kode || ''; v.refHemat = U.rp(potongan);
+    v.refBisaUbah = !(s.pesanan && s.pesanan.status === 'ok');
+    v.pakaiRefKlik = this.aman(function () { return self.pakaiReferral(self.s.kodeRef); }, 'Mengecek kode…');
+    v.hapusRefKlik = this.aman(function () { return self.hapusReferral(); });
     v.janjiCek = C.JANJI_CEK;
     v.modeUjiCoba = !!C.MODE_UJI_COBA;
     v.keluarKlik = this.aman(function () { if (window.confirm('Keluar dari akunmu di perangkat ini?')) return self.keluar(); });

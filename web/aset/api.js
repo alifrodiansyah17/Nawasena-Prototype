@@ -104,6 +104,9 @@
       API._uid = d.user.id;
       return d.user;
     },
+    // ---------- kode referral ambassador
+    async cekKodeReferral(kode) { return cek(await sb.rpc('cek_kode_referral', { p_kode: kode })); },
+    async pakaiKodeReferral(kode) { return cek(await sb.rpc('pakai_kode_referral', { p_kode: kode })); },
     async simpanProfil(nama, tglLahir, hp, setuju) {
       var r = await sb.rpc('simpan_profil', { p_nama: nama, p_tgl_lahir: tglLahir, p_hp: hp, p_setuju: !!setuju });
       // database belum diperbarui (kolom persetujuan belum ada): pakai fungsi lama
@@ -143,11 +146,13 @@
         sb.from('pesanan').select('*').eq('user_id', u).order('dibuat', { ascending: false }).limit(1)
       ]);
       var lap = cek(r[4]), lengkap = cek(r[5]);
+      var ref = { kode: null, potongan: 0 };
+      try { var ir = await sb.rpc('info_referral'); if (!ir.error && ir.data) ref = ir.data; } catch (e) { /* fungsi belum ada: tanpa potongan */ }
       if (lap && lap.bagian1) lap.bagian1 = rapikanLaporan(lap.bagian1);
       if (lengkap && lengkap.bagian) lengkap.bagian = rapikanLaporan(lengkap.bagian);
       return {
         profil: cek(r[0]), cv: cek(r[1]), lampiran: cek(r[2]) || [], jawaban: cek(r[3]),
-        laporan: lap, lengkap: lengkap, pesanan: (cek(r[6]) || [])[0] || null
+        laporan: lap, lengkap: lengkap, pesanan: (cek(r[6]) || [])[0] || null, referral: ref
       };
     },
 

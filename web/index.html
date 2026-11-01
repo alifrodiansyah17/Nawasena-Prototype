@@ -326,6 +326,13 @@
         <div style="font-size: 12px; color: #64748B; padding-left: 2px;">{{catatanEmail}}
         </div>
       </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Kode referral <span style="font-weight: 500; color: #64748B;">(opsional)</span>
+        </div>
+        <input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="{{kodeRef}}" onChange="{{setKodeRef}}" placeholder="Mis. RANI24" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;">
+        <div style="font-size: 12px; color: #64748B; padding-left: 2px;">Dapat kode dari ambassador Nawasena? Isi di sini supaya dapat potongan harga laporan lengkap.
+        </div>
+      </div>
       <sc-if value="{{modeSandi}}">
       <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Buat kata sandi
@@ -1497,6 +1504,18 @@
           </div>
         </div>
       </div>
+        <sc-if value="{{refAda}}">
+          <div style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1px dashed #FACC15; border-radius: 12px; padding: 10px 12px;">
+            <div style="flex-grow: 1; min-width: 0; font-size: 13px; color: #0F172A; line-height: 1.45;">Kode <b>{{refKode}}</b> dipakai · hemat <b>{{refHemat}}</b><br><span style="color: #64748B; text-decoration: line-through;">{{hargaNormalTeks}}</span></div>
+            <sc-if value="{{refBisaUbah}}"><div class="tap" onClick="{{hapusRefKlik}}" style="font-size: 12.5px; font-weight: 700; color: #64748B; flex-shrink: 0;">Hapus</div></sc-if>
+          </div>
+        </sc-if>
+        <sc-if value="{{refBelum}}">
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="{{kodeRef}}" onChange="{{setKodeRef}}" placeholder="Punya kode referral?" style="flex-grow: 1; min-width: 0; height: 44px; border: 1.5px solid #FDE68A; border-radius: 11px; background: #FFFFFF; padding: 0 12px; font-size: 13.5px; color: #1E293B; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">
+            <div class="tap" onClick="{{pakaiRefKlik}}" style="height: 44px; padding: 0 16px; border-radius: 11px; background: #0284C7; color: #FFFFFF; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; flex-shrink: 0;">Pakai</div>
+          </div>
+        </sc-if>
       <div style="display: flex; flex-direction: column; gap: 12px;">
         <div style="display: flex; gap: 11px; align-items: flex-start;">
           <div style="width: 22px; height: 22px; flex-shrink: 0; border-radius: 999px; background: #FEF9C3; display: flex; align-items: center; justify-content: center; margin-top: 1px;">
@@ -3602,6 +3621,13 @@
               <div style="font-size: 12px; color: #64748B; padding-left: 2px;">{{catatanEmail}}
               </div>
             </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Kode referral <span style="font-weight: 500; color: #64748B;">(opsional)</span>
+        </div>
+        <input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="{{kodeRef}}" onChange="{{setKodeRef}}" placeholder="Mis. RANI24" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;">
+        <div style="font-size: 12px; color: #64748B; padding-left: 2px;">Dapat kode dari ambassador Nawasena? Isi di sini supaya dapat potongan harga laporan lengkap.
+        </div>
+      </div>
           </div>
         </div>
         <sc-if value="{{modeSandi}}">
@@ -4961,6 +4987,18 @@
             </div>
           </div>
         </div>
+        <sc-if value="{{refAda}}">
+          <div style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1px dashed #FACC15; border-radius: 12px; padding: 10px 12px;">
+            <div style="flex-grow: 1; min-width: 0; font-size: 13px; color: #0F172A; line-height: 1.45;">Kode <b>{{refKode}}</b> dipakai · hemat <b>{{refHemat}}</b><br><span style="color: #64748B; text-decoration: line-through;">{{hargaNormalTeks}}</span></div>
+            <sc-if value="{{refBisaUbah}}"><div class="tap" onClick="{{hapusRefKlik}}" style="font-size: 12.5px; font-weight: 700; color: #64748B; flex-shrink: 0;">Hapus</div></sc-if>
+          </div>
+        </sc-if>
+        <sc-if value="{{refBelum}}">
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="{{kodeRef}}" onChange="{{setKodeRef}}" placeholder="Punya kode referral?" style="flex-grow: 1; min-width: 0; height: 44px; border: 1.5px solid #FDE68A; border-radius: 11px; background: #FFFFFF; padding: 0 12px; font-size: 13.5px; color: #1E293B; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">
+            <div class="tap" onClick="{{pakaiRefKlik}}" style="height: 44px; padding: 0 16px; border-radius: 11px; background: #0284C7; color: #FFFFFF; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; flex-shrink: 0;">Pakai</div>
+          </div>
+        </sc-if>
         <div style="display: flex; flex-direction: column; gap: 12px;">
           <div style="display: flex; gap: 11px; align-items: flex-start;">
             <div style="width: 22px; height: 22px; flex-shrink: 0; border-radius: 999px; background: #FEF9C3; display: flex; align-items: center; justify-content: center; margin-top: 1px;">
@@ -6521,16 +6559,16 @@
 </div>
 </sc-if>
 </template>
-<script src="config.js?v=0889ef51"></script>
+<script src="config.js?v=c1b4f4a0"></script>
 <script src="aset/vendor/supabase-2.117.2.js?v=d3846343"></script>
 <script src="aset/vendor/morphdom-2.7.4.min.js?v=0b337db4"></script>
 <script src="aset/data.js?v=5dfd6c30"></script>
 <script src="aset/contoh-laporan.js?v=887734dc"></script>
-<script src="aset/api.js?v=7e3c5a72"></script>
-<script src="aset/api-demo.js?v=e97af3c6"></script>
+<script src="aset/api.js?v=fd26fb39"></script>
+<script src="aset/api-demo.js?v=8bb381be"></script>
 <script src="aset/runtime.js?v=34f7ee4f"></script>
-<script src="aset/app.js?v=14f15a1f"></script>
-<script src="aset/vals.js?v=121a3d85"></script>
+<script src="aset/app.js?v=e7ac093d"></script>
+<script src="aset/vals.js?v=9b2a4743"></script>
 <script>window.App.mulai();</script>
 </body>
 </html>

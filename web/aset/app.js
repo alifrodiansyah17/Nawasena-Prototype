@@ -7,6 +7,21 @@
 
   // ------------------------------------------------------------------ util
   function rp(n) { return 'Rp' + Number(n || 0).toLocaleString('id-ID'); }
+  // Kode referral dari link ambassador (?ref=KODE): diingat 30 hari sampai dipakai saat daftar atau bayar
+  function kodeRefTersimpan() {
+    var ok = function (k) { return /^[A-Z0-9]{4,12}$/.test(k); };
+    try {
+      var q = new URLSearchParams(location.search), k = String(q.get('ref') || '').trim().toUpperCase();
+      if (ok(k)) {
+        window.localStorage.setItem('nws_ref', JSON.stringify({ kode: k, ts: Date.now() }));
+        q.delete('ref'); history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+        return k;
+      }
+      var r = JSON.parse(window.localStorage.getItem('nws_ref') || 'null');
+      if (r && ok(r.kode) && Date.now() - r.ts < 30 * 864e5) return r.kode;
+    } catch (e) { /* abaikan */ }
+    return '';
+  }
   function tglIndo(iso) {
     if (!iso) return '';
     var d = new Date(iso);
@@ -159,7 +174,7 @@
     s: {
       layar: 'muat', layarSebelum: '', user: null,
       profil: null, cvRow: null, lampiran: [], jawaban: null, laporan: null, lengkap: null, pesanan: null,
-      setuju: false, tandaSetuju: false,
+      setuju: false, tandaSetuju: false, kodeRef: kodeRefTersimpan(), referral: { kode: null, potongan: 0 },
       nama: '', tglLahir: '', hp: '', email: '', akun: '', otp: ['', '', '', '', '', ''], kodeMode: 'masuk', kontakTampil: '',
       cvFileNama: '', cvFileInfo: '', lampFileNama: '', lampTautan: '',
       cv: null, cvStep: 1, entri: entriKosong(), skillKetik: { keahlian: '', tools: '', bahasa: '' }, profilMemuat: false,
@@ -319,6 +334,7 @@
       var d = await API.muat();
       this.s.profil = d.profil; this.s.cvRow = d.cv; this.s.lampiran = d.lampiran; this.s.jawaban = d.jawaban;
       this.s.laporan = d.laporan; this.s.lengkap = d.lengkap; this.s.pesanan = d.pesanan;
+      this.s.referral = d.referral || { kode: null, potongan: 0 };
       if (d.jawaban && Array.isArray(d.jawaban.data)) { this.s.jawab = d.jawaban.data.slice(); this.s.hal = Math.min(5, d.jawaban.hal || 0); }
       if (d.jawaban && d.jawaban.target_jenis && !this.s.targetDiketik) {
         this.s.targetPilih = String(d.jawaban.target || '').split(/\s*;\s*/).filter(Boolean).slice(0, this.MAKS_TARGET); this.s.target = '';
@@ -399,6 +415,11 @@
       if (hp.length < 10 || hp.length > 15) throw new Error('Nomor WhatsApp-nya belum benar');
       if (!emailValid(email)) throw new Error('Alamat email-nya belum benar');
       if (!s.setuju) { this.set({ tandaSetuju: true }); throw new Error('Centang dulu persetujuan pengolahan data pribadinya ya'); }
+      var kodeRef = String(s.kodeRef || '').trim().toUpperCase();
+      if (kodeRef) {
+        var ck = await API.cekKodeReferral(kodeRef);
+        if (!ck || !ck.valid) throw new Error('Kode referral ' + kodeRef + ' tidak ditemukan. Cek lagi, atau kosongkan kalau tidak punya.');
+      }
       var k = await API.cekKontak(email, hp);
       if (k.hp_terpakai && !(s.profil)) throw new Error('Nomor WhatsApp ini sudah dipakai akun lain. Kalau itu kamu, pakai Login.');
       if (s.user && API._uid) {
@@ -428,8 +449,26 @@
         if (/HP_TERPAKAI/.test(e.message)) { this.set({ layar: 'daftar' }); throw new Error('Nomor WhatsApp ini sudah dipakai akun lain.'); }
         throw e;
       }
+      // kode referral dari layar daftar (atau link ?ref=): dipasang ke akun; kalau gagal, pendaftaran tetap jalan
+      var kodeRef = String(s.kodeRef || '').trim().toUpperCase();
+      if (kodeRef) {
+        try { await API.pakaiKodeReferral(kodeRef); } catch (e) { console.warn('kode referral', e); toast('Kode referral belum terpasang. Kamu bisa memasukkannya lagi di halaman pembayaran.'); }
+      }
       await this.muatData();
       this.arahkan();
+    },
+    pakaiReferral: async function (kode) {
+      var k = String(kode || '').trim().toUpperCase();
+      if (!k) throw new Error('Isi kode referralnya dulu ya');
+      var r = await API.pakaiKodeReferral(k);
+      this.s.referral = { kode: r.kode, potongan: r.potongan || 0 };
+      try { window.localStorage.removeItem('nws_ref'); } catch (e) { /* abaikan */ }
+      this.set({ kodeRef: '' });
+      toast('Kode ' + r.kode + ' dipakai. Harga jadi ' + rp(C.HARGA - (r.potongan || 0)) + '.', true);
+    },
+    hapusReferral: async function () {
+      await API.pakaiKodeReferral('');
+      this.set({ referral: { kode: null, potongan: 0 } });
     },
     kirimKodeMasuk: async function () {
       var a = String(this.s.akun || '').trim();

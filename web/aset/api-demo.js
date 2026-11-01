@@ -25,6 +25,13 @@
       API._uid = 'demo-user';
       return { id: API._uid, email: email };
     },
+    async cekKodeReferral(kode) { await tunda(250); var k = String(kode || '').trim().toUpperCase(); return k === 'RANI24' ? { valid: true, kode: k, potongan: 5000 } : { valid: false }; },
+    async pakaiKodeReferral(kode) {
+      await tunda(300); var k = String(kode || '').trim().toUpperCase();
+      if (!k) { db.referral = { kode: null, potongan: 0 }; return { valid: false, dihapus: true }; }
+      if (k !== 'RANI24') throw new Error('Kode referral tidak ditemukan atau sudah tidak aktif');
+      db.referral = { kode: k, potongan: 5000 }; return { valid: true, kode: k, potongan: 5000 };
+    },
     async simpanProfil(nama, tgl, hp) {
       await tunda(300);
       db.profil = { id: API._uid, nama: nama, tgl_lahir: tgl, hp: hp, email: calon || 'demo@email.com' };
@@ -76,7 +83,7 @@
     },
     async kirimBukti(file, metode) {
       await tunda(800);
-      db.pesanan = { id: 'p1', kode: 'NWS-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-0421', nominal: C.HARGA,
+      db.pesanan = { id: 'p1', kode: 'NWS-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-0421', nominal: C.HARGA - ((db.referral && db.referral.potongan) || 0),
         metode: metode, status: 'menunggu', bukti_nama: file.name, dibuat: new Date().toISOString(), dikirim: new Date().toISOString() };
       return db.pesanan;
     },
