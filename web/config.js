@@ -9,7 +9,7 @@ window.NAWASENA_CONFIG = {
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnYXV2bnFlc2N2cHl5eWhwendzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwNDA2NTUsImV4cCI6MjEwNzYxNjY1NX0.s1K0ck0zL9kaULTIVoC8kv8cVfBCWD2Pvj_FIbtOrqI',
 
   // Harga Paket Mulai Karir (harus sama dengan fungsi kirim_bukti di database)
-  HARGA: 25000,
+  HARGA: 49000,
 
   // Uji coba: tampilkan label 'tidak perlu transfer sungguhan' di layar pembayaran
   MODE_UJI_COBA: false,
