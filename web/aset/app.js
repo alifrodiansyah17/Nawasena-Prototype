@@ -17,14 +17,6 @@
         q.delete('ref'); history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
         return k;
       }
-      // link ambassador apps.nawasena.info/k7q2xp: kodenya dititip worker di cookie nws_ref
-      var c = (document.cookie.match(/(?:^|;\s*)nws_ref=([a-z0-9]{6})/) || [])[1];
-      if (c) {
-        document.cookie = 'nws_ref=; Max-Age=0; Path=/';
-        k = c.toUpperCase();
-        try { window.localStorage.setItem('nws_ref', JSON.stringify({ kode: k, ts: Date.now() })); } catch (e2) { /* abaikan */ }
-        return k;
-      }
       var r = JSON.parse(window.localStorage.getItem('nws_ref') || 'null');
       if (r && ok(r.kode) && Date.now() - r.ts < 30 * 864e5) return r.kode;
     } catch (e) { /* abaikan */ }

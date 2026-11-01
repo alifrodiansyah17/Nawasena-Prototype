@@ -163,7 +163,7 @@
       // ringkasan
       var aktif = s.amb.filter(function (a) { return a.aktif; }).length, paid = 0, sisa = 0, isiSemua = 0, targetSemua = 0;
       var baris = s.amb.map(function (a) {
-        var rk = s.ambRekap[a.id] || {}, total = (s.ambMicroTotal[a.kode] || 0) + (a.tautan ? s.ambMicroTotal[String(a.tautan).toUpperCase()] || 0 : 0), target = a.target_microsite || 0;
+        var rk = s.ambRekap[a.id] || {}, total = s.ambMicroTotal[a.kode] || 0, target = a.target_microsite || 0;
         var komisi = Number(rk.komisi || 0), dibayar = Number(rk.dibayar || 0);
         paid += Number(rk.paid || 0); sisa += Math.max(0, komisi - dibayar); isiSemua += total;
         if (a.aktif) targetSemua += target;
@@ -224,8 +224,8 @@
         v.hapusAmbKlik = function () {
           if (window.confirm('Hapus ambassador ' + a.nama + ' (' + a.kode + ') secara permanen?\n\nKodenya langsung tidak berlaku dan dilepas dari akun user yang memakainya. Ambassador yang sudah punya paid user atau catatan komisi tidak bisa dihapus — nonaktifkan saja.')) self.hapusAmb();
         };
-        v.linkMicro = URL_MICROSITE.replace(/\/$/, '') + (a.tautan ? '/' + a.tautan : '/?ref=' + a.kode);
-        v.linkApp = URL_APP.replace(/\/$/, '') + (a.tautan ? '/' + a.tautan : '/?ref=' + a.kode);
+        v.linkMicro = URL_MICROSITE.replace(/\/$/, '') + '/?ref=' + a.kode;
+        v.linkApp = URL_APP.replace(/\/$/, '') + '/?ref=' + a.kode;
         v.salinMicroKlik = function () { self.salinTeks(v.linkMicro); };
         v.salinAppKlik = function () { self.salinTeks(v.linkApp); };
         v.dAmbSetelan = 'Komisi ' + rp(a.komisi) + ' per paid user · potongan user ' + rp(a.potongan) + ' (bayar ' + rp(C.HARGA - a.potongan) + ')';

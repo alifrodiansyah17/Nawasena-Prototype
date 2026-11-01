@@ -54,16 +54,6 @@ export default {
       return tambahHeader(await env.ASSETS.fetch(request));
     }
 
-    // Link ambassador tanpa jejak referral: /k7q2xp → disimpan di cookie nws_ref (30 hari), lalu diarahkan ke halaman utama.
-    const tautan = url.pathname.match(/^\/([a-z0-9]{6})\/?$/);
-    if (tautan) {
-      url.searchParams.delete('k');
-      return new Response(null, { status: 302, headers: {
-        'Location': '/' + (url.search || ''),
-        'Set-Cookie': `nws_ref=${tautan[1]}; Max-Age=${60 * 60 * 24 * 30}; Path=/; Secure; SameSite=Lax`,
-        'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } });
-    }
-
     const admin = url.pathname === '/admin' || url.pathname.startsWith('/admin/');
     // Aplikasi pengguna: terbuka untuk publik. ?k= dari link lama dibuang supaya alamatnya bersih.
     if (!admin) {
