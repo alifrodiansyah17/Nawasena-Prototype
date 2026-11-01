@@ -422,7 +422,7 @@
         <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
           <div>
             <h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Ambassador</h1>
-            <p style="font-size: 14px; color: #64748B; margin-top: 5px;">Kode referral, target pengisian kuesioner microsite, paid user dari tiap ambassador, dan bagi hasilnya.</p>
+            <p style="font-size: 14px; color: #64748B; margin-top: 5px;">Kode referral, target isian kuesioner microsite, paid user dari tiap ambassador, dan bagi hasilnya.</p>
           </div>
           <div class="tap" onClick="{{tambahAmbKlik}}" style="height: 44px; padding: 0 18px; border-radius: 9999px; background: #FACC15; color: #0F172A; font-size: 14px; font-weight: 800; font-family: Nunito, sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tambah ambassador
@@ -435,9 +435,9 @@
             <div style="font-size: 12px; color: #64748B;">dari {{ambNSemua}} terdaftar</div>
           </div>
           <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px 18px;">
-            <div style="font-size: 12.5px; color: #64748B; font-weight: 600;">Isian microsite periode berjalan</div>
+            <div style="font-size: 12.5px; color: #64748B; font-weight: 600;">Isian kuesioner microsite</div>
             <div style="font-family: Nunito, sans-serif; font-size: 30px; font-weight: 800; color: #0284C7; margin-top: 4px;">{{ambMicroRingkas}}</div>
-            <div style="font-size: 12px; color: #64748B;">isian / total target</div>
+            <div style="font-size: 12px; color: #64748B;">total isian / target ambassador aktif</div>
           </div>
           <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px 18px;">
             <div style="font-size: 12.5px; color: #64748B; font-weight: 600;">Paid user dari ambassador</div>
@@ -493,6 +493,7 @@
                   <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Komisi per paid user (Rp)<input inputmode="numeric" value="{{fKomisi}}" onChange="{{setFKomisi}}" style="{{kotakSt}}"></label>
                   <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Potongan untuk user (Rp)<input inputmode="numeric" value="{{fPotongan}}" onChange="{{setFPotongan}}" style="{{kotakSt}}"></label>
                 </div>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Target isian kuesioner microsite<input inputmode="numeric" value="{{fTarget}}" onChange="{{setFTarget}}" placeholder="mis. 50 (boleh diisi nanti)" style="{{kotakSt}}"></label>
                 <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Catatan (opsional)<input value="{{fCatatan}}" onChange="{{setFCatatan}}" placeholder="Rekening/e-wallet untuk komisi, dll." style="{{kotakSt}}"></label>
                 <div style="display: flex; gap: 10px; margin-top: 4px;">
                   <div class="tap" onClick="{{simpanAmbKlik}}" style="flex: 1; height: 44px; border-radius: 9999px; background: #0284C7; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center;">Buat ambassador</div>
@@ -537,18 +538,13 @@
                   <sc-if value="{{dTargetAda}}">
                     <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-family: Nunito, sans-serif; font-size: 20px; font-weight: 800; color: #0F172A;">{{dTargetTeks}}</span><span style="font-size: 13px; font-weight: 800; color: #0284C7;">{{dTargetPersen}}</span></div>
                     <div style="height: 10px; border-radius: 999px; background: #F1F5F9; overflow: hidden;"><div style="{{dTargetBarSt}}"></div></div>
-                    <div style="font-size: 12px; color: #64748B;">Periode {{dTargetPeriode}} · total sepanjang program {{dMicroTotal}} isian</div>
+                    <div style="font-size: 12px; color: #64748B;">{{dTargetSisa}} · dihitung dari semua isian lewat link ambassador ini</div>
                   </sc-if>
-                  <sc-if value="{{dTargetKosong}}"><div style="font-size: 13px; color: #64748B;">Belum ada target. Total isian lewat link ambassador ini: <b style="color: #0F172A;">{{dMicroTotal}}</b>.</div></sc-if>
-                  <sc-for list="{{dTargetList}}" as="t">
-                    <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #1E293B; padding: 6px 0; border-bottom: 1px dashed #F1F5F9;"><span>{{t.teks}}</span><span style="display: flex; gap: 12px;"><b>{{t.target}}</b><span class="tap" onClick="{{t.hapus}}" style="color: #94A3B8; font-weight: 700;">Hapus</span></span></div>
-                  </sc-for>
-                  <div style="display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 70px; gap: 8px; align-items: end;">
-                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Mulai<input type="date" value="{{tMulai}}" onChange="{{setTMulai}}" style="{{kotakSt}} padding: 0 8px;"></label>
-                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Selesai<input type="date" value="{{tSelesai}}" onChange="{{setTSelesai}}" style="{{kotakSt}} padding: 0 8px;"></label>
-                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Target<input inputmode="numeric" value="{{tTarget}}" onChange="{{setTTarget}}" placeholder="50" style="{{kotakSt}}"></label>
+                  <sc-if value="{{dTargetKosong}}"><div style="font-size: 13px; color: #64748B;">Belum ada target. Isian lewat link ambassador ini sejauh ini: <b style="color: #0F172A;">{{dMicroTotal}}</b>.</div></sc-if>
+                  <div style="display: flex; gap: 8px; align-items: end;">
+                    <label style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Target isian<input inputmode="numeric" value="{{tTarget}}" onChange="{{setTTarget}}" placeholder="{{tTargetPh}}" style="{{kotakSt}}"></label>
+                    <div class="tap" onClick="{{simpanTargetKlik}}" style="height: 40px; padding: 0 14px; border-radius: 10px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 13px; font-weight: 800; display: flex; align-items: center; flex-shrink: 0;">Simpan target</div>
                   </div>
-                  <div class="tap" onClick="{{tambahTargetKlik}}" style="align-self: flex-start; height: 36px; padding: 0 14px; border-radius: 10px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 13px; font-weight: 800; display: flex; align-items: center;">Tetapkan target</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #F1F5F9; padding-top: 14px;">
                   <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Paid user ({{dPaid}}) · {{dDaftar}} daftar pakai kode</div>
@@ -593,6 +589,6 @@
 <script src="../aset/vendor/morphdom-2.7.4.min.js?v=0b337db4"></script>
 <script src="../aset/runtime.js?v=34f7ee4f"></script>
 <script src="../aset/admin.js?v=24432c89"></script>
-<script src="../aset/admin-amb.js?v=f2d9603a"></script>
+<script src="../aset/admin-amb.js?v=4cd7710a"></script>
 </body>
 </html>

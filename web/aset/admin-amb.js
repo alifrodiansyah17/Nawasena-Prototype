@@ -1,6 +1,7 @@
 /* Backoffice: program ambassador referral.
  * Data utama di proyek Supabase aplikasi (ambassador, target_ambassador, pembayaran_komisi, rekap_ambassador()).
- * Jumlah isian kuesioner microsite diambil dari proyek Supabase microsite lewat rekap_referral() (hanya angka per kode). */
+ * Jumlah isian kuesioner microsite diambil dari proyek Supabase microsite lewat rekap_referral() (hanya angka per kode).
+ * Target microsite = satu angka per ambassador (ambassador.target_microsite), dibandingkan dengan total isian sejak awal. */
 (function () {
   'use strict';
   var BO = window.BO, U = window.BOUtil, C = window.NAWASENA_CONFIG;
@@ -11,14 +12,6 @@
 
   function hariIniISO() { var d = new Date(Date.now() + 7 * 3600000); return d.toISOString().slice(0, 10); }
   function tglPendek(d) { return d ? tgl(d + 'T00:00:00+07:00') : ''; }
-  // batas periode target dalam WIB: [mulai 00.00, selesai+1 00.00)
-  function awalWib(d) { return d + 'T00:00:00+07:00'; }
-  function akhirWib(d) { var x = new Date(d + 'T00:00:00+07:00'); x.setDate(x.getDate() + 1); return x.toISOString(); }
-  function targetAktif(list) {
-    var h = hariIniISO();
-    var jalan = list.filter(function (t) { return t.mulai <= h && t.selesai >= h; })[0];
-    return jalan || list.slice().sort(function (a, b) { return a.mulai < b.mulai ? 1 : -1; })[0] || null;
-  }
   // Kode dari nama depan (maks. 6 huruf) + 2 angka; angka dipilih sekali per form supaya kode tidak berubah tiap ketikan
   function buatKode(nama, ada, akhir) {
     var dasar = String(nama || '').trim().split(/\s+/)[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6) || 'NWS';
@@ -40,9 +33,9 @@
   }
 
   Object.assign(BO.s, {
-    amb: [], ambRekap: {}, ambTarget: [], ambMicroTotal: {}, ambMicroPeriode: {}, ambGalatMicro: '',
+    amb: [], ambRekap: {}, ambMicroTotal: {}, ambGalatMicro: '',
     ambPilih: null, ambCari: '', ambForm: null, ambPaid: [], ambBayar: [], ambDetailId: null,
-    tForm: { mulai: '', selesai: '', target: '' }, kForm: { jumlah: '', tanggal: '', catatan: '' }, sForm: null
+    tTarget: '', kForm: { jumlah: '', tanggal: '', catatan: '' }, sForm: null
   });
 
   Object.assign(BO, {
@@ -50,27 +43,15 @@
       var s = this.s;
       var r = await Promise.all([
         sb.from('ambassador').select('*').order('dibuat', { ascending: false }),
-        sb.rpc('rekap_ambassador'),
-        sb.from('target_ambassador').select('*').order('mulai', { ascending: false })
+        sb.rpc('rekap_ambassador')
       ]);
       if (r[0].error) { toast(r[0].error.message); return; }
       var rekap = {}; (r[1].data || []).forEach(function (x) { rekap[x.ambassador_id] = x; });
-      s.amb = r[0].data || []; s.ambRekap = rekap; s.ambTarget = r[2].data || [];
+      s.amb = r[0].data || []; s.ambRekap = rekap;
       if (!s.ambPilih || !s.amb.some(function (a) { return a.id === s.ambPilih; })) s.ambPilih = s.amb[0] ? s.amb[0].id : null;
-      // isian microsite: total semua waktu + per periode target yang sedang dipakai tiap ambassador
-      try {
-        s.ambMicroTotal = await micrositeRekap(null, null);
-        var per = {}, kunci = {};
-        s.amb.forEach(function (a) {
-          var t = targetAktif(s.ambTarget.filter(function (x) { return x.ambassador_id === a.id; }));
-          if (t) { var k = t.mulai + '|' + t.selesai; (kunci[k] = kunci[k] || []).push(a); }
-        });
-        await Promise.all(Object.keys(kunci).map(async function (k) {
-          var p = k.split('|'), map = await micrositeRekap(awalWib(p[0]), akhirWib(p[1]));
-          kunci[k].forEach(function (a) { per[a.id] = map[a.kode] || 0; });
-        }));
-        s.ambMicroPeriode = per; s.ambGalatMicro = '';
-      } catch (e) { s.ambGalatMicro = e.message; }
+      // isian microsite: total sejak awal per kode
+      try { s.ambMicroTotal = await micrositeRekap(null, null); s.ambGalatMicro = ''; }
+      catch (e) { s.ambGalatMicro = e.message; }
       this.set({});
       await this.muatDetailAmb();
     },
@@ -83,10 +64,10 @@
       ]);
       this.set({ ambPaid: r[0].data || [], ambBayar: r[1].data || [], ambDetailId: id });
     },
-    pilihAmb: function (id) { this.set({ ambPilih: id, ambForm: null, sForm: null, tForm: { mulai: '', selesai: '', target: '' }, kForm: { jumlah: '', tanggal: '', catatan: '' } }); this.muatDetailAmb(); },
+    pilihAmb: function (id) { this.set({ ambPilih: id, ambForm: null, sForm: null, tTarget: '', kForm: { jumlah: '', tanggal: '', catatan: '' } }); this.muatDetailAmb(); },
     bukaFormAmb: function () {
       var ada = {}; this.s.amb.forEach(function (a) { ada[a.kode] = 1; });
-      this.set({ ambForm: { nama: '', email: '', hp: '', kampus: '', kode: '', komisi: '5000', potongan: '5000', catatan: '', _ada: ada,
+      this.set({ ambForm: { nama: '', email: '', hp: '', kampus: '', kode: '', komisi: '5000', potongan: '5000', target: '', catatan: '', _ada: ada,
         _akhir: String(10 + Math.floor(Math.random() * 90)) } });
     },
     simpanAmb: async function () {
@@ -98,11 +79,13 @@
       var komisi = Math.round(Number(f.komisi)), potongan = Math.round(Number(f.potongan));
       if (!(komisi >= 0)) { toast('Komisi harus angka'); return; }
       if (!(potongan >= 0 && potongan < C.HARGA)) { toast('Potongan harus di bawah harga ' + rp(C.HARGA)); return; }
+      var target = String(f.target || '').trim() ? Math.round(Number(f.target)) : null;
+      if (target !== null && !(target > 0)) { toast('Target isian microsite harus angka lebih dari 0, atau kosongkan'); return; }
       sibuk(true);
       try {
         var r = await sb.from('ambassador').insert({ kode: kode, nama: nama, email: String(f.email || '').trim().toLowerCase() || null,
           hp: String(f.hp || '').replace(/\D/g, '') || null, kampus: String(f.kampus || '').trim() || null, catatan: String(f.catatan || '').trim() || null,
-          komisi: komisi, potongan: potongan, dibuat_oleh: s.uid }).select().single();
+          komisi: komisi, potongan: potongan, target_microsite: target, dibuat_oleh: s.uid }).select().single();
         if (r.error) throw new Error(/duplicate|unique/i.test(r.error.message) ? 'Kode ' + kode + ' sudah dipakai ambassador lain' : r.error.message);
         toast('Ambassador ' + nama + ' dibuat dengan kode ' + kode, true);
         this.s.ambForm = null; this.s.ambPilih = r.data.id;
@@ -131,24 +114,16 @@
         await this.muatAmb();
       } catch (e) { toast(e.message); } finally { sibuk(false); }
     },
-    tambahTarget: async function () {
-      var f = this.s.tForm, n = Math.round(Number(f.target));
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(f.mulai) || !/^\d{4}-\d{2}-\d{2}$/.test(f.selesai)) { toast('Isi tanggal mulai dan selesai'); return; }
-      if (f.selesai < f.mulai) { toast('Tanggal selesai harus setelah tanggal mulai'); return; }
-      if (!(n > 0)) { toast('Target harus lebih dari 0'); return; }
+    simpanTarget: async function () {
+      var t = String(this.s.tTarget || '').trim(), n = t ? Math.round(Number(t)) : null;
+      if (n !== null && !(n > 0)) { toast('Target harus angka lebih dari 0, atau kosongkan untuk menghapus target'); return; }
       sibuk(true);
       try {
-        var r = await sb.from('target_ambassador').insert({ ambassador_id: this.s.ambPilih, mulai: f.mulai, selesai: f.selesai, target: n });
+        var r = await sb.from('ambassador').update({ target_microsite: n }).eq('id', this.s.ambPilih);
         if (r.error) throw r.error;
-        toast('Target ' + n + ' isian (' + tglPendek(f.mulai) + '–' + tglPendek(f.selesai) + ') disimpan', true);
-        this.s.tForm = { mulai: '', selesai: '', target: '' }; await this.muatAmb();
+        toast(n ? 'Target ' + n + ' isian microsite disimpan' : 'Target dihapus', true);
+        this.s.tTarget = ''; await this.muatAmb();
       } catch (e) { toast(e.message); } finally { sibuk(false); }
-    },
-    hapusTarget: async function (id) {
-      if (!window.confirm('Hapus target periode ini?')) return;
-      var r = await sb.from('target_ambassador').delete().eq('id', id);
-      if (r.error) { toast(r.error.message); return; }
-      await this.muatAmb();
     },
     catatKomisi: async function () {
       var f = this.s.kForm, n = Math.round(Number(String(f.jumlah).replace(/\D/g, '')));
@@ -175,18 +150,17 @@
       var hariIni = hariIniISO();
 
       // ringkasan
-      var aktif = s.amb.filter(function (a) { return a.aktif; }).length, paid = 0, sisa = 0, isiPer = 0, targetPer = 0;
+      var aktif = s.amb.filter(function (a) { return a.aktif; }).length, paid = 0, sisa = 0, isiSemua = 0, targetSemua = 0;
       var baris = s.amb.map(function (a) {
-        var rk = s.ambRekap[a.id] || {}, tl = s.ambTarget.filter(function (t) { return t.ambassador_id === a.id; });
-        var t = targetAktif(tl), isiP = s.ambMicroPeriode[a.id] || 0, total = s.ambMicroTotal[a.kode] || 0;
+        var rk = s.ambRekap[a.id] || {}, total = s.ambMicroTotal[a.kode] || 0, target = a.target_microsite || 0;
         var komisi = Number(rk.komisi || 0), dibayar = Number(rk.dibayar || 0);
-        paid += Number(rk.paid || 0); sisa += Math.max(0, komisi - dibayar);
-        if (t && t.mulai <= hariIni && t.selesai >= hariIni) { isiPer += isiP; targetPer += t.target; }
-        var persen = t ? Math.min(100, Math.round(isiP / t.target * 100)) : 0, sel = s.ambPilih === a.id;
-        return { a: a, rk: rk, t: t, isiP: isiP, total: total, komisi: komisi, dibayar: dibayar, sel: sel, persen: persen };
+        paid += Number(rk.paid || 0); sisa += Math.max(0, komisi - dibayar); isiSemua += total;
+        if (a.aktif) targetSemua += target;
+        var persen = target ? Math.min(100, Math.round(total / target * 100)) : 0, sel = s.ambPilih === a.id;
+        return { a: a, rk: rk, target: target, total: total, komisi: komisi, dibayar: dibayar, sel: sel, persen: persen };
       });
       v.ambNAktif = String(aktif); v.ambNSemua = String(s.amb.length);
-      v.ambMicroRingkas = targetPer ? isiPer + ' / ' + targetPer : String(isiPer);
+      v.ambMicroRingkas = targetSemua ? isiSemua + ' / ' + targetSemua : String(isiSemua);
       v.ambPaidTotal = String(paid); v.ambSisaTotal = rp(sisa);
       v.ambGalatMicro = s.ambGalatMicro; v.adaGalatMicro = !!s.ambGalatMicro;
 
@@ -196,9 +170,9 @@
         var warna = b.persen >= 100 ? '#16A34A' : b.persen >= 50 ? '#0284C7' : '#CA8A04';
         return {
           kode: b.a.kode, nama: b.a.nama, kampus: b.a.kampus || '–',
-          micro: b.t ? b.isiP + ' / ' + b.t.target : b.total + ' isian',
-          microSub: b.t ? (b.t.selesai < hariIni ? 'periode selesai ' + tglPendek(b.t.selesai) : 's.d. ' + tglPendek(b.t.selesai)) : 'belum ada target',
-          barSt: 'height: 6px; border-radius: 999px; background: ' + warna + '; width: ' + (b.t ? b.persen : 0) + '%;',
+          micro: b.target ? b.total + ' / ' + b.target : b.total + ' isian',
+          microSub: b.target ? (b.persen >= 100 ? 'target tercapai' : b.persen + '% dari target') : 'belum ada target',
+          barSt: 'height: 6px; border-radius: 999px; background: ' + warna + '; width: ' + (b.target ? b.persen : 0) + '%;',
           paid: String(b.rk.paid || 0), daftar: String(b.rk.pendaftar || 0), komisi: rp(b.komisi), sisa: rp(Math.max(0, b.komisi - b.dibayar)),
           sisaSt: 'font-size: 13px; font-weight: 700; color: ' + (b.komisi - b.dibayar > 0 ? '#B45309' : '#64748B') + ';',
           pill: b.a.aktif ? 'Aktif' : 'Nonaktif',
@@ -216,6 +190,7 @@
       var F = s.ambForm;
       v.formAmb = !!F; v.detailAmb = !F && !!s.ambPilih; v.tanpaAmb = !F && !s.ambPilih;
       if (F) {
+        v.fTarget = F.target; v.setFTarget = isi('ambForm', 'target');
         v.fNama = F.nama; v.fEmail = F.email; v.fHp = F.hp; v.fKampus = F.kampus; v.fKode = F.kode; v.fKomisi = F.komisi; v.fPotongan = F.potongan; v.fCatatan = F.catatan;
         v.setFNama = function (e) { F.nama = e.target.value; if (!F._kodeManual) { F.kode = F.nama.trim() ? buatKode(F.nama, F._ada, F._akhir) : ''; self.set({}); } };
         v.setFKode = function (e) { F.kode = String(e.target.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12); F._kodeManual = true; };
@@ -250,21 +225,18 @@
           v.simpanSetelanKlik = function () { self.simpanSetelanAmb(); };
           v.batalSetelanKlik = function () { self.set({ sForm: null }); };
         }
-        // microsite
+        // microsite: total isian sejak awal dibanding target
         v.dMicroTotal = String(b.total);
-        v.dTargetAda = !!b.t; v.dTargetKosong = !b.t;
-        if (b.t) {
-          v.dTargetTeks = b.isiP + ' dari ' + b.t.target + ' isian';
-          v.dTargetPeriode = tglPendek(b.t.mulai) + ' – ' + tglPendek(b.t.selesai) + (b.t.selesai < hariIni ? ' (sudah lewat)' : b.t.mulai > hariIni ? ' (belum mulai)' : '');
+        v.dTargetAda = !!b.target; v.dTargetKosong = !b.target;
+        if (b.target) {
+          v.dTargetTeks = b.total + ' dari ' + b.target + ' isian';
           v.dTargetPersen = b.persen + '%';
           v.dTargetBarSt = 'height: 10px; border-radius: 999px; width: ' + b.persen + '%; background: ' + (b.persen >= 100 ? '#16A34A' : '#0284C7') + ';';
+          v.dTargetSisa = b.total >= b.target ? 'Target tercapai' : 'Kurang ' + (b.target - b.total) + ' isian lagi';
         }
-        v.dTargetList = s.ambTarget.filter(function (t) { return t.ambassador_id === a.id; }).map(function (t) {
-          return { teks: tglPendek(t.mulai) + ' – ' + tglPendek(t.selesai), target: t.target + ' isian', hapus: function () { self.hapusTarget(t.id); } };
-        });
-        v.tMulai = s.tForm.mulai; v.tSelesai = s.tForm.selesai; v.tTarget = s.tForm.target;
-        v.setTMulai = isi('tForm', 'mulai'); v.setTSelesai = isi('tForm', 'selesai'); v.setTTarget = isi('tForm', 'target');
-        v.tambahTargetKlik = function () { self.tambahTarget(); };
+        v.tTarget = s.tTarget; v.setTTarget = function (e) { self.s.tTarget = e.target.value; };
+        v.tTargetPh = b.target ? String(b.target) : 'mis. 50';
+        v.simpanTargetKlik = function () { self.simpanTarget(); };
         // paid user & komisi
         var siap = s.ambDetailId === a.id;
         v.dPaidList = (siap ? s.ambPaid : []).map(function (p) {
