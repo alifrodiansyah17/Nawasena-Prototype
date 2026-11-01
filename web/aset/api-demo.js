@@ -25,7 +25,7 @@
       API._uid = 'demo-user';
       return { id: API._uid, email: email };
     },
-    async cekKodeReferral(kode) { await tunda(250); var k = String(kode || '').trim().toUpperCase(); return (k === 'RANI24' || k === 'KTHZDU') ? { valid: true, kode: 'RANI24', potongan: 5000 } : { valid: false }; },
+    async cekKodeReferral(kode) { await tunda(250); var k = String(kode || '').trim().toUpperCase(); return k === 'RANI24' ? { valid: true, kode: k, potongan: 5000 } : { valid: false }; },
     async pakaiKodeReferral(kode) {
       await tunda(300); var k = String(kode || '').trim().toUpperCase();
       if (!k) { db.referral = { kode: null, potongan: 0 }; return { valid: false, dihapus: true }; }
