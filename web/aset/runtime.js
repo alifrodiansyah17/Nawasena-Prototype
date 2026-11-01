@@ -52,6 +52,15 @@
       var fn = self.daftarFn[+el.getAttribute('data-on-click')];
       if (typeof fn === 'function') fn(e);
     });
+    // Enter di kolom ketik yang diberi data-enter: panggil fungsi onChange dengan e.type === 'keydown' (mis. untuk menambah chip)
+    root.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || e.isComposing) return;
+      var el = cari(e, 'data-on-change');
+      if (!el || !el.hasAttribute('data-enter')) return;
+      e.preventDefault();
+      var fn = self.daftarFn[+el.getAttribute('data-on-change')];
+      if (typeof fn === 'function') fn(e);
+    });
     root.addEventListener('input', function (e) {
       var el = cari(e, 'data-on-change');
       if (!el) return;

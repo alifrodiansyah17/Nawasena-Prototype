@@ -139,7 +139,13 @@
       profil: '', profilSendiri: ''
     };
   }
-  function entriKosong() { return { jabatan: '', tempat: '', mulai: '', selesai: '', apa: '', berapa: '', hasil: '' }; }
+  function entriKosong() { return { jabatan: '', tempat: '', mulai: '', selesai: '', apa: '', berapa: '', hasil: '', lain: [] }; }
+  function salinEntri(e) { var o = Object.assign({}, e); o.lain = (e.lain || []).slice(); return o; }
+  // Deskripsi tambahan (tanggung jawab lain) di bawah bulir utama
+  function bulirLain(e) {
+    return (e.lain || []).map(function (x) { var t = huruf1(String(x || '').trim()); return t ? t.replace(/[.\s]+$/, '') + '.' : ''; }).filter(Boolean);
+  }
+  function bulirSemua(e) { return [bulir(e)].concat(bulirLain(e)).filter(Boolean); }
   function bulir(e) {
     var a = huruf1(e.apa);
     if (!a) return '';
@@ -158,7 +164,7 @@
     function blok(judul, arr) {
       arr = (arr || []).filter(function (x) { return x.jabatan || x.tempat || x.apa; });
       if (arr.length) o.push('\n' + judul + '\n' + arr.map(function (x) {
-        return [x.jabatan, x.tempat, [x.mulai, x.selesai].filter(Boolean).join(' - ')].filter(Boolean).join(' | ') + (bulir(x) ? '\n- ' + bulir(x) : '');
+        return [x.jabatan, x.tempat, [x.mulai, x.selesai].filter(Boolean).join(' - ')].filter(Boolean).join(' | ') + bulirSemua(x).map(function (b) { return '\n- ' + b; }).join('');
       }).join('\n'));
     }
     blok('PENGALAMAN KERJA', c.kerja); blok('ORGANISASI DAN PROYEK', c.organisasi);
@@ -594,10 +600,10 @@
     isiEntri: function (k) { var self = this; return function (e) { self.s.entri[k] = e.target.value; self.render(); }; },
     simpanEntri: function (tambahLagi) {
       var e = this.s.entri, kunci = this.s.cvStep === 3 ? 'kerja' : 'organisasi';
-      var terisi = (e.jabatan || e.tempat || e.apa);
+      var terisi = (e.jabatan || e.tempat || e.apa || bulirLain(e).length);
       if (terisi) {
-        if (this._editIdx != null) this.s.cv[kunci][this._editIdx] = Object.assign({}, e);
-        else this.s.cv[kunci].push(Object.assign({}, e));
+        if (this._editIdx != null) this.s.cv[kunci][this._editIdx] = salinEntri(e);
+        else this.s.cv[kunci].push(salinEntri(e));
       }
       this._editIdx = null;
       this.s.entri = entriKosong();
@@ -608,7 +614,7 @@
       var self = this;
       return function () {
         self._editIdx = i;
-        self.set({ entri: Object.assign({}, self.s.cv[kunci][i]) });
+        self.set({ entri: salinEntri(self.s.cv[kunci][i]) });
       };
     },
     hapusEntri: function (kunci, i) {
@@ -887,5 +893,5 @@
   }
 
   window.App = App;
-  window.NawasenaUtil = { identitasDari: identitasDari, rp: rp, tglIndo: tglIndo, jamIndo: jamIndo, levelDari: levelDari, umur: umur, bulir: bulir, teksCV: teksCV, huruf1: huruf1, svgData: svgData, PILIHAN_SKILL: PILIHAN_SKILL, toast: toast };
+  window.NawasenaUtil = { identitasDari: identitasDari, rp: rp, tglIndo: tglIndo, jamIndo: jamIndo, levelDari: levelDari, umur: umur, bulir: bulir, bulirSemua: bulirSemua, bulirLain: bulirLain, teksCV: teksCV, huruf1: huruf1, svgData: svgData, PILIHAN_SKILL: PILIHAN_SKILL, toast: toast };
 })();

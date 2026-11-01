@@ -189,6 +189,17 @@
     ['jabatan', 'tempat', 'mulai', 'selesai', 'apa', 'berapa', 'hasil'].forEach(function (k) { v['setE_' + k] = self.isiEntri(k); });
     var e = s.entri;
     v.bulirJadi = U.bulir({ apa: e.apa || 'mengurus akun Instagram himpunan', berapa: e.berapa || '3 konten seminggu selama 2 tahun', hasil: e.hasil || 'pengikut naik dari 800 ke 2.100' });
+    if (!Array.isArray(e.lain)) e.lain = [];
+    v.lainJadi = U.bulirLain(e).map(function (t) { return { t: t }; });
+    v.entriLain = e.lain.map(function (x, i) {
+      return { v: x, no: String(i + 2) + '.', set: function (ev) { e.lain[i] = ev.target.value; self.render(); },
+        hapus: function () { e.lain.splice(i, 1); self.render(); } };
+    });
+    v.tambahLainKlik = function () {
+      if (e.lain.length && !String(e.lain[e.lain.length - 1]).trim()) { U.toast('Isi dulu deskripsi yang masih kosong ya'); return; }
+      e.lain.push(''); self.render();
+      setTimeout(function () { var x = document.querySelectorAll('input[data-lain]'); if (x.length) x[x.length - 1].focus(); }, 30);
+    };
     var kunciEntri = s.cvStep === 3 ? 'kerja' : 'organisasi';
     v.entriList = (c[kunciEntri] || []).map(function (x, i) {
       if (self._editIdx === i) return null;
@@ -207,7 +218,16 @@
             + (on ? '#0284C7' : '#334155') + '; background: ' + (on ? '#F0F9FF' : '#FFFFFF') + ';' };
       });
       v['ketik_' + g] = s.skillKetik[g];
-      v['setKetik_' + g] = function (ev) { self.s.skillKetik[g] = ev.target.value; };
+      // Skill di luar daftar: masuk jadi chip begitu tekan Enter, ketik koma, atau klik Tambah
+      v['setKetik_' + g] = function (ev) {
+        var val = ev.target.value;
+        self.s.skillKetik[g] = val;
+        if (ev.type === 'keydown' || /[,;]/.test(val)) {
+          self.s.skillKetik[g] = val.replace(/;/g, ',');
+          if (String(self.s.skillKetik[g]).replace(/,/g, '').trim()) { self.tambahSkillKetik(g); ev.target.value = ''; self.render(); }
+        }
+      };
+      v['tambahKetik_' + g] = function () { self.tambahSkillKetik(g); self.render(); };
     });
     v.profilDraf = s.profilMemuat ? 'Lagi kami tulis dari isianmu…' : (c.profil || 'Belum ada draf. Tulis versimu di bawah ya.');
     v.profilSendiri = c.profilSendiri || ''; v.setProfilSendiri = this.isiCV('profilSendiri');
@@ -215,17 +235,17 @@
     var kontak = [c.kota, c.hp, c.email, c.linkedin].filter(Boolean).join('  |  ');
     function itemEntri(arr) {
       return (arr || []).filter(function (x) { return x.jabatan || x.tempat || x.apa; }).map(function (x) {
-        return { kiri: [x.jabatan, x.tempat].filter(Boolean).join(' | '), kanan: [x.mulai, x.selesai].filter(Boolean).join(' - '), ket: '', bulir: U.bulir(x) };
+        return { kiri: [x.jabatan, x.tempat].filter(Boolean).join(' | '), kanan: [x.mulai, x.selesai].filter(Boolean).join(' - '), ket: '', bulir: U.bulir(x), lain: U.bulirLain(x).map(function (t) { return { t: t }; }) };
       });
     }
     var bagianCV = [];
     var kerja = itemEntri(c.kerja); if (kerja.length) bagianCV.push({ judul: 'PENGALAMAN KERJA', item: kerja });
     var org = itemEntri(c.organisasi); if (org.length) bagianCV.push({ judul: 'ORGANISASI DAN PROYEK', item: org });
     var pend = (c.pendidikan || []).filter(function (x) { return x.gelar || x.kampus; }).map(function (x) {
-      return { kiri: [x.gelar, [x.kampus, x.kota].filter(Boolean).join(', ')].filter(Boolean).join(' | '), kanan: x.lulus || '', ket: x.ipk ? 'IPK ' + x.ipk + '/4,00' : '', bulir: '' };
+      return { kiri: [x.gelar, [x.kampus, x.kota].filter(Boolean).join(', ')].filter(Boolean).join(' | '), kanan: x.lulus || '', ket: x.ipk ? 'IPK ' + x.ipk + '/4,00' : '', bulir: '', lain: [] };
     });
     if (pend.length) bagianCV.push({ judul: 'PENDIDIKAN', item: pend });
-    var ser = (c.sertifikasi || []).filter(function (x) { return x.nama; }).map(function (x) { return { kiri: [x.nama, x.penerbit].filter(Boolean).join(' | '), kanan: x.tahun || '', ket: '', bulir: '' }; });
+    var ser = (c.sertifikasi || []).filter(function (x) { return x.nama; }).map(function (x) { return { kiri: [x.nama, x.penerbit].filter(Boolean).join(' | '), kanan: x.tahun || '', ket: '', bulir: '', lain: [] }; });
     if (ser.length) bagianCV.push({ judul: 'SERTIFIKASI', item: ser });
     var kh = [];
     if ((c.keahlian || []).length) kh.push({ k: 'Teknis', v: c.keahlian.join(', ') });

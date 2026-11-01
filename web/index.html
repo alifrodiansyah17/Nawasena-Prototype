@@ -626,8 +626,8 @@
         <div style="background: #0284C7; border-radius: 12px; padding: 16px 17px;">
           <div style="font-size: 11px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.08em; text-transform: uppercase;">Jadinya di CV kamu
           </div>
-          <p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 9px;">• {{bulirJadi}}</p>
-        </div>
+          <p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 9px;">• {{bulirJadi}}</p><sc-for list="{{lainJadi}}" as="b"><p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 4px;">• {{b.t}}</p></sc-for>
+        </div><div style="display: flex; flex-direction: column; gap: 8px;"><div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Tanggung jawab lain <span style="font-weight: 500; color: #64748B;">(opsional)</span></div><sc-for list="{{entriLain}}" as="d"><div style="display: flex; gap: 8px; align-items: center;"><input data-lain="1" value="{{d.v}}" onChange="{{d.set}}" placeholder="mis. menyusun laporan bulanan untuk pengurus" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 14px; font-size: 14px; color: #1E293B; font-weight: 500;"><div class="tap" onClick="{{d.hapus}}" aria-label="Hapus deskripsi" style="width: 40px; height: 48px; display: flex; align-items: center; justify-content: center; color: #94A3B8; font-size: 20px; flex-shrink: 0;">×</div></div></sc-for><div class="tap" onClick="{{tambahLainKlik}}" style="align-self: flex-start; font-size: 13.5px; font-weight: 700; color: #0284C7; padding: 6px 2px;">+ Tambah deskripsi</div></div>
       </div>
       <div class="tap" onClick="{{tambahEntriKlik}}" style="border: 1.5px dashed #7DD3FC; border-radius: 12px; padding: 13px; text-align: center; font-size: 13.5px; font-weight: 700; color: #0284C7;">{{tambahEntriLabel}}</div>
     </sc-if>
@@ -692,8 +692,8 @@
         <div style="background: #0284C7; border-radius: 12px; padding: 16px 17px;">
           <div style="font-size: 11px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.08em; text-transform: uppercase;">Jadinya di CV kamu
           </div>
-          <p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 9px;">• {{bulirJadi}}</p>
-        </div>
+          <p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 9px;">• {{bulirJadi}}</p><sc-for list="{{lainJadi}}" as="b"><p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 4px;">• {{b.t}}</p></sc-for>
+        </div><div style="display: flex; flex-direction: column; gap: 8px;"><div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Tanggung jawab lain <span style="font-weight: 500; color: #64748B;">(opsional)</span></div><sc-for list="{{entriLain}}" as="d"><div style="display: flex; gap: 8px; align-items: center;"><input data-lain="1" value="{{d.v}}" onChange="{{d.set}}" placeholder="mis. menyusun laporan bulanan untuk pengurus" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 14px; font-size: 14px; color: #1E293B; font-weight: 500;"><div class="tap" onClick="{{d.hapus}}" aria-label="Hapus deskripsi" style="width: 40px; height: 48px; display: flex; align-items: center; justify-content: center; color: #94A3B8; font-size: 20px; flex-shrink: 0;">×</div></div></sc-for><div class="tap" onClick="{{tambahLainKlik}}" style="align-self: flex-start; font-size: 13.5px; font-weight: 700; color: #0284C7; padding: 6px 2px;">+ Tambah deskripsi</div></div>
       </div>
       <div class="tap" onClick="{{tambahEntriKlik}}" style="border: 1.5px dashed #7DD3FC; border-radius: 12px; padding: 13px; text-align: center; font-size: 13.5px; font-weight: 700; color: #0284C7;">{{tambahEntriLabel}}</div>
     </sc-if>
@@ -706,7 +706,7 @@
             <sc-for list="{{chip_keahlian}}" as="c"><div class="tap" onClick="{{c.on}}" style="{{c.st}}">{{c.t}}</div></sc-for>
           </div>
           <p style="font-size: 12px; color: #64748B;">Pilih yang kamu bisa. Pilih 3-5 saja, yang benar-benar dikuasai.</p>
-          <input value="{{ketik_keahlian}}" onChange="{{setKetik_keahlian}}" placeholder="Ketik sendiri, pisahkan dengan koma" style="height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;">
+          <div style="display: flex; gap: 8px;"><input value="{{ketik_keahlian}}" onChange="{{setKetik_keahlian}}" data-enter="1" enterkeyhint="done" placeholder="Ketik sendiri, lalu Enter" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;"><div class="tap" onClick="{{tambahKetik_keahlian}}" style="height: 48px; padding: 0 16px; border-radius: 12px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 14px; font-weight: 700; display: flex; align-items: center; flex-shrink: 0;">Tambah</div></div>
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <div style="font-size: 13px; font-weight: 600; color: #334155;">Tools yang kamu pakai
@@ -714,7 +714,7 @@
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <sc-for list="{{chip_tools}}" as="c"><div class="tap" onClick="{{c.on}}" style="{{c.st}}">{{c.t}}</div></sc-for>
           </div>
-          <input value="{{ketik_tools}}" onChange="{{setKetik_tools}}" placeholder="Ketik sendiri, pisahkan dengan koma" style="height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;">
+          <div style="display: flex; gap: 8px;"><input value="{{ketik_tools}}" onChange="{{setKetik_tools}}" data-enter="1" enterkeyhint="done" placeholder="Ketik sendiri, lalu Enter" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;"><div class="tap" onClick="{{tambahKetik_tools}}" style="height: 48px; padding: 0 16px; border-radius: 12px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 14px; font-weight: 700; display: flex; align-items: center; flex-shrink: 0;">Tambah</div></div>
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <div style="font-size: 13px; font-weight: 600; color: #334155;">Bahasa
@@ -722,7 +722,7 @@
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <sc-for list="{{chip_bahasa}}" as="c"><div class="tap" onClick="{{c.on}}" style="{{c.st}}">{{c.t}}</div></sc-for>
           </div>
-          <input value="{{ketik_bahasa}}" onChange="{{setKetik_bahasa}}" placeholder="Ketik sendiri, pisahkan dengan koma" style="height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;">
+          <div style="display: flex; gap: 8px;"><input value="{{ketik_bahasa}}" onChange="{{setKetik_bahasa}}" data-enter="1" enterkeyhint="done" placeholder="Ketik sendiri, lalu Enter" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;"><div class="tap" onClick="{{tambahKetik_bahasa}}" style="height: 48px; padding: 0 16px; border-radius: 12px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 14px; font-weight: 700; display: flex; align-items: center; flex-shrink: 0;">Tambah</div></div>
         </div>
       </div>
     </sc-if>
@@ -810,7 +810,7 @@
     <sc-for list="{{g.item}}" as="it">
     <div style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline;"><span style="font-size: 11.5px; font-weight: 700; color: #1E293B;">{{it.kiri}}</span><span style="font-size: 10.5px; color: #64748B; flex-shrink: 0;">{{it.kanan}}</span></div>
     <sc-if value="{{it.ket}}"><p style="font-size: 11px; color: #64748B;">{{it.ket}}</p></sc-if>
-    <sc-if value="{{it.bulir}}"><p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{it.bulir}}</p></sc-if>
+    <sc-if value="{{it.bulir}}"><p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{it.bulir}}</p></sc-if><sc-for list="{{it.lain}}" as="b"><p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{b.t}}</p></sc-for>
     </sc-for>
   </div>
   </sc-for>
@@ -2930,13 +2930,13 @@
           </div>
           <div style="display: flex; gap: 12px;">
             <div style="flex-grow: 1; flex-basis: 0; background: #F8FAFC; border-radius: 12px; padding: 15px 16px;">
-              <h4 style="font-size: 12px; font-weight: 800; color: #0284C7; letter-spacing: 0.07em; text-transform: uppercase;">Kisaran gaji di Indonesia</h4>
+              <h4 style="font-size: 12px; font-weight: 800; color: #0284C7; letter-spacing: 0.07em; text-transform: uppercase;">Kisaran gaji · acuan Jakarta</h4>
               <div style="font-size: 13px; line-height: 1.5; margin-top: 8px;">
                 <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px;">
                   <sc-for list="{{pGaji}}" as="g">
                     <li style="font-size: 12px; line-height: 1.45;"><b style="color: #0F172A;">{{g.k}}</b> {{g.val}}</li>
                   </sc-for>
-                </ol>
+                </ol><p style="font-size: 11.5px; line-height: 1.45; color: #64748B; margin-top: 8px;">Angka ini acuan perusahaan di Jakarta, bukan tawaran gaji. Di kota lain, misalnya Yogyakarta, kisarannya bisa jauh lebih rendah. Cek juga UMK dan lowongan di kotamu.</p>
               </div>
             </div>
             <div style="flex-grow: 1; flex-basis: 0; background: #F8FAFC; border-radius: 12px; padding: 15px 16px;">
@@ -3211,7 +3211,7 @@
     <sc-for list="{{g.item}}" as="it">
     <div style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline;"><span style="font-size: 11.5px; font-weight: 700; color: #1E293B;">{{it.kiri}}</span><span style="font-size: 10.5px; color: #64748B; flex-shrink: 0;">{{it.kanan}}</span></div>
     <sc-if value="{{it.ket}}"><p style="font-size: 11px; color: #64748B;">{{it.ket}}</p></sc-if>
-    <sc-if value="{{it.bulir}}"><p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{it.bulir}}</p></sc-if>
+    <sc-if value="{{it.bulir}}"><p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{it.bulir}}</p></sc-if><sc-for list="{{it.lain}}" as="b"><p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{b.t}}</p></sc-for>
     </sc-for>
   </div>
   </sc-for>
@@ -4011,8 +4011,8 @@
             <div style="background: #0284C7; border-radius: 12px; padding: 16px 17px;">
               <div style="font-size: 11px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.08em; text-transform: uppercase;">Jadinya di CV kamu
               </div>
-              <p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 9px;">• {{bulirJadi}}</p>
-            </div>
+              <p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 9px;">• {{bulirJadi}}</p><sc-for list="{{lainJadi}}" as="b"><p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 4px;">• {{b.t}}</p></sc-for>
+            </div><div style="display: flex; flex-direction: column; gap: 8px;"><div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Tanggung jawab lain <span style="font-weight: 500; color: #64748B;">(opsional)</span></div><sc-for list="{{entriLain}}" as="d"><div style="display: flex; gap: 8px; align-items: center;"><input data-lain="1" value="{{d.v}}" onChange="{{d.set}}" placeholder="mis. menyusun laporan bulanan untuk pengurus" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 14px; font-size: 14px; color: #1E293B; font-weight: 500;"><div class="tap" onClick="{{d.hapus}}" aria-label="Hapus deskripsi" style="width: 40px; height: 48px; display: flex; align-items: center; justify-content: center; color: #94A3B8; font-size: 20px; flex-shrink: 0;">×</div></div></sc-for><div class="tap" onClick="{{tambahLainKlik}}" style="align-self: flex-start; font-size: 13.5px; font-weight: 700; color: #0284C7; padding: 6px 2px;">+ Tambah deskripsi</div></div>
           </div>
           <div class="tap" onClick="{{tambahEntriKlik}}" style="border: 1.5px dashed #7DD3FC; border-radius: 12px; padding: 13px; text-align: center; font-size: 13.5px; font-weight: 700; color: #0284C7;">{{tambahEntriLabel}}
           </div>
@@ -4085,8 +4085,8 @@
             <div style="background: #0284C7; border-radius: 12px; padding: 16px 17px;">
               <div style="font-size: 11px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.08em; text-transform: uppercase;">Jadinya di CV kamu
               </div>
-              <p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 9px;">• {{bulirJadi}}</p>
-            </div>
+              <p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 9px;">• {{bulirJadi}}</p><sc-for list="{{lainJadi}}" as="b"><p style="font-size: 14px; line-height: 1.55; color: #FFFFFF; margin-top: 4px;">• {{b.t}}</p></sc-for>
+            </div><div style="display: flex; flex-direction: column; gap: 8px;"><div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Tanggung jawab lain <span style="font-weight: 500; color: #64748B;">(opsional)</span></div><sc-for list="{{entriLain}}" as="d"><div style="display: flex; gap: 8px; align-items: center;"><input data-lain="1" value="{{d.v}}" onChange="{{d.set}}" placeholder="mis. menyusun laporan bulanan untuk pengurus" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 14px; font-size: 14px; color: #1E293B; font-weight: 500;"><div class="tap" onClick="{{d.hapus}}" aria-label="Hapus deskripsi" style="width: 40px; height: 48px; display: flex; align-items: center; justify-content: center; color: #94A3B8; font-size: 20px; flex-shrink: 0;">×</div></div></sc-for><div class="tap" onClick="{{tambahLainKlik}}" style="align-self: flex-start; font-size: 13.5px; font-weight: 700; color: #0284C7; padding: 6px 2px;">+ Tambah deskripsi</div></div>
           </div>
           <div class="tap" onClick="{{tambahEntriKlik}}" style="border: 1.5px dashed #7DD3FC; border-radius: 12px; padding: 13px; text-align: center; font-size: 13.5px; font-weight: 700; color: #0284C7;">{{tambahEntriLabel}}
           </div>
@@ -4103,7 +4103,7 @@
                 </sc-for>
               </div>
               <p style="font-size: 12px; color: #64748B;">Pilih yang kamu bisa. Pilih 3-5 saja, yang benar-benar dikuasai.</p>
-              <input value="{{ketik_keahlian}}" onChange="{{setKetik_keahlian}}" placeholder="Ketik sendiri, pisahkan dengan koma" style="height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;">
+              <div style="display: flex; gap: 8px;"><input value="{{ketik_keahlian}}" onChange="{{setKetik_keahlian}}" data-enter="1" enterkeyhint="done" placeholder="Ketik sendiri, lalu Enter" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;"><div class="tap" onClick="{{tambahKetik_keahlian}}" style="height: 48px; padding: 0 16px; border-radius: 12px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 14px; font-weight: 700; display: flex; align-items: center; flex-shrink: 0;">Tambah</div></div>
             </div>
             <div style="display: flex; flex-direction: column; gap: 10px;">
               <div style="font-size: 13px; font-weight: 600; color: #334155;">Tools yang kamu pakai
@@ -4114,7 +4114,7 @@
                   </div>
                 </sc-for>
               </div>
-              <input value="{{ketik_tools}}" onChange="{{setKetik_tools}}" placeholder="Ketik sendiri, pisahkan dengan koma" style="height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;">
+              <div style="display: flex; gap: 8px;"><input value="{{ketik_tools}}" onChange="{{setKetik_tools}}" data-enter="1" enterkeyhint="done" placeholder="Ketik sendiri, lalu Enter" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;"><div class="tap" onClick="{{tambahKetik_tools}}" style="height: 48px; padding: 0 16px; border-radius: 12px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 14px; font-weight: 700; display: flex; align-items: center; flex-shrink: 0;">Tambah</div></div>
             </div>
             <div style="display: flex; flex-direction: column; gap: 10px;">
               <div style="font-size: 13px; font-weight: 600; color: #334155;">Bahasa
@@ -4125,7 +4125,7 @@
                   </div>
                 </sc-for>
               </div>
-              <input value="{{ketik_bahasa}}" onChange="{{setKetik_bahasa}}" placeholder="Ketik sendiri, pisahkan dengan koma" style="height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;">
+              <div style="display: flex; gap: 8px;"><input value="{{ketik_bahasa}}" onChange="{{setKetik_bahasa}}" data-enter="1" enterkeyhint="done" placeholder="Ketik sendiri, lalu Enter" style="flex-grow: 1; min-width: 0; height: 48px; border: 1.5px dashed #E2E8F0; border-radius: 12px; padding: 0 16px; font-size: 14px; color: #1E293B;"><div class="tap" onClick="{{tambahKetik_bahasa}}" style="height: 48px; padding: 0 16px; border-radius: 12px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 14px; font-weight: 700; display: flex; align-items: center; flex-shrink: 0;">Tambah</div></div>
             </div>
           </div>
         </sc-if>
@@ -4257,7 +4257,7 @@
               </sc-if>
               <sc-if value="{{it.bulir}}">
                 <p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{it.bulir}}</p>
-              </sc-if>
+              </sc-if><sc-for list="{{it.lain}}" as="b"><p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{b.t}}</p></sc-for>
             </sc-for>
           </div>
         </sc-for>
@@ -6149,13 +6149,13 @@
             </div>
             <div style="display: flex; gap: 12px;">
               <div style="flex-grow: 1; flex-basis: 0; background: #F8FAFC; border-radius: 12px; padding: 15px 16px;">
-                <h4 style="font-size: 12px; font-weight: 800; color: #0284C7; letter-spacing: 0.07em; text-transform: uppercase;">Kisaran gaji di Indonesia</h4>
+                <h4 style="font-size: 12px; font-weight: 800; color: #0284C7; letter-spacing: 0.07em; text-transform: uppercase;">Kisaran gaji · acuan Jakarta</h4>
                 <div style="font-size: 13px; line-height: 1.5; margin-top: 8px;">
                   <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px;">
                     <sc-for list="{{pGaji}}" as="g">
                       <li style="font-size: 12px; line-height: 1.45;"><b style="color: #0F172A;">{{g.k}}</b> {{g.val}}</li>
                     </sc-for>
-                  </ol>
+                  </ol><p style="font-size: 11.5px; line-height: 1.45; color: #64748B; margin-top: 8px;">Angka ini acuan perusahaan di Jakarta, bukan tawaran gaji. Di kota lain, misalnya Yogyakarta, kisarannya bisa jauh lebih rendah. Cek juga UMK dan lowongan di kotamu.</p>
                 </div>
               </div>
               <div style="flex-grow: 1; flex-basis: 0; background: #F8FAFC; border-radius: 12px; padding: 15px 16px;">
@@ -6442,7 +6442,7 @@
                     </sc-if>
                     <sc-if value="{{it.bulir}}">
                       <p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{it.bulir}}</p>
-                    </sc-if>
+                    </sc-if><sc-for list="{{it.lain}}" as="b"><p style="font-size: 11.5px; line-height: 1.5; color: #334155;">• {{b.t}}</p></sc-for>
                   </sc-for>
                 </div>
               </sc-for>
@@ -6554,9 +6554,9 @@
 <script src="aset/contoh-laporan.js?v=887734dc"></script>
 <script src="aset/api.js?v=fd26fb39"></script>
 <script src="aset/api-demo.js?v=8bb381be"></script>
-<script src="aset/runtime.js?v=34f7ee4f"></script>
-<script src="aset/app.js?v=218bc4d7"></script>
-<script src="aset/vals.js?v=9b2a4743"></script>
+<script src="aset/runtime.js?v=03102134"></script>
+<script src="aset/app.js?v=23f412d6"></script>
+<script src="aset/vals.js?v=9236f120"></script>
 <script>window.App.mulai();</script>
 </body>
 </html>

@@ -206,7 +206,8 @@
         var b = tambah(w, 'div', 'baris');
         tambah(b, 'span', null, [x.jabatan, x.tempat].filter(Boolean).join(' | '));
         tambah(b, 'span', null, [x.mulai, x.selesai].filter(Boolean).join(' - '));
-        if (bulir(x)) { var u = tambah(w, 'ul'); tambah(u, 'li', null, bulir(x)); }
+        var semua = [bulir(x)].concat((x.lain || []).map(function (y) { y = String(y || '').trim(); return y ? (y.charAt(0).toUpperCase() + y.slice(1)).replace(/[.\s]+$/, '') + '.' : ''; })).filter(Boolean);
+        if (semua.length) { var u = tambah(w, 'ul'); semua.forEach(function (b) { tambah(u, 'li', null, b); }); }
       });
     }
     blok('PENGALAMAN KERJA', c.kerja);
@@ -360,7 +361,7 @@
         + (q.fun ? '<div class="fun">' + x(q.fun) + '</div>' : '')
         + '<div class="dua"><div>' + fld('Yang dibutuhkan', q.comp) + fld('Yang sudah kamu punya', q.punya) + fld('Kenapa cocok', q.why) + '</div>'
         + '<div>' + fld('Hari-harinya', q.day) + fld('Yang akan menantang', q.chal) + fld('Jalur karir', q.path) + '</div></div>'
-        + ((q.gaji || []).length ? '<div class="fld" style="margin-bottom:2px;"><b>Kisaran gaji</b></div><div class="gaji">' + q.gaji.map(function (g) { return '<div><div class="k">' + x(String(g.k).replace(/^[a-c]\.\s*/, '')) + '</div><div class="v">' + x(g.v) + '</div></div>'; }).join('') + '</div>' : '')
+        + ((q.gaji || []).length ? '<div class="fld" style="margin-bottom:2px;"><b>Kisaran gaji · acuan Jakarta</b></div><div class="gaji">' + q.gaji.map(function (g) { return '<div><div class="k">' + x(String(g.k).replace(/^[a-c]\.\s*/, '')) + '</div><div class="v">' + x(g.v) + '</div></div>'; }).join('') + '</div>' + '<div style="font-size:7.8pt;color:#64748B;margin:-6px 0 10px;">Acuan perusahaan di Jakarta, bukan tawaran gaji. Di kota lain (mis. Yogyakarta) bisa jauh lebih rendah; cek UMK dan lowongan di kotamu.</div>' : '')
         + ((q.ind || []).length ? '<div class="fld"><b>Industri</b><span>' + q.ind.map(function (g) { return '<b style="display:inline;color:#0F172A;text-transform:none;letter-spacing:0;font-size:9pt;">' + x(g.k) + '</b> ' + x(g.v); }).join('<br>') + '</span></div>' : '')
         + (q.prep ? '<div class="kartu kuning" style="margin:6px 0 0;"><h3 style="color:#92400E;">Yang perlu kamu siapkan</h3><div class="isi">' + x(q.prep) + '</div></div>' : '')
         + '</div></div>', true);
