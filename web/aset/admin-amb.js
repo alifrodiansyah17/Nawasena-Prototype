@@ -114,6 +114,17 @@
         await this.muatAmb();
       } catch (e) { toast(e.message); } finally { sibuk(false); }
     },
+    hapusAmb: async function () {
+      sibuk(true);
+      try {
+        var r = await sb.rpc('hapus_ambassador', { p_id: this.s.ambPilih });
+        if (r.error) throw new Error(String(r.error.message || '').replace(/^TERPAKAI:\s*/, ''));
+        var d = r.data || {};
+        toast('Ambassador ' + d.nama + ' (' + d.kode + ') dihapus' + (d.user_dilepas ? '. Kodenya dilepas dari ' + d.user_dilepas + ' user.' : '.'), true);
+        this.s.ambPilih = null; this.s.sForm = null;
+        await this.muatAmb();
+      } catch (e) { toast(e.message); } finally { sibuk(false); }
+    },
     simpanTarget: async function () {
       var t = String(this.s.tTarget || '').trim(), n = t ? Math.round(Number(t)) : null;
       if (n !== null && !(n > 0)) { toast('Target harus angka lebih dari 0, atau kosongkan untuk menghapus target'); return; }
@@ -210,6 +221,9 @@
         v.dAmbAktif = a.aktif; v.dAmbNonaktif = !a.aktif;
         v.nonaktifkanKlik = function () { if (window.confirm('Nonaktifkan ' + a.nama + '? Kodenya tidak bisa dipakai user baru, data lama tetap tersimpan.')) self.aktifkanAmb(false); };
         v.aktifkanKlik = function () { self.aktifkanAmb(true); };
+        v.hapusAmbKlik = function () {
+          if (window.confirm('Hapus ambassador ' + a.nama + ' (' + a.kode + ') secara permanen?\n\nKodenya langsung tidak berlaku dan dilepas dari akun user yang memakainya. Ambassador yang sudah punya paid user atau catatan komisi tidak bisa dihapus — nonaktifkan saja.')) self.hapusAmb();
+        };
         v.linkMicro = URL_MICROSITE.replace(/\/$/, '') + '/?ref=' + a.kode;
         v.linkApp = URL_APP.replace(/\/$/, '') + '/?ref=' + a.kode;
         v.salinMicroKlik = function () { self.salinTeks(v.linkMicro); };

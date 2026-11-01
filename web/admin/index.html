@@ -510,8 +510,7 @@
                     <div style="font-size: 13px; color: #64748B; margin-top: 3px;">{{dAmbKampus}}</div>
                     <div style="font-size: 12.5px; color: #64748B; margin-top: 2px;">{{dAmbKontak}}</div>
                   </div>
-                  <sc-if value="{{dAmbAktif}}"><div class="tap" onClick="{{nonaktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #64748B; flex-shrink: 0;">Nonaktifkan</div></sc-if>
-                  <sc-if value="{{dAmbNonaktif}}"><div class="tap" onClick="{{aktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #0284C7; flex-shrink: 0;">Aktifkan lagi</div></sc-if>
+                  <div style="display: flex; gap: 14px; flex-shrink: 0;"><sc-if value="{{dAmbAktif}}"><div class="tap" onClick="{{nonaktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #64748B;">Nonaktifkan</div></sc-if><sc-if value="{{dAmbNonaktif}}"><div class="tap" onClick="{{aktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #0284C7;">Aktifkan lagi</div></sc-if><div class="tap" onClick="{{hapusAmbKlik}}" style="font-size: 12.5px; font-weight: 700; color: #DC2626;">Hapus</div></div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                   <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Link untuk dibagikan</div>
@@ -589,6 +588,6 @@
 <script src="../aset/vendor/morphdom-2.7.4.min.js?v=0b337db4"></script>
 <script src="../aset/runtime.js?v=34f7ee4f"></script>
 <script src="../aset/admin.js?v=24432c89"></script>
-<script src="../aset/admin-amb.js?v=4cd7710a"></script>
+<script src="../aset/admin-amb.js?v=dcc8f6a8"></script>
 </body>
 </html>
