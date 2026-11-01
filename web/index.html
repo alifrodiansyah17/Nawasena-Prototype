@@ -83,6 +83,8 @@
     *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
     .tap:active { transform: none; }
   }
+  /* kotak kode referral: isian kapital, contoh di dalamnya tetap huruf biasa */
+  input[autocapitalize="characters"]::placeholder { text-transform: none; letter-spacing: normal; }
 </style>
 </head>
 <body>
@@ -3621,15 +3623,18 @@
               <div style="font-size: 12px; color: #64748B; padding-left: 2px;">{{catatanEmail}}
               </div>
             </div>
-      <div style="display: flex; flex-direction: column; gap: 6px;">
+          </div>
+        </div>
+        <div style="display: flex; gap: 14px;">
+            <div style="flex-grow: 1; flex-basis: 0;"><div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Kode referral <span style="font-weight: 500; color: #64748B;">(opsional)</span>
         </div>
         <input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="{{kodeRef}}" onChange="{{setKodeRef}}" placeholder="Mis. RANI24" style="height: 52px; border: 1.5px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 0 16px; font-size: 14px; color: #1E293B; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;">
         <div style="font-size: 12px; color: #64748B; padding-left: 2px;">Dapat kode dari ambassador Nawasena? Isi di sini supaya dapat potongan harga laporan lengkap.
         </div>
-      </div>
+      </div></div>
+            <div style="flex-grow: 1; flex-basis: 0;"></div>
           </div>
-        </div>
         <sc-if value="{{modeSandi}}">
           <div style="display: flex; flex-direction: column; gap: 6px;">
             <div style="font-size: 13px; font-weight: 600; color: #334155; padding-left: 2px;">Buat kata sandi
