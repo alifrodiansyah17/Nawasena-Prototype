@@ -415,11 +415,6 @@
       if (hp.length < 10 || hp.length > 15) throw new Error('Nomor WhatsApp-nya belum benar');
       if (!emailValid(email)) throw new Error('Alamat email-nya belum benar');
       if (!s.setuju) { this.set({ tandaSetuju: true }); throw new Error('Centang dulu persetujuan pengolahan data pribadinya ya'); }
-      var kodeRef = String(s.kodeRef || '').trim().toUpperCase();
-      if (kodeRef) {
-        var ck = await API.cekKodeReferral(kodeRef);
-        if (!ck || !ck.valid) throw new Error('Kode referral ' + kodeRef + ' tidak ditemukan. Cek lagi, atau kosongkan kalau tidak punya.');
-      }
       var k = await API.cekKontak(email, hp);
       if (k.hp_terpakai && !(s.profil)) throw new Error('Nomor WhatsApp ini sudah dipakai akun lain. Kalau itu kamu, pakai Login.');
       if (s.user && API._uid) {
@@ -449,10 +444,10 @@
         if (/HP_TERPAKAI/.test(e.message)) { this.set({ layar: 'daftar' }); throw new Error('Nomor WhatsApp ini sudah dipakai akun lain.'); }
         throw e;
       }
-      // kode referral dari layar daftar (atau link ?ref=): dipasang ke akun; kalau gagal, pendaftaran tetap jalan
+      // kode referral dari link ambassador (?ref=): dipasang otomatis; kalau gagal, user bisa isi sendiri di halaman pembayaran
       var kodeRef = String(s.kodeRef || '').trim().toUpperCase();
       if (kodeRef) {
-        try { await API.pakaiKodeReferral(kodeRef); } catch (e) { console.warn('kode referral', e); toast('Kode referral belum terpasang. Kamu bisa memasukkannya lagi di halaman pembayaran.'); }
+        try { await API.pakaiKodeReferral(kodeRef); try { window.localStorage.removeItem('nws_ref'); } catch (e2) { /* abaikan */ } this.s.kodeRef = ''; } catch (e) { console.warn('kode referral', e); }
       }
       await this.muatData();
       this.arahkan();
