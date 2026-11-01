@@ -258,6 +258,14 @@
     // ------------------------------------------------------------ mulai
     mulai: async function () {
       var self = this;
+      // link acak (apps.nawasena.info/k7q2xp): ganti jadi kode referral asli ambassador untuk ditampilkan
+      if (this.s.kodeRef && /^[A-Z0-9]{6}$/.test(this.s.kodeRef)) {
+        API.cekKodeReferral(this.s.kodeRef).then(function (r) {
+          if (!r || !r.valid || !r.kode || r.kode === self.s.kodeRef) return;
+          try { window.localStorage.setItem('nws_ref', JSON.stringify({ kode: r.kode, ts: Date.now() })); } catch (e) { /* abaikan */ }
+          self.set({ kodeRef: r.kode });
+        }).catch(function () { /* abaikan */ });
+      }
       // HP/tablet: layar versi HP. Komputer (≥ 1024px): layar versi desktop.
       var mq = window.matchMedia('(min-width: 1024px)');
       var pilihTpl = function () {
