@@ -157,6 +157,8 @@
       var self = this, s = this.s;
       var kotak = 'height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 12px; font-size: 13.5px; color: #1E293B; background: #FFFFFF; width: 100%;';
       v.kotakSt = kotak;
+      // RBAC: tombol mengikuti izin role (server juga menolak lewat RLS)
+      v.ambBolehC = this.boleh('ambassador', 'c'); v.ambBolehU = this.boleh('ambassador', 'u'); v.ambBolehD = this.boleh('ambassador', 'd');
       var isi = function (obj, k) { return function (e) { self.s[obj][k] = e.target.value; }; };
       var hariIni = hariIniISO();
 
@@ -218,7 +220,7 @@
         var a = b.a;
         v.dAmbNama = a.nama; v.dAmbKode = a.kode; v.dAmbKampus = a.kampus || 'Kampus/instansi belum diisi';
         v.dAmbKontak = [a.email, a.hp].filter(Boolean).join(' · ') || 'Kontak belum diisi';
-        v.dAmbAktif = a.aktif; v.dAmbNonaktif = !a.aktif;
+        v.dAmbAktif = a.aktif && v.ambBolehU; v.dAmbNonaktif = !a.aktif && v.ambBolehU;
         v.nonaktifkanKlik = function () { if (window.confirm('Nonaktifkan ' + a.nama + '? Kodenya tidak bisa dipakai user baru, data lama tetap tersimpan.')) self.aktifkanAmb(false); };
         v.aktifkanKlik = function () { self.aktifkanAmb(true); };
         v.hapusAmbKlik = function () {
@@ -230,7 +232,7 @@
         v.salinAppKlik = function () { self.salinTeks(v.linkApp); };
         v.dAmbSetelan = 'Komisi ' + rp(a.komisi) + ' per paid user · potongan user ' + rp(a.potongan) + ' (bayar ' + rp(C.HARGA - a.potongan) + ')';
         // ubah setelan
-        v.sFormBuka = !!s.sForm; v.sFormTutup = !s.sForm;
+        v.sFormBuka = !!s.sForm; v.sFormTutup = !s.sForm; v.sBolehUbah = !s.sForm && v.ambBolehU;
         v.ubahSetelanKlik = function () { self.set({ sForm: { komisi: String(a.komisi), potongan: String(a.potongan), email: a.email || '', hp: a.hp || '', kampus: a.kampus || '', catatan: a.catatan || '' } }); };
         if (s.sForm) {
           v.sKomisi = s.sForm.komisi; v.sPotongan = s.sForm.potongan; v.sEmail = s.sForm.email; v.sHp = s.sForm.hp; v.sKampus = s.sForm.kampus; v.sCatatan = s.sForm.catatan;

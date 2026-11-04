@@ -55,8 +55,8 @@
   <div style="width: 100%; max-width: 380px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 20px 50px rgba(2,132,199,0.08);">
     <img src="../aset/logo-nawasena.png" alt="Nawasena" style="height: 28px; width: auto; align-self: flex-start;">
     <div>
-      <h1 style="font-size: 22px; font-weight: 800;">Backoffice pembayaran</h1>
-      <p style="font-size: 13.5px; color: #64748B; margin-top: 6px;">Khusus tim Nawasena. Masuk pakai email dan kata sandi admin.</p>
+      <h1 style="font-size: 22px; font-weight: 800;">Backoffice Nawasena</h1>
+      <p style="font-size: 13.5px; color: #64748B; margin-top: 6px;">Khusus tim Nawasena. Masuk pakai email dan kata sandi akun backoffice-mu. Sesi otomatis berakhir 24 jam setelah login.</p>
     </div>
     <div style="display: flex; flex-direction: column; gap: 6px;">
       <div style="font-size: 13px; font-weight: 600; color: #334155;">Email</div>
@@ -76,146 +76,89 @@
 
 </sc-if>
 <sc-if value="{{layarBo}}">
-<div style="width: 100%; min-width: 1180px; height: 100vh; display: flex; overflow: hidden; background: #F8FAFC;">
-  <div style="width: 216px; flex-shrink: 0; background: #0284C7; padding: 22px 16px; display: flex; flex-direction: column; gap: 22px;">
+<div style="width: 100%; min-width: 1240px; height: 100vh; display: flex; overflow: hidden; background: #F8FAFC;">
+  <div style="width: 224px; flex-shrink: 0; background: #0284C7; padding: 22px 16px; display: flex; flex-direction: column; gap: 22px;">
     <div style="padding: 0 6px;">
       <img src="../aset/logo-nawasena-putih.png" alt="Nawasena" style="height: 24px; width: auto; display: block;">
-      <div style="font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #FFFFFF; margin-top: 8px;">Backoffice · internal
-      </div>
+      <div style="font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #FFFFFF; margin-top: 8px;">Backoffice · internal</div>
     </div>
     <div style="display: flex; flex-direction: column; gap: 4px;">
-      <div class="tap" onClick="{{keViewBayar}}" style="{{mBayarSt}}">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18"/>
-        </svg><span style="flex-grow: 1;">Pembayaran</span><span style="min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: #FACC15; color: #0F172A; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">{{nMenunggu}}</span>
-      </div>
-      <div class="tap" onClick="{{keViewUang}}" style="{{mUangSt}}">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/>
-        </svg><span style="flex-grow: 1;">Uang masuk</span>
-      </div>
-      <div class="tap" onClick="{{keViewAmb}}" style="{{mAmbSt}}">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 14.6c1.8.8 2.8 2.6 3 5.4"/>
-        </svg><span style="flex-grow: 1;">Ambassador</span>
-      </div>
+      <sc-if value="{{m.order.ada}}"><div class="tap" onClick="{{m.order.pick}}" style="{{m.order.st}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18"/></svg><span style="flex-grow: 1;">Authorize order</span><sc-if value="{{m.order.adaBadge}}"><span style="min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: #FACC15; color: #0F172A; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;">{{m.order.badge}}</span></sc-if></div></sc-if>
+      <sc-if value="{{m.voucher.ada}}"><div class="tap" onClick="{{m.voucher.pick}}" style="{{m.voucher.st}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 7v2M14 11v2M14 15v2"/></svg><span style="flex-grow: 1;">Voucher</span></div></sc-if>
+      <sc-if value="{{m.keuangan.ada}}"><div class="tap" onClick="{{m.keuangan.pick}}" style="{{m.keuangan.st}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg><span style="flex-grow: 1;">Laporan keuangan</span></div></sc-if>
+      <sc-if value="{{m.ambassador.ada}}"><div class="tap" onClick="{{m.ambassador.pick}}" style="{{m.ambassador.st}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 14.6c1.8.8 2.8 2.6 3 5.4"/></svg><span style="flex-grow: 1;">Ambassador</span></div></sc-if>
+      <sc-if value="{{m.akun.ada}}"><div class="tap" onClick="{{m.akun.pick}}" style="{{m.akun.st}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 3l8 4v5c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg><span style="flex-grow: 1;">Akun &amp; role</span></div></sc-if>
+      <sc-if value="{{m.audit.ada}}"><div class="tap" onClick="{{m.audit.pick}}" style="{{m.audit.st}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg><span style="flex-grow: 1;">Audit trail</span></div></sc-if>
     </div>
-    <div style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-top: 1px solid rgba(255,255,255,0.12);">
-      <div style="width: 32px; height: 32px; border-radius: 999px; background: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">{{adminInisial}}
-      </div>
-      <div>
-        <div style="font-size: 13px; font-weight: 700; color: #FFFFFF;">{{adminNama}}
-        </div>
-        <div style="font-size: 11.5px; color: #FFFFFF;">Tim pembayaran · <span class="tap" onClick="{{keluarKlik}}" style="text-decoration: underline;">Keluar</span>
-        </div>
+    <div style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-top: 1px solid rgba(255,255,255,0.15);">
+      <div style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 999px; background: #FACC15; color: #0F172A; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;">{{adminInisial}}</div>
+      <div style="min-width: 0;">
+        <div style="font-size: 13px; font-weight: 700; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{adminNama}}</div>
+        <div style="font-size: 11.5px; color: #E0F2FE;">{{peranNama}} · <span class="tap" onClick="{{keluarKlik}}" style="text-decoration: underline; cursor: pointer;">Keluar</span></div>
+        <div style="font-size: 10.5px; color: #BAE6FD; margin-top: 2px;">{{sesiSisa}}</div>
       </div>
     </div>
   </div>
   <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; padding: 26px 32px 24px; gap: 18px;">
-    <sc-if value="{{viewBayar}}">
-      <div style="display: flex; flex-direction: column; gap: 18px; height: 100%;">
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
-          <div>
-            <h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Konfirmasi pembayaran</h1>
-            <p style="font-size: 14px; color: #64748B; margin-top: 5px;">Cocokkan bukti bayar dengan mutasi rekening atau dasbor QRIS, lalu konfirmasi. Laporan lengkap pengguna langsung kebuka begitu dikonfirmasi.</p>
-          </div>
-          
+
+    <!-- ============================================================ AUTHORIZE ORDER -->
+    <sc-if value="{{viewOrder}}">
+      <div style="display: flex; flex-direction: column; gap: 18px; height: 100%; min-height: 0;">
+        <div>
+          <h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Authorize order</h1>
+          <p style="font-size: 14px; color: #64748B; margin-top: 5px;">Cocokkan nominal unik di bukti bayar dengan mutasi rekening atau dasbor QRIS, lalu konfirmasi. Order yang tidak dibayar dalam 1 jam otomatis kedaluwarsa, tapi tetap tercatat.</p>
         </div>
-        <div style="display: flex; gap: 14px;">
-          <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF; min-width: 0;">
-            <div style="font-size: 12px; color: #64748B; font-weight: 600;">Menunggu dicek
-            </div>
-            <div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #0F172A; margin-top: 4px; white-space: nowrap;">{{nMenunggu}}
-            </div>
-            <div style="font-size: 12px; color: #1E293B; margin-top: 2px;">{{lamaTeks}}
-            </div>
-          </div>
-          <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF; min-width: 0;">
-            <div style="font-size: 12px; color: #64748B; font-weight: 600;">Dikonfirmasi hari ini
-            </div>
-            <div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #15803D; margin-top: 4px; white-space: nowrap;">{{nOkHari}}
-            </div>
-            <div style="font-size: 12px; color: #1E293B; margin-top: 2px;">Masuk ke laporan uang masuk
-            </div>
-          </div>
-          <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF; min-width: 0;">
-            <div style="font-size: 12px; color: #64748B; font-weight: 600;">Ditolak hari ini
-            </div>
-            <div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #0F172A; margin-top: 4px; white-space: nowrap;">{{nTolakHari}}
-            </div>
-            <div style="font-size: 12px; color: #1E293B; margin-top: 2px;">Pengguna diminta unggah ulang
-            </div>
-          </div>
-          <div style="flex: 1; border: 1px solid #DCFCE7; border-radius: 12px; padding: 15px 17px; background: #F0FDF4; min-width: 0;">
-            <div style="font-size: 12px; color: #15803D; font-weight: 600;">Uang masuk hari ini
-            </div>
-            <div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #15803D; margin-top: 4px; white-space: nowrap;">{{uangHari}}
-            </div>
-            <div class="tap" onClick="{{keViewUang}}" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #0284C7; margin-top: 2px;">Lihat laporan uang masuk
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#009FE3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>
-              </svg>
-            </div>
-          </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+          <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Menunggu dicek</div><div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #0F172A; margin-top: 4px;">{{nMenunggu}}</div><div style="font-size: 12px; color: #1E293B; margin-top: 2px;">{{lamaTeks}}</div></div>
+          <div style="border: 1px solid #DCFCE7; border-radius: 12px; padding: 15px 17px; background: #F0FDF4;"><div style="font-size: 12px; color: #15803D; font-weight: 600;">Dikonfirmasi hari ini</div><div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #15803D; margin-top: 4px;">{{nOkHari}}</div><div style="font-size: 12px; color: #15803D; margin-top: 2px;">{{uangHari}} masuk hari ini</div></div>
+          <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Belum dibayar</div><div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #0284C7; margin-top: 4px;">{{nBelumBayar}}</div><div style="font-size: 12px; color: #1E293B; margin-top: 2px;">Order aktif, batas bayar 1 jam</div></div>
+          <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Kedaluwarsa hari ini</div><div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #475569; margin-top: 4px;">{{nExpHari}}</div><div style="font-size: 12px; color: #1E293B; margin-top: 2px;">Tidak dibayar dalam 1 jam</div></div>
         </div>
         <div style="flex-grow: 1; min-height: 0; display: flex; gap: 20px;">
           <div style="flex-grow: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; border-bottom: 1px solid #F1F5F9;">
-              <div style="display: flex; gap: 6px;">
-                <sc-for list="{{tabs}}" as="t">
-                  <div class="tap" onClick="{{t.pick}}" style="{{t.st}}">{{t.label}} <span style="{{t.nst}}">{{t.n}}</span>
-                  </div>
-                </sc-for>
+            <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #F1F5F9;">
+              <div style="display: flex; gap: 2px; flex-wrap: wrap;">
+                <sc-for list="{{tabs}}" as="t"><div class="tap" onClick="{{t.pick}}" style="{{t.st}}">{{t.label}} <span style="{{t.nst}}">{{t.n}}</span></div></sc-for>
               </div>
-              <div style="display: flex; align-items: center; gap: 8px; width: 240px; height: 38px; border: 1.5px solid #E2E8F0; border-radius: 11px; padding: 0 12px; color: #64748B; font-size: 13px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input value="{{cari}}" onChange="{{setCari}}" placeholder="Cari nama, email, atau pesanan" style="border: none; outline: none; width: 100%; font-size: 13px; color: #1E293B; background: transparent;"></div>
+              <div style="display: flex; align-items: center; gap: 8px; height: 36px; border: 1.5px solid #E2E8F0; border-radius: 11px; padding: 0 12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input value="{{cari}}" onChange="{{setCari}}" placeholder="Cari order, nama, email, nominal" style="border: none; outline: none; width: 100%; font-size: 13px; color: #1E293B; background: transparent;"></div>
             </div>
-            <div style="display: grid; grid-template-columns: 64px minmax(0,1fr) 132px 78px 84px 112px; gap: 10px; padding: 11px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9;"><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Masuk</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Pengguna</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Pesanan</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Metode</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Di bukti</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Status</span>
-            </div>
+            <div style="display: grid; grid-template-columns: 64px minmax(0,1fr) 128px 70px 84px 116px; gap: 10px; padding: 10px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;"><span>Waktu</span><span>Pengguna</span><span>Order ID</span><span>Metode</span><span>Nominal</span><span>Status</span></div>
             <div class="scroll" style="flex-grow: 1;">
               <sc-for list="{{rows}}" as="r">
-                <div class="tap row" onClick="{{r.pick}}" style="{{r.st}}"><span style="font-size: 12px; color: #1E293B; line-height: 1.35;">{{r.tgl}}<br><b style="color: #1E293B;">{{r.jam}}</b></span>
-                  <div style="min-width: 0;">
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="font-size: 14px; font-weight: 700; color: #0284C7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{r.nama}}</span><span style="{{r.baruSt}}">Baru</span>
-                    </div>
-                    <div style="font-size: 12px; color: #1E293B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{r.email}}
-                    </div>
-                  </div><span style="font-size: 12px; color: #1E293B; font-weight: 600;">{{r.pesanan}}</span><span style="font-size: 13px; color: #1E293B;">{{r.metodeK}}</span><span style="{{r.nomSt}}">{{r.nominal}}</span><span style="{{r.pillSt}}">{{r.pill}}</span>
+                <div class="row" onClick="{{r.pick}}" style="{{r.st}}"><span style="font-size: 12px; color: #1E293B; line-height: 1.35;">{{r.tgl}}<br><b>{{r.jam}}</b></span>
+                  <div style="min-width: 0;"><div style="display: flex; align-items: center; gap: 6px;"><span style="font-size: 14px; font-weight: 700; color: #0284C7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{r.nama}}</span><span style="{{r.baruSt}}">Baru</span></div><div style="font-size: 12px; color: #1E293B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{r.email}}</div></div>
+                  <span style="font-size: 12px; color: #1E293B; font-weight: 700; letter-spacing: 0.02em;">{{r.pesanan}}</span><span style="font-size: 13px; color: #1E293B;">{{r.metodeK}}</span><span style="{{r.nomSt}}">{{r.nominal}}</span><span style="{{r.pillSt}}">{{r.pill}}</span>
                 </div>
               </sc-for>
-              <sc-if value="{{kosong}}">
-                <div style="padding: 48px 20px; text-align: center; color: #94A3B8; font-size: 14px;">Belum ada pembayaran di daftar ini.
-                </div>
-              </sc-if>
+              <sc-if value="{{kosong}}"><div style="padding: 48px 20px; text-align: center; color: #94A3B8; font-size: 14px;">Belum ada order di daftar ini.</div></sc-if>
             </div>
           </div>
-          <div class="scroll" style="width: 400px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+          <div class="scroll" style="width: 410px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+            <sc-if value="{{tanpaPilih}}"><div style="padding: 40px 10px; text-align: center; color: #94A3B8; font-size: 14px;">Pilih order di daftar untuk melihat detailnya.</div></sc-if>
+            <sc-if value="{{adaPilih}}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-              <div>
-                <div style="font-size: 12px; color: #64748B; font-weight: 600;">{{dPesanan}}
-                </div>
-                <h2 style="font-size: 21px; font-weight: 800; margin-top: 3px;">{{dNama}}</h2>
-                <div style="font-size: 13px; color: #64748B; margin-top: 2px;">{{dEmail}}
-                </div>
-              </div><span style="{{dPillSt}}">{{dPill}}</span>
+              <div><div style="font-size: 12px; color: #64748B; font-weight: 700; letter-spacing: 0.03em;">{{dPesanan}}</div><h2 style="font-size: 21px; font-weight: 800; margin-top: 3px;">{{dNama}}</h2><div style="font-size: 13px; color: #64748B; margin-top: 2px;">{{dEmail}}</div></div><span style="{{dPillSt}}">{{dPill}}</span>
             </div>
+            <sc-if value="{{dAdaBukti}}">
             <div style="border-radius: 12px; background: #F1F5F9; border: 1px solid #E2E8F0; min-height: 150px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; position: relative; overflow: hidden;">
               <sc-if value="{{dGambar}}"><img src="{{dBuktiUrl}}" alt="Bukti bayar" style="width: 100%; max-height: 360px; object-fit: contain; display: block; background: #FFFFFF;"></sc-if>
               <sc-if value="{{dBukanGambar}}"><div style="font-size: 13px; font-weight: 700; color: #1E293B; padding: 40px 12px; text-align: center;">{{dFile}}</div></sc-if>
-              <div class="tap" onClick="{{bukaBukti}}" style="position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: 700; color: #0284C7; background: #FFFFFF; border-radius: 9px; padding: 6px 10px; border: 1px solid #E0F2FE;">Buka ukuran penuh</div>
+              <div class="tap" onClick="{{bukaBukti}}" style="position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: 700; color: #0284C7; background: #FFFFFF; border-radius: 9px; padding: 6px 10px; border: 1px solid #E0F2FE; cursor: pointer;">Buka ukuran penuh</div>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 9px;">
-              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B; flex-shrink: 0;">Metode</span><span style="font-size: 13px; font-weight: 700; color: #1E293B; text-align: right; ">{{dMetode}}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B; flex-shrink: 0;">Tujuan</span><span style="font-size: 13px; font-weight: 700; color: #1E293B; text-align: right; ">{{dTujuan}}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B; flex-shrink: 0;">Tagihan</span><span style="font-size: 13px; font-weight: 700; color: #1E293B; text-align: right; ">{{dTagihan}}</span>
-              </div>
-              
-              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B; flex-shrink: 0;">Diunggah</span><span style="font-size: 13px; font-weight: 700; color: #1E293B; text-align: right; ">{{dWaktu}}</span>
-              </div>
-            </div>
-            <sc-if value="{{dBeda}}">
-              <div style="display: flex; gap: 10px; background: #FEFCE8; border: 1px solid #FDE68A; border-radius: 12px; padding: 11px 13px; font-size: 12px; color: #0F172A; line-height: 1.5;">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.5h.01"/>
-                </svg><span>{{dBedaTeks}}</span>
-              </div>
             </sc-if>
+            <sc-if value="{{dTanpaBukti}}"><div style="border-radius: 12px; background: #F8FAFC; border: 1.5px dashed #E2E8F0; padding: 22px 14px; text-align: center; font-size: 13px; color: #64748B;">Belum ada bukti bayar dari pengguna.</div></sc-if>
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B;">Tagihan</span><span style="font-family: Nunito, sans-serif; font-size: 18px; font-weight: 800; color: #0284C7; text-align: right;">{{dTagihan}}</span></div>
+              <div style="font-size: 11.5px; color: #64748B; text-align: right; margin-top: -6px;">{{dRincian}}</div>
+              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B;">Metode</span><span style="font-size: 13px; font-weight: 700; color: #1E293B; text-align: right;">{{dMetode}}</span></div>
+              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B; flex-shrink: 0;">Tujuan</span><span style="font-size: 13px; font-weight: 700; color: #1E293B; text-align: right;">{{dTujuan}}</span></div>
+              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B;">Order dibuat</span><span style="font-size: 13px; font-weight: 700; color: #1E293B; text-align: right;">{{dDibuat}}</span></div>
+              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B;">Batas bayar</span><span style="font-size: 13px; font-weight: 700; color: #1E293B; text-align: right;">{{dBatas}}</span></div>
+              <div style="display: flex; justify-content: space-between; gap: 14px; align-items: baseline;"><span style="font-size: 13px; color: #64748B;">Bukti diunggah</span><span style="font-size: 13px; font-weight: 700; color: #1E293B; text-align: right;">{{dWaktu}}</span></div>
+            </div>
+            <sc-if value="{{dBelumBayar}}"><div style="background: #F0F9FF; border: 1px solid #E0F2FE; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #075985; line-height: 1.5;">Menunggu pengguna membayar dan mengunggah bukti. Kalau lewat batas bayar, order ini otomatis jadi <b>Kedaluwarsa</b>.</div></sc-if>
+            <sc-if value="{{dKedaluwarsa}}"><div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #475569; line-height: 1.5;">Order dibatalkan otomatis karena tidak dibayar dalam 1 jam. Order ID tetap tersimpan untuk log. Kalau pengguna ternyata sudah bayar, ia tetap bisa mengunggah bukti (sampai 24 jam) dan order kembali ke Menunggu.</div></sc-if>
+            <sc-if value="{{dMenungguLihat}}"><div style="background: #FEFCE8; border: 1px solid #FDE68A; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #713F12; line-height: 1.5;">Role kamu hanya bisa melihat order. Konfirmasi atau tolak dilakukan akun dengan izin ubah di menu Authorize order.</div></sc-if>
             <sc-if value="{{dMenunggu}}">
               <div style="display: flex; flex-direction: column; gap: 14px;">
                 <div style="display: flex; flex-direction: column; gap: 7px;">
@@ -315,108 +258,186 @@
                 </svg>Batalkan keputusan (balik ke Menunggu)
               </div>
             </sc-if>
-            <div style="margin-top: auto; font-size: 11.5px; color: #64748B; line-height: 1.5; border-top: 1px solid #F1F5F9; padding-top: 12px;">Setiap konfirmasi dan penolakan tercatat dengan nama admin dan waktunya. Bukti bayar cuma dipakai untuk verifikasi pembayaran ini.
-            </div>
-          </div>
-        </div>
-      </div>
-    </sc-if>
-    <sc-if value="{{viewUang}}">
-      <div style="display: flex; flex-direction: column; gap: 18px; height: 100%;">
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
-          <div>
-            <h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Uang masuk</h1>
-            <p style="font-size: 14px; color: #64748B; margin-top: 5px;">Dihitung dari pembayaran yang sudah dikonfirmasi tim, sesuai nominal di bukti bayar. Yang masih menunggu atau ditolak tidak ikut dihitung.</p>
-          </div>
-          
-        </div>
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px;">
-          <div style="display: flex; gap: 6px;">
-            <sc-for list="{{periode}}" as="p">
-              <div class="tap" onClick="{{p.pick}}" style="{{p.st}}">{{p.label}}
-              </div>
-            </sc-for>
-          </div>
-          <div class="tap" onClick="{{unduhCsv}}" style="display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 11px; border: 1.5px solid #E2E8F0; background: #FFFFFF; color: #0284C7; font-size: 13.5px; font-weight: 700;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/>
-            </svg>Unduh CSV
-          </div>
-        </div>
-        <div style="display: flex; gap: 14px;">
-          <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF; min-width: 0;">
-            <div style="font-size: 12px; color: #64748B; font-weight: 600;">Total uang masuk
-            </div>
-            <div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #15803D; margin-top: 4px; white-space: nowrap;">{{uTotal}}
-            </div>
-            <div style="font-size: 12px; color: #1E293B; margin-top: 2px;">{{uRentang}}
-            </div>
-          </div>
-          <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF; min-width: 0;">
-            <div style="font-size: 12px; color: #64748B; font-weight: 600;">Pembayaran dikonfirmasi
-            </div>
-            <div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #0284C7; margin-top: 4px; white-space: nowrap;">{{uJumlah}}
-            </div>
-            <div style="font-size: 12px; color: #1E293B; margin-top: 2px;">{{hargaTeks}} per pembayaran
-            </div>
-          </div>
-          <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF; min-width: 0;">
-            <div style="font-size: 12px; color: #64748B; font-weight: 600;">Lewat QRIS
-            </div>
-            <div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #0284C7; margin-top: 4px; white-space: nowrap;">{{uQris}}
-            </div>
-            <div style="font-size: 12px; color: #1E293B; margin-top: 2px;">{{uQrisN}}
-            </div>
-          </div>
-          <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px 17px; background: #FFFFFF; min-width: 0;">
-            <div style="font-size: 12px; color: #64748B; font-weight: 600;">Lewat transfer bank
-            </div>
-            <div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #0284C7; margin-top: 4px; white-space: nowrap;">{{uTf}}
-            </div>
-            <div style="font-size: 12px; color: #1E293B; margin-top: 2px;">{{uTfN}}
-            </div>
-          </div>
-        </div>
-        <div style="flex-grow: 1; min-height: 0; display: flex; gap: 20px;">
-          <div class="scroll" style="width: 380px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px;">
-            <div>
-              <h3 style="font-size: 18px; line-height: 26px; font-weight: 700;">Per hari</h3>
-              <p style="font-size: 12px; color: #1E293B; margin-top: 2px;">Berdasarkan tanggal dikonfirmasi</p>
-            </div>
-            <sc-for list="{{perHari}}" as="h">
-              <div title="{{h.tip}}" style="display: flex; flex-direction: column; gap: 5px;">
-                <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;"><span style="color: #64748B; font-weight: 600;">{{h.tgl}}</span><span style="color: #1E293B; font-weight: 700;">{{h.rp}} <span style="color: #94A3B8; font-weight: 500;">· {{h.n}}</span></span>
-                </div>
-                <div style="height: 8px; background: #F1F5F9; border-radius: 4px; overflow: hidden;">
-                  <div style="{{h.bar}}">
-                  </div>
-                </div>
-              </div>
-            </sc-for>
-          </div>
-          <div style="flex-grow: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
-            <div style="padding: 16px 18px; border-bottom: 1px solid #F1F5F9;">
-              <h3 style="font-size: 18px; line-height: 26px; font-weight: 700;">Rincian pembayaran yang dikonfirmasi</h3>
-            </div>
-            <div style="display: grid; grid-template-columns: 96px 132px minmax(0,1fr) 84px 92px 120px; gap: 10px; padding: 11px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9;"><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Dikonfirmasi</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Pesanan</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Pengguna</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Metode</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Nominal</span><span style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Oleh</span>
-            </div>
-            <div class="scroll" style="flex-grow: 1;">
-              <sc-for list="{{uRows}}" as="u">
-                <div style="{{u.st}}"><span style="font-size: 12px; color: #1E293B; line-height: 1.35;">{{u.tgl}}<br><b style="color: #1E293B;">{{u.jam}}</b></span><span style="font-size: 12px; color: #1E293B; font-weight: 600;">{{u.pesanan}}</span>
-                  <div style="min-width: 0; display: flex; align-items: center; gap: 6px;"><span style="font-size: 14px; font-weight: 700; color: #0284C7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{u.nama}}</span><span style="{{u.baruSt}}">Baru</span>
-                  </div><span style="font-size: 13px; color: #1E293B;">{{u.metodeK}}</span><span style="font-size: 13px; font-weight: 700; color: #15803D;">{{u.rp}}</span><span style="font-size: 12px; color: #64748B;">{{u.oleh}}</span>
-                </div>
+            <div style="border-top: 1px solid #F1F5F9; padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Riwayat status</div>
+              <sc-for list="{{dRiwayat}}" as="h">
+                <div style="display: flex; gap: 10px;"><div style="{{h.dotSt}}"></div><div style="min-width: 0;"><div style="font-size: 13px; font-weight: 700; color: #0F172A;">{{h.status}} <span style="font-weight: 500; color: #64748B;">· {{h.oleh}}</span></div><div style="font-size: 12px; color: #64748B;">{{h.waktu}} · {{h.catatan}}</div></div></div>
               </sc-for>
-              <sc-if value="{{uKosong}}">
-                <div style="padding: 48px 20px; text-align: center; color: #94A3B8; font-size: 14px;">Belum ada pembayaran yang dikonfirmasi di periode ini.
-                </div>
-              </sc-if>
+              <sc-if value="{{dRiwayatKosong}}"><div style="font-size: 12.5px; color: #94A3B8;">Riwayat sedang dimuat…</div></sc-if>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 13px 18px; border-top: 1px solid #F1F5F9; background: #F8FAFC; font-size: 13.5px;"><span style="color: #64748B; font-weight: 600;">Total {{uJumlah}} pembayaran</span><span style="color: #15803D; font-weight: 800;">{{uTotal}}</span>
-            </div>
+            </sc-if>
           </div>
         </div>
       </div>
     </sc-if>
+
+    <!-- ============================================================ VOUCHER -->
+    <sc-if value="{{viewVoucher}}">
+      <div style="display: flex; flex-direction: column; gap: 18px; height: 100%; min-height: 0;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
+          <div><h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Voucher</h1><p style="font-size: 14px; color: #64748B; margin-top: 5px;">Kode potongan harga untuk pengguna (Rp atau %), dengan masa berlaku dan kuota. Pengguna memasukkannya di halaman pembayaran; tidak bisa digabung dengan kode referral.</p></div>
+          <sc-if value="{{vBolehBuat}}"><div class="tap" onClick="{{tambahVoucherKlik}}" style="height: 44px; padding: 0 18px; border-radius: 9999px; background: #FACC15; color: #0F172A; font-size: 14px; font-weight: 800; font-family: Nunito, sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Buat voucher</div></sc-if>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 15px 17px;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Voucher aktif</div><div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #0F172A; margin-top: 4px;">{{vNAktif}}</div><div style="font-size: 12px; color: #64748B;">dari {{vNSemua}} voucher</div></div>
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 15px 17px;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Dipakai di order lunas</div><div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #15803D; margin-top: 4px;">{{vTotalPakai}}</div><div style="font-size: 12px; color: #64748B;">semua voucher</div></div>
+          <div style="background: #FEFCE8; border: 1px solid #FDE68A; border-radius: 14px; padding: 15px 17px;"><div style="font-size: 12px; color: #713F12; font-weight: 600;">Total potongan diberikan</div><div style="font-family: Nunito, sans-serif; font-size: 28px; font-weight: 800; color: #0F172A; margin-top: 4px;">{{vTotalPot}}</div><div style="font-size: 12px; color: #713F12;">dari order lunas</div></div>
+        </div>
+        <div style="display: flex; gap: 18px; flex-grow: 1; min-height: 0;">
+          <div style="flex-grow: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden;">
+            <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #F1F5F9;">
+              <div style="display: flex; gap: 2px; flex-wrap: wrap;"><sc-for list="{{vTabs}}" as="t"><div class="tap" onClick="{{t.pick}}" style="{{t.st}}">{{t.label}} <span style="font-size: 11px; font-weight: 800; border-radius: 999px; padding: 1px 7px; background: #F1F5F9; color: #1E293B;">{{t.n}}</span></div></sc-for></div>
+              <div style="display: flex; align-items: center; gap: 8px; height: 36px; border: 1.5px solid #E2E8F0; border-radius: 11px; padding: 0 12px;"><input value="{{vCari}}" onChange="{{setVCari}}" placeholder="Cari kode atau nama" style="border: none; outline: none; width: 100%; font-size: 13px; background: transparent;"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 104px minmax(80px,1fr) 70px 150px 130px 104px; gap: 10px; padding: 10px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748B;"><span>Kode</span><span>Nama</span><span>Potongan</span><span>Masa berlaku</span><span>Terpakai/kuota</span><span>Status</span></div>
+            <div class="scroll" style="flex-grow: 1;">
+              <sc-for list="{{vRows}}" as="r">
+                <div class="row" onClick="{{r.pick}}" style="{{r.st}}"><span style="font-size: 13px; font-weight: 800; color: #0284C7; letter-spacing: 0.04em;">{{r.kode}}</span><span style="font-size: 13.5px; color: #0F172A; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{r.nama}}</span><span style="font-size: 13px; font-weight: 700;">{{r.pot}}</span><span style="font-size: 12px; color: #334155;">{{r.masa}}</span><span style="font-size: 12px; color: #334155;">{{r.kuota}}</span><span style="{{r.pillSt}}">{{r.pill}}</span></div>
+              </sc-for>
+              <sc-if value="{{vKosong}}"><div style="padding: 48px 20px; text-align: center; color: #94A3B8; font-size: 14px;">Belum ada voucher di daftar ini.</div></sc-if>
+            </div>
+          </div>
+          <div class="scroll" style="width: 400px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+            <sc-if value="{{vTanpa}}"><div style="padding: 40px 10px; text-align: center; color: #94A3B8; font-size: 14px;">Pilih voucher untuk melihat detailnya.</div></sc-if>
+            <sc-if value="{{vFormBuka}}">
+              <h3 style="font-size: 20px; font-weight: 800;">{{vfJudul}}</h3>
+              <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Kode voucher
+                <div style="display: flex; gap: 8px;"><input value="{{vfKode}}" onChange="{{setVfKode}}" maxlength="20" style="flex-grow: 1; min-width: 0; height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;"><div class="tap" onClick="{{acakKodeKlik}}" style="height: 40px; padding: 0 12px; border-radius: 10px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 13px; font-weight: 800; display: flex; align-items: center; cursor: pointer;">Acak</div></div>
+                <span style="font-weight: 500; color: #64748B;">4–20 huruf/angka. Pengguna mengetik kode ini di halaman bayar.</span></label>
+              <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Nama / keterangan<input value="{{vfNama}}" onChange="{{setVfNama}}" placeholder="mis. Promo Hari Pahlawan" style="height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 12px; font-size: 13.5px;"></label>
+              <div style="display: flex; flex-direction: column; gap: 5px;"><div style="font-size: 12.5px; font-weight: 700; color: #334155;">Jenis potongan</div><div style="display: flex; gap: 8px;"><div class="tap" onClick="{{pilihRpKlik}}" style="{{vfRpSt}}">Nominal (Rp)</div><div class="tap" onClick="{{pilihPersenKlik}}" style="{{vfPersenSt}}">Persen (%)</div></div></div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">{{vfNilaiLabel}}<input inputmode="numeric" value="{{vfNilai}}" onChange="{{setVfNilai}}" placeholder="{{vfNilaiPh}}" style="height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 12px; font-size: 13.5px;"></label>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Kuota pemakaian<input inputmode="numeric" value="{{vfKuota}}" onChange="{{setVfKuota}}" placeholder="kosong = tanpa batas" style="height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 12px; font-size: 13.5px;"></label>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Berlaku mulai (WIB)<input type="datetime-local" value="{{vfMulai}}" onChange="{{setVfMulai}}" style="height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 8px; font-size: 13px;"></label>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Berakhir (WIB)<input type="datetime-local" value="{{vfBerakhir}}" onChange="{{setVfBerakhir}}" style="height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 8px; font-size: 13px;"></label>
+              </div>
+              <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Catatan internal (opsional)<input value="{{vfCatatan}}" onChange="{{setVfCatatan}}" placeholder="mis. untuk komunitas X" style="height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 12px; font-size: 13.5px;"></label>
+              <div style="display: flex; flex-direction: column; gap: 5px;"><div style="font-size: 12.5px; font-weight: 700; color: #334155;">Status</div><div class="tap" onClick="{{togelAktifKlik}}" style="{{vfAktifSt}}">{{vfAktifLabel}} (ketuk untuk ganti)</div></div>
+              <div style="background: #F0F9FF; border-radius: 10px; padding: 10px 12px; font-size: 12.5px; color: #075985;">{{vfPratinjau}}</div>
+              <div style="display: flex; gap: 10px;"><div class="tap" onClick="{{simpanVoucherKlik}}" style="flex: 1; height: 44px; border-radius: 9999px; background: #0284C7; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer;">Simpan voucher</div><div class="tap" onClick="{{batalVoucherKlik}}" style="height: 44px; padding: 0 14px; display: flex; align-items: center; font-size: 14px; font-weight: 700; color: #64748B; cursor: pointer;">Batal</div></div>
+            </sc-if>
+            <sc-if value="{{vDetail}}">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                <div><div class="tap" onClick="{{salinVoucherKlik}}" title="Salin kode" style="display: inline-block; font-size: 15px; font-weight: 800; letter-spacing: 0.06em; color: #0284C7; background: #E0F2FE; border-radius: 8px; padding: 4px 10px; cursor: pointer;">{{vdKode}}</div><h3 style="font-size: 20px; font-weight: 800; margin-top: 8px;">{{vdNama}}</h3></div>
+                <span style="{{vdPillSt}}">{{vdPill}}</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                <div style="display: flex; justify-content: space-between; gap: 12px;"><span style="color: #64748B;">Potongan</span><b>{{vdPot}}</b></div>
+                <div style="display: flex; justify-content: space-between; gap: 12px;"><span style="color: #64748B;">Pengguna bayar</span><b>{{vdBayar}}</b></div>
+                <div style="display: flex; justify-content: space-between; gap: 12px;"><span style="color: #64748B; flex-shrink: 0;">Masa berlaku</span><b style="text-align: right;">{{vdMasa}}</b></div>
+                <div style="display: flex; justify-content: space-between; gap: 12px;"><span style="color: #64748B;">Kuota</span><b>{{vdKuota}}</b></div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                <div style="background: #F0FDF4; border-radius: 10px; padding: 9px 10px;"><div style="font-size: 11px; color: #15803D;">Terpakai (lunas)</div><div style="font-size: 16px; font-weight: 800; color: #15803D;">{{vdTerpakai}}</div></div>
+                <div style="background: #F0F9FF; border-radius: 10px; padding: 9px 10px;"><div style="font-size: 11px; color: #075985;">Sedang berjalan</div><div style="font-size: 16px; font-weight: 800; color: #075985;">{{vdBerjalan}}</div></div>
+                <div style="background: #F8FAFC; border-radius: 10px; padding: 9px 10px;"><div style="font-size: 11px; color: #64748B;">Sisa kuota</div><div style="font-size: 16px; font-weight: 800; color: #0F172A;">{{vdSisa}}</div></div>
+              </div>
+              <div style="font-size: 12.5px; color: #64748B;">Total potongan diberikan: <b style="color: #0F172A;">{{vdTotalPot}}</b></div>
+              <sc-if value="{{vdAdaCatatan}}"><div style="font-size: 12.5px; color: #334155; background: #F8FAFC; border-radius: 10px; padding: 9px 11px;">{{vdCatatan}}</div></sc-if>
+              <div style="font-size: 11.5px; color: #94A3B8;">Dibuat {{vdDibuat}}</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 14px; border-top: 1px solid #F1F5F9; padding-top: 12px;">
+                <sc-if value="{{vdBolehUbah}}"><div class="tap" onClick="{{ubahVoucherKlik}}" style="font-size: 13px; font-weight: 800; color: #0284C7; cursor: pointer;">Ubah</div></sc-if>
+                <sc-if value="{{vdAktif}}"><div class="tap" onClick="{{nonaktifVoucherKlik}}" style="font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer;">Nonaktifkan</div></sc-if>
+                <sc-if value="{{vdNonaktif}}"><div class="tap" onClick="{{aktifVoucherKlik}}" style="font-size: 13px; font-weight: 700; color: #0284C7; cursor: pointer;">Aktifkan lagi</div></sc-if>
+                <sc-if value="{{vdBolehHapus}}"><div class="tap" onClick="{{hapusVoucherKlik}}" style="font-size: 13px; font-weight: 700; color: #DC2626; cursor: pointer;">Hapus</div></sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============================================================ LAPORAN KEUANGAN -->
+    <sc-if value="{{viewKeu}}">
+      <div class="scroll" style="display: flex; flex-direction: column; gap: 16px; height: 100%; min-height: 0; padding-right: 4px;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
+          <div><h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Laporan keuangan</h1><p style="font-size: 14px; color: #64748B; margin-top: 5px;">Semua transaksi dan pemasukan sepanjang waktu, unduh CSV, dan pencocokan dengan laporan GoPay Merchant.</p></div>
+          <div style="display: flex; gap: 8px;"><div class="tap" onClick="{{keTabTrx}}" style="{{keuTabTrxSt}}">Transaksi</div><div class="tap" onClick="{{keTabRekon}}" style="{{keuTabRekonSt}}">Rekonsiliasi GoPay</div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; flex-shrink: 0;">
+          <div style="border: 1px solid #DCFCE7; border-radius: 14px; padding: 15px 17px; background: #F0FDF4;"><div style="font-size: 12px; color: #15803D; font-weight: 700;">Pemasukan sepanjang waktu</div><div style="font-family: Nunito, sans-serif; font-size: 30px; font-weight: 800; color: #15803D; margin-top: 4px;">{{keuSemuaUang}}</div><div style="font-size: 12px; color: #15803D;">{{keuSemuaN}}</div></div>
+          <div style="border: 1px solid #FDE68A; border-radius: 14px; padding: 15px 17px; background: #FEFCE8;"><div style="font-size: 12px; color: #713F12; font-weight: 700;">Komisi ambassador belum dibayar</div><div style="font-family: Nunito, sans-serif; font-size: 30px; font-weight: 800; color: #0F172A; margin-top: 4px;">{{keuKomisiSisa}}</div><div style="font-size: 12px; color: #713F12;">{{keuKomisiInfo}}</div></div>
+        </div>
+        <sc-if value="{{keuTabTrx}}">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; flex-shrink: 0;">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;"><sc-for list="{{keuPeriodeList}}" as="p"><div class="tap" onClick="{{p.pick}}" style="{{p.st}}">{{p.label}}</div></sc-for>
+              <sc-if value="{{keuRentang}}"><input type="date" value="{{keuDari}}" onChange="{{setKeuDari}}" style="height: 34px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 8px; font-size: 13px;"><span style="color: #64748B;">–</span><input type="date" value="{{keuSampai}}" onChange="{{setKeuSampai}}" style="height: 34px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 8px; font-size: 13px;"></sc-if>
+            </div>
+            <div class="tap" onClick="{{unduhKeuKlik}}" style="display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px; border-radius: 11px; border: 1.5px solid #E2E8F0; background: #FFFFFF; color: #0284C7; font-size: 13.5px; font-weight: 700; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Unduh CSV</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; flex-shrink: 0;">
+            <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Pemasukan · {{keuPeriodeTeks}}</div><div style="font-family: Nunito, sans-serif; font-size: 24px; font-weight: 800; color: #15803D; margin-top: 4px;">{{keuUang}}</div><div style="font-size: 12px; color: #1E293B;">QRIS {{keuQris}} · transfer {{keuTf}}</div></div>
+            <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Transaksi lunas</div><div style="font-family: Nunito, sans-serif; font-size: 24px; font-weight: 800; color: #0284C7; margin-top: 4px;">{{keuN}}</div><div style="font-size: 12px; color: #1E293B;">rata-rata {{keuRata}}</div></div>
+            <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Potongan diberikan</div><div style="font-family: Nunito, sans-serif; font-size: 24px; font-weight: 800; color: #0F172A; margin-top: 4px;">{{keuPot}}</div><div style="font-size: 12px; color: #1E293B;">{{keuPotInfo}}</div></div>
+            <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Order dibuat di periode ini</div><div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;"><sc-for list="{{keuFunnel}}" as="f"><span style="{{f.st}}">{{f.label}} {{f.n}}</span></sc-for></div><div style="font-size: 12px; color: #1E293B; margin-top: 6px;">{{keuKonversi}}</div></div>
+          </div>
+          <div style="display: flex; gap: 18px; flex-shrink: 0; min-height: 420px;">
+            <div style="width: 300px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;">
+              <h3 style="font-size: 16px; font-weight: 700;">Pemasukan per bulan</h3>
+              <sc-for list="{{keuPerBulan}}" as="b"><div style="display: flex; flex-direction: column; gap: 4px;"><div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #64748B; font-weight: 600;">{{b.label}}</span><span style="font-weight: 700;">{{b.rp}} <span style="color: #94A3B8; font-weight: 500;">· {{b.n}}</span></span></div><div style="height: 8px; background: #F1F5F9; border-radius: 4px; overflow: hidden;"><div style="{{b.bar}}"></div></div></div></sc-for>
+              <sc-if value="{{keuPerBulanKosong}}"><div style="font-size: 13px; color: #94A3B8;">Belum ada transaksi lunas.</div></sc-if>
+            </div>
+            <div style="flex-grow: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #F1F5F9;"><div style="display: flex; gap: 2px; overflow-x: auto;"><sc-for list="{{keuStatusList}}" as="t"><div class="tap" onClick="{{t.pick}}" style="{{t.st}}">{{t.label}}</div></sc-for></div><input value="{{keuCari}}" onChange="{{setKeuCari}}" placeholder="Cari order, nama, email, voucher" style="width: 220px; height: 34px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 10px; font-size: 13px;"></div>
+              <div style="display: grid; grid-template-columns: 128px 110px minmax(0,1fr) 64px 80px 150px 90px 112px; gap: 10px; padding: 9px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748B;"><span>Order ID</span><span>Waktu</span><span>Pengguna</span><span>Metode</span><span>Harga</span><span>Potongan</span><span>Nominal</span><span>Status</span></div>
+              <div class="scroll" style="flex-grow: 1; max-height: 520px;">
+                <sc-for list="{{keuTrx}}" as="r"><div style="{{r.st}}"><b style="color: #0F172A; letter-spacing: 0.02em;">{{r.kode}}</b><span style="color: #334155;">{{r.waktu}}</span><span style="color: #0284C7; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{r.nama}}</span><span>{{r.metode}}</span><span>{{r.harga}}</span><span style="color: #64748B;">{{r.pot}}</span><span style="{{r.nomSt}}">{{r.nominal}}</span><span style="{{r.pillSt}}">{{r.pill}}</span></div></sc-for>
+                <sc-if value="{{keuTrxKosong}}"><div style="padding: 40px 20px; text-align: center; color: #94A3B8; font-size: 14px;">Tidak ada transaksi di filter ini.</div></sc-if>
+              </div>
+              <div style="padding: 10px 18px; border-top: 1px solid #F1F5F9; background: #F8FAFC; font-size: 12.5px; color: #64748B;">{{keuTrxInfo}}</div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{keuTabRekon}}">
+          <sc-if value="{{rekonKosong}}">
+            <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
+              <h3 style="font-size: 18px; font-weight: 800;">Cocokkan dengan laporan GoPay Merchant</h3>
+              <p style="font-size: 13.5px; color: #334155; line-height: 1.6;">Unduh laporan transaksi dari dasbor GoPay Merchant sebagai <b>CSV</b>, lalu unggah di sini. Sistem mencocokkan tiap transaksi dengan order QRIS lewat <b>nominal unik</b> (3 digit terakhir) dan waktunya, lalu menandai yang cocok, yang belum dikonfirmasi, transaksi tanpa order (missing order), dan order yang tidak ada di GoPay.</p>
+              <sc-if value="{{keuBolehImpor}}"><div class="tap" onClick="{{pilihFileRekonKlik}}" style="align-self: flex-start; height: 44px; padding: 0 18px; border-radius: 9999px; background: #FACC15; color: #0F172A; font-size: 14px; font-weight: 800; font-family: Nunito, sans-serif; display: flex; align-items: center; gap: 8px; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>Unggah CSV GoPay</div></sc-if>
+              <sc-if value="{{!keuBolehImpor}}"><div style="font-size: 13px; color: #92400E;">Role kamu hanya bisa melihat hasil rekonsiliasi yang sudah disimpan.</div></sc-if>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; overflow: hidden; flex-shrink: 0;">
+              <div style="padding: 14px 18px; border-bottom: 1px solid #F1F5F9;"><h3 style="font-size: 16px; font-weight: 700;">Riwayat rekonsiliasi</h3></div>
+              <sc-for list="{{rekonRiwayat}}" as="x"><div class="row tap" onClick="{{x.pick}}" style="display: grid; grid-template-columns: 150px minmax(0,1fr) 200px 140px 200px; gap: 10px; padding: 11px 18px; border-bottom: 1px solid #F1F5F9; font-size: 12.5px; cursor: pointer;"><span>{{x.tgl}}</span><b style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{x.file}}</b><span style="color: #64748B;">{{x.rentang}}</span><span style="color: #64748B;">{{x.oleh}}</span><span style="font-weight: 700; color: #0284C7;">{{x.ringkas}}</span></div></sc-for>
+              <sc-if value="{{rekonRiwayatKosong}}"><div style="padding: 24px 18px; font-size: 13px; color: #94A3B8;">Belum ada rekonsiliasi yang disimpan.</div></sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{rekonAda}}">
+            <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><div><h3 style="font-size: 17px; font-weight: 800;">{{rkNama}}</h3><div style="font-size: 12.5px; color: #64748B;">{{rkJumlah}} · pilih kolom yang sesuai (sudah ditebak otomatis)</div></div><div style="display: flex; gap: 12px; align-items: center;"><div class="tap" onClick="{{pilihFileRekonKlik}}" style="font-size: 13px; font-weight: 700; color: #0284C7; cursor: pointer;">Ganti file</div><div class="tap" onClick="{{batalRekonKlik}}" style="font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer;">Tutup</div></div></div>
+              <sc-for list="{{rkPeran}}" as="pk"><div style="display: flex; gap: 10px; align-items: flex-start;"><div style="width: 150px; flex-shrink: 0; font-size: 12.5px; font-weight: 700; color: #334155; padding-top: 5px;">{{pk.label}}</div><div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{pk.kolom}}" as="k"><div class="tap" onClick="{{k.pick}}" style="{{k.st}}">{{k.label}}</div></sc-for></div></div></sc-for>
+              <div style="background: #F8FAFC; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px;"><div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Contoh baris terbaca</div><sc-for list="{{rkContoh}}" as="c"><div style="font-size: 12px; color: #334155;">{{c.teks}} → <b>{{c.baca}}</b></div></sc-for></div>
+              <div class="tap" onClick="{{jalankanRekonKlik}}" style="align-self: flex-start; height: 42px; padding: 0 18px; border-radius: 9999px; background: #0284C7; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; cursor: pointer;">Cocokkan sekarang</div>
+            </div>
+            <sc-if value="{{rkAdaHasil}}">
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; flex-shrink: 0;">
+                <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Periode laporan</div><div style="font-family: Nunito, sans-serif; font-size: 20px; font-weight: 800; margin-top: 4px;">{{rkRentang}}</div></div>
+                <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Total di GoPay (sukses)</div><div style="font-family: Nunito, sans-serif; font-size: 24px; font-weight: 800; color: #0284C7; margin-top: 4px;">{{rkTotalGopay}}</div></div>
+                <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Order QRIS terkonfirmasi</div><div style="font-family: Nunito, sans-serif; font-size: 24px; font-weight: 800; color: #15803D; margin-top: 4px;">{{rkTotalSistem}}</div></div>
+                <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; background: #FFFFFF;"><div style="font-size: 12px; color: #64748B; font-weight: 600;">Selisih</div><div style="{{rkSelisihSt}}">{{rkSelisih}}</div></div>
+              </div>
+              <div style="background: #F0F9FF; border: 1px solid #E0F2FE; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;"><div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #0284C7;">Analisis otomatis</div><sc-for list="{{rkAnalisis}}" as="a"><div style="font-size: 13px; color: #0F172A; line-height: 1.5;">• {{a.t}}</div></sc-for></div>
+              <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; flex-shrink: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #F1F5F9;"><div style="display: flex; gap: 6px; overflow-x: auto;"><sc-for list="{{rkKat}}" as="t"><div class="tap" onClick="{{t.pick}}" style="{{t.st}}">{{t.label}} <span style="font-size: 11px; font-weight: 800; border-radius: 999px; padding: 1px 7px; background: #F1F5F9; color: #1E293B;">{{t.n}}</span></div></sc-for></div><div style="display: flex; gap: 12px;"><div class="tap" onClick="{{unduhRekonKlik}}" style="font-size: 13px; font-weight: 800; color: #0284C7; cursor: pointer; white-space: nowrap;">Unduh CSV</div><div class="tap" onClick="{{simpanRekonKlik}}" style="font-size: 13px; font-weight: 800; color: #15803D; cursor: pointer; white-space: nowrap;">Simpan hasil</div></div></div>
+                <div style="display: grid; grid-template-columns: 140px 150px 150px 100px 190px minmax(0,1fr); gap: 10px; padding: 9px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748B;"><span>Hasil</span><span>ID GoPay</span><span>Waktu GoPay</span><span>Nominal</span><span>Order</span><span>Keterangan</span></div>
+                <sc-for list="{{rkBaris}}" as="b"><div style="display: grid; grid-template-columns: 140px 150px 150px 100px 190px minmax(0,1fr); gap: 10px; align-items: center; padding: 10px 18px; border-bottom: 1px solid #F1F5F9; font-size: 12.5px;"><span style="{{b.katSt}}">{{b.kat}}</span><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{b.ref}}</span><span>{{b.waktu}}</span><b>{{b.nominal}}</b><span>{{b.order}} <span style="color: #64748B;">{{b.nama}}</span></span><span style="color: #64748B;">{{b.ket}}</span></div></sc-for>
+              </div>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{rekonLihat}}">
+            <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center;"><h3 style="font-size: 17px; font-weight: 800;">{{rlJudul}}</h3><div class="tap" onClick="{{tutupRekonLihat}}" style="font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer;">Tutup</div></div>
+              <sc-for list="{{rlAnalisis}}" as="a"><div style="font-size: 13px; color: #0F172A; line-height: 1.5;">• {{a.t}}</div></sc-for>
+              <sc-for list="{{rlBaris}}" as="b"><div style="display: grid; grid-template-columns: 140px 150px 150px 100px minmax(0,1fr); gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid #F1F5F9; font-size: 12.5px;"><span style="{{b.katSt}}">{{b.kat}}</span><span>{{b.ref}}</span><span>{{b.waktu}}</span><b>{{b.nominal}}</b><span>{{b.order}}</span></div></sc-for>
+            </div>
+          </sc-if>
+        </sc-if>
+      </div>
+    </sc-if>
+
     <sc-if value="{{viewAmb}}">
       <div style="display: flex; flex-direction: column; gap: 18px; height: 100%; min-height: 0;">
         <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
@@ -424,9 +445,9 @@
             <h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Ambassador</h1>
             <p style="font-size: 14px; color: #64748B; margin-top: 5px;">Kode referral, target isian kuesioner microsite, paid user dari tiap ambassador, dan bagi hasilnya.</p>
           </div>
-          <div class="tap" onClick="{{tambahAmbKlik}}" style="height: 44px; padding: 0 18px; border-radius: 9999px; background: #FACC15; color: #0F172A; font-size: 14px; font-weight: 800; font-family: Nunito, sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+          <sc-if value="{{ambBolehC}}"><div class="tap" onClick="{{tambahAmbKlik}}" style="height: 44px; padding: 0 18px; border-radius: 9999px; background: #FACC15; color: #0F172A; font-size: 14px; font-weight: 800; font-family: Nunito, sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tambah ambassador
-          </div>
+          </div></sc-if>
         </div>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
           <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px 18px;">
@@ -510,7 +531,7 @@
                     <div style="font-size: 13px; color: #64748B; margin-top: 3px;">{{dAmbKampus}}</div>
                     <div style="font-size: 12.5px; color: #64748B; margin-top: 2px;">{{dAmbKontak}}</div>
                   </div>
-                  <div style="display: flex; gap: 14px; flex-shrink: 0;"><sc-if value="{{dAmbAktif}}"><div class="tap" onClick="{{nonaktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #64748B;">Nonaktifkan</div></sc-if><sc-if value="{{dAmbNonaktif}}"><div class="tap" onClick="{{aktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #0284C7;">Aktifkan lagi</div></sc-if><div class="tap" onClick="{{hapusAmbKlik}}" style="font-size: 12.5px; font-weight: 700; color: #DC2626;">Hapus</div></div>
+                  <div style="display: flex; gap: 14px; flex-shrink: 0;"><sc-if value="{{dAmbAktif}}"><div class="tap" onClick="{{nonaktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #64748B;">Nonaktifkan</div></sc-if><sc-if value="{{dAmbNonaktif}}"><div class="tap" onClick="{{aktifkanKlik}}" style="font-size: 12.5px; font-weight: 700; color: #0284C7;">Aktifkan lagi</div></sc-if><sc-if value="{{ambBolehD}}"><div class="tap" onClick="{{hapusAmbKlik}}" style="font-size: 12.5px; font-weight: 700; color: #DC2626;">Hapus</div></sc-if></div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                   <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Link untuk dibagikan</div>
@@ -518,7 +539,7 @@
                   <div style="display: flex; gap: 8px; align-items: center; background: #F8FAFC; border-radius: 10px; padding: 8px 10px;"><div style="flex-grow: 1; min-width: 0;"><div style="font-size: 11.5px; color: #64748B;">Aplikasi (potongan terpasang otomatis)</div><div style="font-size: 12.5px; font-weight: 700; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{linkApp}}</div></div><div class="tap" onClick="{{salinAppKlik}}" style="font-size: 12.5px; font-weight: 800; color: #0284C7; flex-shrink: 0;">Salin</div></div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #F1F5F9; padding-top: 14px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center;"><div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Setelan</div><sc-if value="{{sFormTutup}}"><div class="tap" onClick="{{ubahSetelanKlik}}" style="font-size: 12.5px; font-weight: 800; color: #0284C7;">Ubah</div></sc-if></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;"><div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Setelan</div><sc-if value="{{sBolehUbah}}"><div class="tap" onClick="{{ubahSetelanKlik}}" style="font-size: 12.5px; font-weight: 800; color: #0284C7;">Ubah</div></sc-if></div>
                   <sc-if value="{{sFormTutup}}"><div style="font-size: 13px; color: #1E293B; line-height: 1.5;">{{dAmbSetelan}}</div></sc-if>
                   <sc-if value="{{sFormBuka}}">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -540,10 +561,10 @@
                     <div style="font-size: 12px; color: #64748B;">{{dTargetSisa}} · dihitung dari semua isian lewat link ambassador ini</div>
                   </sc-if>
                   <sc-if value="{{dTargetKosong}}"><div style="font-size: 13px; color: #64748B;">Belum ada target. Isian lewat link ambassador ini sejauh ini: <b style="color: #0F172A;">{{dMicroTotal}}</b>.</div></sc-if>
-                  <div style="display: flex; gap: 8px; align-items: end;">
+                  <sc-if value="{{ambBolehU}}"><div style="display: flex; gap: 8px; align-items: end;">
                     <label style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Target isian<input inputmode="numeric" value="{{tTarget}}" onChange="{{setTTarget}}" placeholder="{{tTargetPh}}" style="{{kotakSt}}"></label>
                     <div class="tap" onClick="{{simpanTargetKlik}}" style="height: 40px; padding: 0 14px; border-radius: 10px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 13px; font-weight: 800; display: flex; align-items: center; flex-shrink: 0;">Simpan target</div>
-                  </div>
+                  </div></sc-if>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #F1F5F9; padding-top: 14px;">
                   <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Paid user ({{dPaid}}) · {{dDaftar}} daftar pakai kode</div>
@@ -562,7 +583,7 @@
                   <sc-for list="{{dBayarList}}" as="k">
                     <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 6px 0; border-bottom: 1px dashed #F1F5F9;"><span style="color: #64748B;">{{k.tgl}} · {{k.catatan}}</span><b style="color: #0F172A;">{{k.jumlah}}</b></div>
                   </sc-for>
-                  <div style="display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; align-items: end;">
+                  <sc-if value="{{ambBolehU}}"><div style="display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; align-items: end;">
                     <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Jumlah dibayar (Rp)<input inputmode="numeric" value="{{kJumlah}}" onChange="{{setKJumlah}}" placeholder="0" style="{{kotakSt}}"></label>
                     <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: #334155;">Tanggal<input type="date" value="{{kTanggal}}" onChange="{{setKTanggal}}" style="{{kotakSt}} padding: 0 8px;"></label>
                   </div>
@@ -570,7 +591,7 @@
                   <div style="display: flex; gap: 10px; align-items: center;">
                     <div class="tap" onClick="{{catatKomisiKlik}}" style="height: 38px; padding: 0 14px; border-radius: 10px; background: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center;">Catat pembayaran komisi</div>
                     <div class="tap" onClick="{{isiSisaKlik}}" style="font-size: 12.5px; font-weight: 700; color: #0284C7;">Isi sisa</div>
-                  </div>
+                  </div></sc-if>
                 </div>
               </div>
             </sc-if>
@@ -578,16 +599,141 @@
         </div>
       </div>
     </sc-if>
+
+    <!-- ============================================================ AKUN & ROLE -->
+    <sc-if value="{{viewAkun}}">
+      <div style="display: flex; flex-direction: column; gap: 18px; height: 100%; min-height: 0;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
+          <div><h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Akun &amp; role</h1><p style="font-size: 14px; color: #64748B; margin-top: 5px;">Siapa saja yang bisa masuk backoffice dan menu apa yang boleh mereka buka. Setiap akun otomatis keluar 24 jam setelah login.</p></div>
+          <div style="display: flex; gap: 8px;"><div class="tap" onClick="{{keTabAkun}}" style="{{akTabAkunSt}}">Akun</div><div class="tap" onClick="{{keTabRole}}" style="{{akTabRoleSt}}">Role &amp; izin</div></div>
+        </div>
+        <sc-if value="{{akTabAkun}}">
+          <div style="display: flex; gap: 18px; flex-grow: 1; min-height: 0;">
+            <div style="flex-grow: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #F1F5F9;"><h3 style="font-size: 16px; font-weight: 700;">Akun backoffice</h3><sc-if value="{{akBolehBuat}}"><div class="tap" onClick="{{tambahAkunKlik}}" style="height: 38px; padding: 0 14px; border-radius: 9999px; background: #FACC15; color: #0F172A; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 6px; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tambah akun</div></sc-if></div>
+              <div style="display: grid; grid-template-columns: minmax(0,1.3fr) minmax(0,1.4fr) 120px 120px 150px 90px; gap: 10px; padding: 10px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748B;"><span>Nama</span><span>Email</span><span>Telepon</span><span>Role</span><span>Login terakhir</span><span>Status</span></div>
+              <div class="scroll" style="flex-grow: 1;">
+                <sc-for list="{{akRows}}" as="r"><div class="row" onClick="{{r.pick}}" style="{{r.st}}"><b style="color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{r.nama}}<sc-if value="{{r.saya}}"> <span style="font-weight: 600; color: #0284C7;">(kamu)</span></sc-if></b><span style="font-size: 13px; color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{r.email}}</span><span style="font-size: 12.5px;">{{r.hp}}</span><span style="font-size: 12.5px; font-weight: 700; color: #0284C7;">{{r.peran}}</span><span style="font-size: 12px; color: #64748B;">{{r.masuk}}</span><span style="{{r.pillSt}}">{{r.pill}}</span></div></sc-for>
+              </div>
+            </div>
+            <div class="scroll" style="width: 400px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 13px;">
+              <sc-if value="{{akFormBuka}}">
+                <h3 style="font-size: 20px; font-weight: 800;">Akun baru</h3>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Nama<input value="{{afNama}}" onChange="{{setAfNama}}" placeholder="Nama lengkap" style="{{akKotakSt}}"></label>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Email (untuk login)<input type="email" value="{{afEmail}}" onChange="{{setAfEmail}}" placeholder="nama@nawasena.info" autocomplete="off" style="{{akKotakSt}}"></label>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Nomor telepon<input inputmode="tel" value="{{afHp}}" onChange="{{setAfHp}}" placeholder="0812…" style="{{akKotakSt}}"></label>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Kata sandi awal
+                  <div style="display: flex; gap: 8px;"><input value="{{afSandi}}" onChange="{{setAfSandi}}" autocomplete="new-password" style="flex-grow: 1; min-width: 0; height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 12px; font-size: 13.5px; font-family: monospace;"><div class="tap" onClick="{{acakSandiKlik}}" style="height: 40px; padding: 0 12px; border-radius: 10px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 13px; font-weight: 800; display: flex; align-items: center; cursor: pointer;">Acak</div></div>
+                  <span style="font-weight: 500; color: #64748B;">Minimal 8 karakter, ada huruf dan angka. Kirim ke orangnya lewat jalur aman.</span></label>
+                <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 12.5px; font-weight: 700; color: #334155;">Role</div><div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{afPeran}}" as="p"><div class="tap" onClick="{{p.pick}}" style="{{p.st}}">{{p.label}}</div></sc-for></div></div>
+                <div style="display: flex; gap: 10px; margin-top: 4px;"><div class="tap" onClick="{{simpanAkunKlik}}" style="flex: 1; height: 44px; border-radius: 9999px; background: #0284C7; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer;">Buat akun</div><div class="tap" onClick="{{batalAkunKlik}}" style="height: 44px; padding: 0 14px; display: flex; align-items: center; font-size: 14px; font-weight: 700; color: #64748B; cursor: pointer;">Batal</div></div>
+              </sc-if>
+              <sc-if value="{{akDetail}}">
+                <div style="display: flex; justify-content: space-between; gap: 10px; align-items: flex-start;"><div style="min-width: 0;"><h3 style="font-size: 20px; font-weight: 800;">{{adNama}}</h3><div style="font-size: 13px; color: #64748B; margin-top: 2px;">{{adEmail}}</div><div style="font-size: 13px; color: #64748B;">{{adHp}}</div></div><span style="{{adPillSt}}">{{adPill}}</span></div>
+                <div style="display: flex; flex-direction: column; gap: 7px; font-size: 13px;">
+                  <div style="display: flex; justify-content: space-between;"><span style="color: #64748B;">Role</span><b style="color: #0284C7;">{{adPeran}}</b></div>
+                  <div style="display: flex; justify-content: space-between;"><span style="color: #64748B;">Login terakhir</span><b>{{adMasuk}}</b></div>
+                  <div style="display: flex; justify-content: space-between;"><span style="color: #64748B;">Dibuat</span><b>{{adDibuat}}</b></div>
+                </div>
+                <sc-if value="{{adEditTutup}}"><div style="display: flex; flex-wrap: wrap; gap: 14px; border-top: 1px solid #F1F5F9; padding-top: 12px;"><div class="tap" onClick="{{ubahAkunKlik}}" style="font-size: 13px; font-weight: 800; color: #0284C7; cursor: pointer;">Ubah data &amp; role</div><sc-if value="{{adAktif}}"><div class="tap" onClick="{{nonaktifAkunKlik}}" style="font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer;">Nonaktifkan</div></sc-if><sc-if value="{{adNonaktif}}"><div class="tap" onClick="{{aktifAkunKlik}}" style="font-size: 13px; font-weight: 700; color: #0284C7; cursor: pointer;">Aktifkan lagi</div></sc-if><sc-if value="{{adBolehHapus}}"><div class="tap" onClick="{{hapusAkunKlik}}" style="font-size: 13px; font-weight: 700; color: #DC2626; cursor: pointer;">Hapus akun</div></sc-if></div></sc-if>
+                <sc-if value="{{adEditBuka}}">
+                  <div style="border-top: 1px solid #F1F5F9; padding-top: 12px; display: flex; flex-direction: column; gap: 10px;">
+                    <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Nama<input value="{{aeNama}}" onChange="{{setAeNama}}" style="{{akKotakSt}}"></label>
+                    <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Nomor telepon<input value="{{aeHp}}" onChange="{{setAeHp}}" style="{{akKotakSt}}"></label>
+                    <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 12.5px; font-weight: 700; color: #334155;">Role</div><div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{aePeran}}" as="p"><div class="tap" onClick="{{p.pick}}" style="{{p.st}}">{{p.label}}</div></sc-for></div></div>
+                    <div style="display: flex; gap: 10px;"><div class="tap" onClick="{{simpanEditAkunKlik}}" style="height: 38px; padding: 0 16px; border-radius: 10px; background: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; cursor: pointer;">Simpan</div><div class="tap" onClick="{{batalEditAkunKlik}}" style="height: 38px; padding: 0 10px; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer;">Batal</div></div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{adBolehUbah}}">
+                  <div style="border-top: 1px solid #F1F5F9; padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Reset kata sandi</div>
+                    <div style="display: flex; gap: 8px;"><input value="{{akunSandi}}" onChange="{{setAkunSandi}}" placeholder="Kata sandi baru" autocomplete="new-password" style="flex-grow: 1; min-width: 0; height: 38px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 10px; font-size: 13px; font-family: monospace;"><div class="tap" onClick="{{acakSandiResetKlik}}" style="height: 38px; padding: 0 10px; border-radius: 10px; border: 1.5px solid #E2E8F0; color: #334155; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; cursor: pointer;">Acak</div><div class="tap" onClick="{{resetSandiKlik}}" style="height: 38px; padding: 0 12px; border-radius: 10px; background: #0284C7; color: #FFFFFF; font-size: 12.5px; font-weight: 800; display: flex; align-items: center; cursor: pointer;">Simpan</div></div>
+                    <div style="font-size: 11.5px; color: #64748B;">Akun itu otomatis keluar dari semua perangkat setelah sandinya diganti.</div>
+                  </div>
+                </sc-if>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{akTabRole}}">
+          <div style="display: flex; gap: 18px; flex-grow: 1; min-height: 0;">
+            <div style="flex-grow: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #F1F5F9;"><h3 style="font-size: 16px; font-weight: 700;">Role</h3><sc-if value="{{akBolehBuat}}"><div class="tap" onClick="{{tambahPeranKlik}}" style="height: 38px; padding: 0 14px; border-radius: 9999px; background: #FACC15; color: #0F172A; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 6px; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Tambah role</div></sc-if></div>
+              <div class="scroll" style="flex-grow: 1;">
+                <sc-for list="{{rlRows}}" as="r"><div class="row" onClick="{{r.pick}}" style="{{r.st}}"><div><b style="color: #0F172A;">{{r.nama}}</b><sc-if value="{{r.sistem}}"> <span style="font-size: 10px; font-weight: 800; letter-spacing: 0.05em; color: #92400E; background: #FEF3C7; border-radius: 999px; padding: 2px 7px;">SISTEM</span></sc-if><div style="font-size: 12px; color: #64748B;">{{r.desk}}</div></div><span style="font-size: 12.5px; color: #334155;">{{r.menu}}</span><span style="font-size: 12px; color: #64748B;">{{r.n}}</span></div></sc-for>
+              </div>
+            </div>
+            <div class="scroll" style="width: 470px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 13px;">
+              <sc-if value="{{rfBuka}}">
+                <h3 style="font-size: 20px; font-weight: 800;">{{rfJudul}}</h3>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Nama role<input value="{{rfNama}}" onChange="{{setRfNama}}" placeholder="mis. Customer support" style="{{akKotakSt}}"></label>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Deskripsi<input value="{{rfDesk}}" onChange="{{setRfDesk}}" placeholder="Untuk apa role ini" style="{{akKotakSt}}"></label>
+                <div style="font-size: 12.5px; font-weight: 700; color: #334155;">Izin per menu <span style="font-weight: 500; color: #64748B;">(ketuk kotak untuk mengaktifkan)</span></div>
+                <div style="display: grid; grid-template-columns: minmax(0,1fr) repeat(4, 44px); gap: 6px; align-items: center; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B;"><span>Menu</span><sc-for list="{{rlAksi}}" as="a"><span style="text-align: center;">{{a.label}}</span></sc-for></div>
+                <sc-for list="{{rfMatriks}}" as="m"><div style="display: grid; grid-template-columns: minmax(0,1fr) repeat(4, 44px); gap: 6px; align-items: center; padding: 6px 0; border-top: 1px solid #F1F5F9;"><div><div style="font-size: 13px; font-weight: 700; color: #0F172A;">{{m.label}}</div><div style="font-size: 11px; color: #94A3B8;">{{m.ket}}</div></div><sc-for list="{{m.sel}}" as="c"><div style="display: flex; justify-content: center;"><div onClick="{{c.pick}}" style="{{c.st}}">{{c.t}}</div></div></sc-for></div></sc-for>
+                <div style="display: flex; gap: 10px; margin-top: 4px;"><div class="tap" onClick="{{simpanPeranKlik}}" style="flex: 1; height: 44px; border-radius: 9999px; background: #0284C7; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer;">Simpan role</div><div class="tap" onClick="{{batalPeranKlik}}" style="height: 44px; padding: 0 14px; display: flex; align-items: center; font-size: 14px; font-weight: 700; color: #64748B; cursor: pointer;">Batal</div></div>
+              </sc-if>
+              <sc-if value="{{rdBuka}}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;"><div><h3 style="font-size: 20px; font-weight: 800;">{{rdNama}}</h3><div style="font-size: 13px; color: #64748B; margin-top: 2px;">{{rdDesk}}</div><div style="font-size: 12px; color: #0284C7; font-weight: 700; margin-top: 4px;">{{rdN}}</div></div><div style="display: flex; gap: 12px;"><sc-if value="{{rdBolehUbah}}"><div class="tap" onClick="{{ubahPeranKlik}}" style="font-size: 13px; font-weight: 800; color: #0284C7; cursor: pointer;">Ubah</div></sc-if><sc-if value="{{rdBolehHapus}}"><div class="tap" onClick="{{hapusPeranKlik}}" style="font-size: 13px; font-weight: 700; color: #DC2626; cursor: pointer;">Hapus</div></sc-if></div></div>
+                <sc-if value="{{rdSistem}}"><div style="font-size: 12.5px; color: #92400E; background: #FEF3C7; border-radius: 10px; padding: 9px 11px;">Role sistem: semua menu dan semua aksi. Izinnya tidak bisa diubah atau dihapus.</div></sc-if>
+                <div style="display: grid; grid-template-columns: minmax(0,1fr) repeat(4, 44px); gap: 6px; align-items: center; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B;"><span>Menu</span><sc-for list="{{rlAksi}}" as="a"><span style="text-align: center;">{{a.label}}</span></sc-for></div>
+                <sc-for list="{{rdMatriks}}" as="m"><div style="display: grid; grid-template-columns: minmax(0,1fr) repeat(4, 44px); gap: 6px; align-items: center; padding: 6px 0; border-top: 1px solid #F1F5F9;"><div><div style="font-size: 13px; font-weight: 700; color: #0F172A;">{{m.label}}</div><div style="font-size: 11px; color: #94A3B8;">{{m.ket}}</div></div><sc-for list="{{m.sel}}" as="c"><div style="display: flex; justify-content: center;"><div style="{{c.st}}">{{c.t}}</div></div></sc-for></div></sc-for>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ============================================================ AUDIT TRAIL -->
+    <sc-if value="{{viewAudit}}">
+      <div style="display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
+          <div><h1 style="font-size: 32px; line-height: 40px; font-weight: 800;">Audit trail</h1><p style="font-size: 14px; color: #64748B; margin-top: 5px;">Semua aktivitas akun backoffice (login, buat/ubah/hapus, keputusan order, ekspor) dan riwayat status setiap order. Catatan ini tidak bisa diubah atau dihapus.</p></div>
+          <div style="display: flex; gap: 8px;"><div class="tap" onClick="{{keTabAkt}}" style="{{auTabAktSt}}">Aktivitas akun</div><div class="tap" onClick="{{keTabOrd}}" style="{{auTabOrdSt}}">Riwayat order</div></div>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;"><span style="font-size: 12.5px; font-weight: 700; color: #64748B; margin-right: 4px;">Periode</span><sc-for list="{{auPeriodeList}}" as="p"><div class="tap" onClick="{{p.pick}}" style="{{p.st}}">{{p.label}}</div></sc-for></div>
+        <sc-if value="{{auTabAkt}}">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;"><span style="font-size: 12.5px; font-weight: 700; color: #64748B; margin-right: 4px;">Akun</span><sc-for list="{{auAkunList}}" as="a"><div class="tap" onClick="{{a.pick}}" style="{{a.st}}">{{a.label}} <span style="font-size: 11px; color: #64748B;">{{a.n}}</span></div></sc-for></div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;"><span style="font-size: 12.5px; font-weight: 700; color: #64748B; margin-right: 4px;">Menu</span><sc-for list="{{auMenuList}}" as="a"><div class="tap" onClick="{{a.pick}}" style="{{a.st}}">{{a.label}}</div></sc-for></div>
+          <div style="flex-grow: 1; min-height: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #F1F5F9;"><input value="{{auCari}}" onChange="{{setAuCari}}" placeholder="Cari aktivitas, akun, atau data" style="width: 320px; height: 34px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 10px; font-size: 13px;"><div style="display: flex; gap: 14px; align-items: center;"><span style="font-size: 12.5px; color: #64748B;">{{auInfo}}</span><div class="tap" onClick="{{unduhAuditKlik}}" style="font-size: 13px; font-weight: 800; color: #0284C7; cursor: pointer;">Unduh CSV</div></div></div>
+            <div style="display: grid; grid-template-columns: 150px 150px 130px 120px minmax(0,1fr); gap: 10px; padding: 9px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748B;"><span>Waktu</span><span>Akun</span><span>Menu</span><span>Aksi</span><span>Detail</span></div>
+            <div class="scroll" style="flex-grow: 1;">
+              <sc-for list="{{auRowsV}}" as="r">
+                <div class="row" onClick="{{r.pick}}" style="{{r.st}}"><span style="font-size: 12.5px;">{{r.waktu}}</span><b style="font-size: 13px; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{r.akun}}</b><span style="font-size: 12.5px; color: #334155;">{{r.menu}}</span><span style="{{r.aksiSt}}">{{r.aksi}}</span><span style="font-size: 12.5px; color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{r.ringkas}}</span></div>
+                <sc-if value="{{r.adaBeda}}"><div style="padding: 8px 18px 14px 330px; background: #F0F9FF; border-bottom: 1px solid #E0F2FE; display: flex; flex-direction: column; gap: 4px;"><sc-for list="{{r.beda}}" as="b"><div style="font-size: 12px; color: #334155;"><b>{{b.k}}</b>: <span style="color: #991B1B; text-decoration: line-through;">{{b.lama}}</span> → <span style="color: #15803D;">{{b.baru}}</span></div></sc-for></div></sc-if>
+              </sc-for>
+              <sc-if value="{{auKosong}}"><div style="padding: 48px 20px; text-align: center; color: #94A3B8; font-size: 14px;">Belum ada aktivitas di filter ini.</div></sc-if>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{auTabOrd}}">
+          <div style="flex-grow: 1; min-height: 0; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #F1F5F9;"><div style="display: flex; gap: 10px; align-items: center;"><input value="{{orCari}}" onChange="{{setOrCari}}" placeholder="Cari Order ID, mis. NWS231026003" style="width: 300px; height: 34px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 10px; font-size: 13px;"><sc-if value="{{orAdaCari}}"><div class="tap" onClick="{{hapusOrCari}}" style="font-size: 12.5px; font-weight: 700; color: #64748B; cursor: pointer;">Semua order</div></sc-if></div><span style="font-size: 12.5px; color: #64748B;">{{orInfo}} · klik baris untuk melihat semua status order itu</span></div>
+            <div style="display: grid; grid-template-columns: 150px 130px 110px 24px 120px 90px 120px minmax(0,1fr); gap: 8px; padding: 9px 18px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748B;"><span>Waktu</span><span>Order ID</span><span>Dari</span><span></span><span>Menjadi</span><span>Nominal</span><span>Oleh</span><span>Catatan</span></div>
+            <div class="scroll" style="flex-grow: 1;">
+              <sc-for list="{{orRowsV}}" as="r"><div class="row" onClick="{{r.pick}}" style="{{r.st}}"><span>{{r.waktu}}</span><b style="color: #0F172A;">{{r.kode}}</b><span style="color: #64748B;">{{r.dari}}</span><span style="color: #94A3B8;">→</span><span style="{{r.keSt}}">{{r.ke}}</span><span>{{r.nominal}}</span><span style="font-weight: 700; color: #0284C7;">{{r.oleh}}</span><span style="color: #64748B;">{{r.catatan}}</span></div></sc-for>
+              <sc-if value="{{orKosong}}"><div style="padding: 48px 20px; text-align: center; color: #94A3B8; font-size: 14px;">Belum ada riwayat order di filter ini.</div></sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
   </div>
 </div>
-
 </sc-if>
+
 </template>
 <script src="../config.js?v=923630a9"></script>
 <script src="../aset/vendor/supabase-2.117.2.js?v=d3846343"></script>
 <script src="../aset/vendor/morphdom-2.7.4.min.js?v=0b337db4"></script>
 <script src="../aset/runtime.js?v=03102134"></script>
-<script src="../aset/admin.js?v=24432c89"></script>
-<script src="../aset/admin-amb.js?v=bad7fbd4"></script>
+<script src="../aset/admin.js?v=60cae8c6"></script>
+<script src="../aset/admin-voucher.js?v=872ce981"></script>
+<script src="../aset/admin-keuangan.js?v=d27f67e1"></script>
+<script src="../aset/admin-amb.js?v=8a0d982c"></script>
+<script src="../aset/admin-akun.js?v=22cafd90"></script>
+<script src="../aset/admin-audit.js?v=02c78525"></script>
 </body>
 </html>
