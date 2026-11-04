@@ -11,6 +11,11 @@
   var pendengar = [];
   var beri = function (t) { pendengar.forEach(function (cb) { cb(t); }); };
   var calon = null; // email yang sedang daftar/masuk
+  var urut = 0;     // urutan order harian (demo)
+  function segarkanOrder() {
+    var p = db.pesanan, pot = (db.referral && db.referral.potongan) || 0;
+    if (p && p.status === 'belum_bayar') { p.potongan = pot; p.nominal = C.HARGA - pot + (p.kode_unik || 0); }
+  }
 
   var API = {
     _uid: null,
@@ -26,11 +31,28 @@
       return { id: API._uid, email: email };
     },
     async cekKodeReferral(kode) { await tunda(250); var k = String(kode || '').trim().toUpperCase(); return k === 'RANI24' ? { valid: true, kode: k, potongan: 5000 } : { valid: false }; },
+    // Demo: RANI24 = kode referral (potongan Rp5.000), HEMAT10 = voucher 10%
     async pakaiKodeReferral(kode) {
       await tunda(300); var k = String(kode || '').trim().toUpperCase();
-      if (!k) { db.referral = { kode: null, potongan: 0 }; return { valid: false, dihapus: true }; }
-      if (k !== 'RANI24') throw new Error('Kode referral tidak ditemukan atau sudah tidak aktif');
-      db.referral = { kode: k, potongan: 5000 }; return { valid: true, kode: k, potongan: 5000 };
+      if (!k) { db.referral = { kode: null, potongan: 0 }; segarkanOrder(); return { valid: false, dihapus: true }; }
+      if (k === 'HEMAT10') db.referral = { kode: k, potongan: Math.round(C.HARGA * 0.1), jenis: 'voucher' };
+      else if (k === 'RANI24') db.referral = { kode: k, potongan: 5000, jenis: 'referral' };
+      else throw new Error('Kode ' + k + ' tidak ditemukan atau sudah tidak berlaku');
+      segarkanOrder();
+      return { valid: true, kode: k, potongan: db.referral.potongan, jenis: db.referral.jenis };
+    },
+    async buatPesanan(metode) {
+      await tunda(400);
+      var p = db.pesanan;
+      if (p && p.status === 'belum_bayar' && new Date(p.kedaluwarsa) <= new Date()) p.status = 'kedaluwarsa';
+      if (p && ['ok', 'menunggu', 'belum_bayar', 'tolak'].indexOf(p.status) >= 0) { p.metode = metode; return p; }
+      urut += 1;
+      var w = new Date(Date.now() + 7 * 3600000), dd = String(w.getUTCDate()).padStart(2, '0'), mm = String(w.getUTCMonth() + 1).padStart(2, '0');
+      var pot = (db.referral && db.referral.potongan) || 0;
+      db.pesanan = { id: 'p' + urut, kode: 'NWS' + dd + mm + String(w.getUTCFullYear()).slice(2) + String(urut).padStart(3, '0'),
+        harga: C.HARGA, potongan: pot, kode_unik: urut, nominal: C.HARGA - pot + urut, metode: metode, status: 'belum_bayar',
+        dibuat: new Date().toISOString(), kedaluwarsa: new Date(Date.now() + 3600000).toISOString() };
+      return db.pesanan;
     },
     async simpanProfil(nama, tgl, hp) {
       await tunda(300);
@@ -83,8 +105,8 @@
     },
     async kirimBukti(file, metode) {
       await tunda(800);
-      db.pesanan = { id: 'p1', kode: 'NWS-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-0421', nominal: C.HARGA - ((db.referral && db.referral.potongan) || 0),
-        metode: metode, status: 'menunggu', bukti_nama: file.name, dibuat: new Date().toISOString(), dikirim: new Date().toISOString() };
+      if (!db.pesanan || db.pesanan.status === 'ok') await API.buatPesanan(metode);
+      Object.assign(db.pesanan, { metode: metode, status: 'menunggu', bukti_nama: file.name, dikirim: new Date().toISOString(), alasan: null });
       return db.pesanan;
     },
     async kirimMasukan() { await tunda(300); },
@@ -107,6 +129,7 @@
   window.DEMO = {
     konfirmasi: function () { db.pesanan.status = 'ok'; db.pesanan.dicek = new Date().toISOString(); db.lengkap = { status: 'proses', bagian: {} }; beri('pesanan');
       setTimeout(function () { db.lengkap = { status: 'siap', bagian: lengkapDemo() }; beri('laporan_lengkap'); }, 4000); },
+    kedaluwarsa: function () { if (db.pesanan) { db.pesanan.kedaluwarsa = new Date(Date.now() - 1000).toISOString(); db.pesanan.status = 'kedaluwarsa'; beri('pesanan'); } },
     tolak: function (a) { db.pesanan.status = 'tolak'; db.pesanan.alasan = a || 'Nominal di bukti bayar belum sama dengan total pesanan.'; beri('pesanan'); },
     db: db
   };

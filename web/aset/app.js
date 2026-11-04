@@ -272,6 +272,11 @@
         return document.getElementById(dk ? 'tpl-desktop' : 'tpl').innerHTML;
       };
       this.rt = new window.NawasenaRuntime(document.getElementById('app'), pilihTpl());
+      // Hitung mundur batas bayar order (instruksi bayar) diperbarui tiap detik
+      setInterval(function () {
+        var p = self.s.pesanan;
+        if (self.s.layar === 'instruksi' && p && p.status === 'belum_bayar') self.render();
+      }, 1000);
       // Kotak kode OTP: kursor selalu di ujung, jadi hapus selalu menghapus angka terakhir
       var keUjung = function (e) {
         var el = e.target;
@@ -470,14 +475,16 @@
       var k = String(kode || '').trim().toUpperCase();
       if (!k) throw new Error('Isi kode referralnya dulu ya');
       var r = await API.pakaiKodeReferral(k);
-      this.s.referral = { kode: r.kode, potongan: r.potongan || 0 };
+      this.s.referral = { kode: r.kode, potongan: r.potongan || 0, jenis: r.jenis || 'referral' };
       try { window.localStorage.removeItem('nws_ref'); } catch (e) { /* abaikan */ }
       this.set({ kodeRef: '' });
-      toast('Kode ' + r.kode + ' dipakai. Harga jadi ' + rp(C.HARGA - (r.potongan || 0)) + '.', true);
+      toast((r.jenis === 'voucher' ? 'Voucher ' : 'Kode ') + r.kode + ' dipakai. Harga jadi ' + rp(C.HARGA - (r.potongan || 0)) + '.', true);
+      this.muatData().then(this.render.bind(this)).catch(function () { /* order aktif ikut diperbarui di server */ });
     },
     hapusReferral: async function () {
       await API.pakaiKodeReferral('');
       this.set({ referral: { kode: null, potongan: 0 } });
+      this.muatData().then(this.render.bind(this)).catch(function () { /* abaikan */ });
     },
     kirimKodeMasuk: async function () {
       var a = String(this.s.akun || '').trim();
@@ -817,7 +824,19 @@
       if (p && p.status === 'ok') { this.set({ layar: 'laporan', bagian: 0, peran: -1 }); this.pastikanLengkap(); return; }
       if (p && p.status === 'menunggu') { this.set({ layar: 'menunggu' }); return; }
       if (p && p.status === 'tolak') { this.set({ layar: 'ditolak' }); return; }
+      // order yang masih berjalan (belum dibayar, < 1 jam): lanjutkan ke instruksi bayarnya
+      if (p && p.status === 'belum_bayar' && p.kedaluwarsa && new Date(p.kedaluwarsa).getTime() > Date.now()) {
+        if (p.metode) this.s.bayar = p.metode;
+        this.set({ layar: 'instruksi' }); return;
+      }
       this.set({ layar: 'paywall' });
+    },
+    // Buat order (atau lanjutkan yang masih berjalan) lalu buka instruksi bayar
+    bukaInstruksi: async function () {
+      var p = await API.buatPesanan(this.s.bayar);
+      if (p && p.metode) this.s.bayar = p.metode;
+      this.set({ pesanan: p, salin: false,
+        layar: p.status === 'ok' ? 'berhasil' : p.status === 'menunggu' ? 'menunggu' : 'instruksi' });
     },
 
     // ------------------------------------------------------------ masukan

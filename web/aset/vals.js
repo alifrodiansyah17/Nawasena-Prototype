@@ -66,8 +66,9 @@
     v.kodeRef = s.kodeRef || '';
     v.setKodeRef = function (e) { self.s.kodeRef = String(e.target.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12); };
     v.refAda = !!ref.kode; v.refBelum = !ref.kode;
+    v.refLabel = ref.jenis === 'voucher' ? 'Voucher' : 'Kode';
     v.refKode = ref.kode || ''; v.refHemat = U.rp(potongan);
-    v.refBisaUbah = !(s.pesanan && s.pesanan.status === 'ok');
+    v.refBisaUbah = !(s.pesanan && (s.pesanan.status === 'ok' || s.pesanan.status === 'menunggu'));
     v.pakaiRefKlik = this.aman(function () { return self.pakaiReferral(self.s.kodeRef); }, 'Mengecek kode…');
     v.hapusRefKlik = this.aman(function () { return self.hapusReferral(); });
     v.janjiCek = C.JANJI_CEK;
@@ -340,7 +341,10 @@
     v.tampilTokoh = lv === 'entry';   // tokoh pembanding hanya untuk level entry
     v.tokohNama = tn.nama; v.tokohPeran = tn.peran; v.tokohWhy = tn.why;
     v.fiksiNama = tf.nama; v.fiksiAsal = tf.asal; v.fiksiWhy = tf.why;
-    v.ctaHasil = p && p.status === 'ok' ? 'Baca peta potensimu' : (p ? 'Lihat status pembayaran' : 'Raih karirmu sekarang');
+    var pBerjalan = p && p.status === 'belum_bayar' && p.kedaluwarsa && new Date(p.kedaluwarsa).getTime() > Date.now();
+    v.ctaHasil = p && p.status === 'ok' ? 'Baca peta potensimu'
+      : (p && (p.status === 'menunggu' || p.status === 'tolak') ? 'Lihat status pembayaran'
+      : (pBerjalan ? 'Lanjutkan pembayaran' : 'Raih karirmu sekarang'));
     v.keBayar = function () { self.keBayar(); };
     v.keHasil = function () { self.set({ layar: 'hasil' }); };
     // Dari hasil boleh mundur lagi sampai ke CV: target → kuis → intro → lampiran/preview CV → unggah/susun CV.
@@ -376,6 +380,20 @@
     v.kirimSt = 'width: 100%; height: 54px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; font-family: Nunito, sans-serif; '
       + (s.bukti ? 'background: #FACC15; color: #0F172A; box-shadow: 0 6px 16px rgba(250,204,21,0.35); cursor: pointer;' : 'background: #FACC15; color: #0F172A; opacity: 0.4; cursor: not-allowed;');
     v.keMetode = function () { self.set({ layar: 'bayar' }); };
+    // Order dibuat saat membuka instruksi bayar: nominal unik (3 digit terakhir) + batas bayar 1 jam
+    v.go_instruksi = this.aman(function () { return self.bukaInstruksi(); }, 'Menyiapkan order…');
+    v.orderBaruKlik = this.aman(function () { return self.bukaInstruksi(); }, 'Membuat order baru…');
+    var po = s.pesanan, tagihan = po && po.status !== 'ok' ? po.nominal : (C.HARGA - potongan);
+    v.tagihanTeks = U.rp(tagihan);
+    v.adaKodeUnik = !!(po && po.kode_unik != null && po.status !== 'ok');
+    v.tagihanDepan = v.adaKodeUnik ? v.tagihanTeks.slice(0, -3) : v.tagihanTeks;
+    v.tagihanUnik = v.adaKodeUnik ? v.tagihanTeks.slice(-3) : '';
+    var sisaMs = po && po.status === 'belum_bayar' && po.kedaluwarsa ? new Date(po.kedaluwarsa).getTime() - Date.now() : null;
+    v.orderAktif = sisaMs !== null && sisaMs > 0;
+    v.orderHabis = !!po && ((po.status === 'belum_bayar' && sisaMs !== null && sisaMs <= 0) || po.status === 'kedaluwarsa');
+    v.batasJam = po && po.kedaluwarsa ? U.jamIndo(po.kedaluwarsa) + ' WIB' : '';
+    var dtk = Math.max(0, Math.floor((sisaMs || 0) / 1000));
+    v.sisaWaktu = Math.floor(dtk / 60) + ':' + String(dtk % 60).padStart(2, '0');
     v.psKode = p ? p.kode : ''; v.psJumlah = U.rp(p ? p.nominal : C.HARGA);
     v.psKirim = p ? U.tglIndo(p.dikirim || p.dibuat) + ', ' + U.jamIndo(p.dikirim || p.dibuat) : '';
     v.psCek = p && p.dicek ? U.tglIndo(p.dicek) + ', ' + U.jamIndo(p.dicek) : '';

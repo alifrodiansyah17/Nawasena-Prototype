@@ -106,7 +106,10 @@
     },
     // ---------- kode referral ambassador
     async cekKodeReferral(kode) { return cek(await sb.rpc('cek_kode_referral', { p_kode: kode })); },
-    async pakaiKodeReferral(kode) { return cek(await sb.rpc('pakai_kode_referral', { p_kode: kode })); },
+    // Satu kotak kode: voucher atau kode referral ambassador (tidak digabung)
+    async pakaiKodeReferral(kode) { return cek(await sb.rpc('pakai_kode', { p_kode: kode })); },
+    // Order dibuat (atau dilanjutkan) saat membuka instruksi bayar
+    async buatPesanan(metode) { return cek(await sb.rpc('buat_pesanan', { p_metode: metode || 'qris' })); },
     async simpanProfil(nama, tglLahir, hp, setuju) {
       var r = await sb.rpc('simpan_profil', { p_nama: nama, p_tgl_lahir: tglLahir, p_hp: hp, p_setuju: !!setuju });
       // database belum diperbarui (kolom persetujuan belum ada): pakai fungsi lama

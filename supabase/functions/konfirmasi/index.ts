@@ -9,6 +9,7 @@
 // dan setiap keputusan tercatat di audit_admin.
 import { adminDb, CORS, esc, json, penggunaDari, picuFungsi } from "./_shared/umum.ts";
 import { bungkusEmail, kirimEmail, type Lampiran } from "./_shared/surel.ts";
+import { punyaIzin } from "./_shared/izin.ts";
 
 const BATAS_KWITANSI = 5 * 1024 * 1024;
 const EKSTENSI: Record<string, string> = { "application/pdf": "pdf", "image/png": "png", "image/jpeg": "jpg" };
@@ -41,8 +42,10 @@ Deno.serve(async (req) => {
     const user = await penggunaDari(req);
     if (!user) return json({ galat: "Sesi habis, silakan masuk lagi" }, 401);
     const db = adminDb();
-    const { data: adm } = await db.from("admin").select("user_id").eq("user_id", user.id).maybeSingle();
-    if (!adm) return json({ galat: "Akun ini bukan admin" }, 403);
+    // RBAC: hanya role dengan izin ubah di menu Authorize order (dan sesi < 24 jam)
+    if (!(await punyaIzin(req, "order", "u"))) {
+      return json({ galat: "Kamu tidak punya izin memproses order, atau sesimu sudah lewat 24 jam. Masuk lagi ya." }, 403);
+    }
 
     const { pesanan_id, aksi, alasan, nominal_bukti, kwitansi } = await req.json();
     const { data: ps } = await db.from("pesanan").select("*, profil(nama, email)").eq("id", pesanan_id).single();
