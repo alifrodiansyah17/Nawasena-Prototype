@@ -9,7 +9,7 @@
   var AKSI = [['r', 'Lihat'], ['c', 'Buat'], ['u', 'Ubah'], ['d', 'Hapus']];
   var KET_AKSI = {
     order: 'Ubah = konfirmasi/tolak order', voucher: 'Buat, ubah, nonaktifkan, hapus voucher', keuangan: 'Buat = simpan rekonsiliasi; ekspor CSV ikut Lihat',
-    ambassador: 'Termasuk komisi dan target microsite', akun: 'Kelola akun backoffice dan role', audit: 'Hanya Lihat yang berlaku'
+    refund: 'Ubah = proses, selesaikan (unggah bukti transfer), tolak refund', ambassador: 'Termasuk komisi dan target microsite', akun: 'Kelola akun backoffice dan role', audit: 'Hanya Lihat yang berlaku'
   };
 
   function sandiAcak() {

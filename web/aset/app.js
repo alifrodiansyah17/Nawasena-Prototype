@@ -73,7 +73,7 @@
   }
   // Urutan alur untuk menentukan arah animasi (layar lebih awal = gerak mundur)
   var URUTAN_LAYAR = ['muat', 'landing', 'masuk', 'daftar', 'masukKode', 'cekcv', 'unggah', 'susun', 'lampiran', 'previewcv',
-    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan'];
+    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus'];
   var GERAK_HEMAT = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
 
   var JEDA_KODE_MS = 60 * 1000;
@@ -340,7 +340,8 @@
         masuk: 'go_landing', daftar: 'go_landing', masukKode: 'kodeKembali',
         cekcv: 'keluarKlik', unggah: 'kembaliDariUnggah', lampiran: 'kembaliLampiran', previewcv: 'ubahCVKlik',
         intro: 'kembaliIntro', target: 'kembaliKeSoal', hasil: 'kembaliDariHasil',
-        paywall: 'keHasil', bayar: 'go_paywall', instruksi: 'keMetode', menunggu: 'keHasil', ditolak: 'keHasil'
+        paywall: 'keHasil', bayar: 'go_paywall', instruksi: 'keMetode', menunggu: 'keHasil', ditolak: 'keHasil',
+        refund: 'keluarRefund', refundStatus: 'keluarRefund'
       };
       if (!PETA[s.layar]) return false;
       v = this.vals();
@@ -351,6 +352,8 @@
 
     muatData: async function () {
       var d = await API.muat();
+      // info refund: syarat (boleh ajukan atau tidak) + refund terakhir milik pengguna
+      try { this.s.refundInfo = API.infoRefund ? await API.infoRefund() : null; } catch (e) { this.s.refundInfo = null; }
       this.s.profil = d.profil; this.s.cvRow = d.cv; this.s.lampiran = d.lampiran; this.s.jawaban = d.jawaban;
       this.s.laporan = d.laporan; this.s.lengkap = d.lengkap; this.s.pesanan = d.pesanan;
       this.s.referral = d.referral || { kode: null, potongan: 0 };
@@ -395,16 +398,66 @@
       API.mulaiAnalisis().then(function (r) { if (r && r.status === 'proses' && self.s.layar === 'hasil') self.set({ layar: 'proses' }); }).catch(function () { /* abaikan */ });
     },
 
+    analisisTertunda: function () {
+      var l = this.s.lengkap;
+      if (!l || (l.percobaan || 0) < 3) return false;
+      return l.status === 'gagal' || (l.status === 'proses' && Date.now() - new Date(l.diubah || 0).getTime() > 15 * 60 * 1000);
+    },
+    // "Coba lagi" saat analisis tertunda: hitungan percobaan diulang, tanpa bayar ulang dan tanpa mengisi tes lagi
+    cobaLagiAnalisis: async function () {
+      await API.cobaLagiAnalisis();
+      this._mintaLengkap = 0;
+      await API.mintaLaporanLengkap();
+      await this.segarkan();
+      toast('Analisismu sedang disusun ulang. Halaman ini berubah sendiri begitu selesai.', true);
+    },
+    // ------------------------------------------------------------ refund
+    bukaRefund: function () {
+      var r = this.s.refundInfo || {}, sy = r.syarat || {};
+      if (!sy.boleh) { if (r.refund) { this.set({ layar: 'refundStatus' }); return; } toast('Order ini tidak memenuhi syarat refund'); return; }
+      var lama = r.refund && r.refund.status === 'ditolak' ? r.refund : null;
+      this.s.refundForm = { jenis: lama ? lama.tujuan_jenis : 'ewallet', nama: lama ? lama.tujuan_nama : '', namaLain: '', nomor: '', pemilik: lama ? lama.tujuan_pemilik : '',
+        milikLain: false, setuju: false };
+      this.set({ layar: 'refund' });
+    },
+    kirimRefund: async function () {
+      var f = this.s.refundForm || {};
+      var nama = f.nama === 'Lainnya' ? String(f.namaLain || '').trim() : f.nama;
+      if (!nama) throw new Error(f.jenis === 'bank' ? 'Pilih bank tujuan dulu ya' : 'Pilih e-wallet tujuan dulu ya');
+      var nomor = String(f.nomor || '').replace(/\D/g, '');
+      if (nomor.length < 8 || nomor.length > 20) throw new Error(f.jenis === 'bank' ? 'Nomor rekeningnya belum benar' : 'Nomor HP e-wallet-nya belum benar');
+      if (String(f.pemilik || '').trim().length < 3) throw new Error('Isi nama pemilik rekening / e-wallet');
+      if (!f.setuju) throw new Error('Centang dulu pernyataan bahwa data tujuan sudah benar');
+      await API.ajukanRefund({ jenis: f.jenis, nama: nama, nomor: nomor, pemilik: String(f.pemilik).trim(), milik_lain: !!f.milikLain });
+      await this.muatData();
+      this.set({ layar: 'refundStatus' });
+      toast('Pengajuan refund terkirim. Cek email untuk konfirmasinya.', true);
+    },
+    lihatBuktiRefund: async function () {
+      var r = this.s.refundInfo && this.s.refundInfo.refund;
+      if (!r || !r.bukti_path) throw new Error('Bukti transfer belum tersedia');
+      var url = await API.urlBerkas('refund', r.bukti_path);
+      window.open(url, '_blank');
+    },
+    keluarRefund: function () {
+      var p = this.s.pesanan;
+      if (p && p.status === 'ok') { this.set({ layar: 'laporan' }); return; }
+      if (p && p.status === 'tolak') { this.set({ layar: 'ditolak' }); return; }
+      this.set({ layar: 'hasil' });
+    },
     lengkapSiap: function () { return !!(this.s.lengkap && this.s.lengkap.status === 'siap'); },
     pastikanLengkap: function () {
       var s = this.s;
       if (!s.pesanan || s.pesanan.status !== 'ok' || this.lengkapSiap()) return;
       var l = s.lengkap, macet = l && l.status === 'proses' && (Date.now() - new Date(l.diubah || 0).getTime() > 5 * 60 * 1000);
+      // Tertunda: sudah 3 kali dicoba otomatis. Tidak dicoba lagi sampai pengguna memilih "Coba lagi" (atau refund).
+      if (this.analisisTertunda()) return;
       if (!l || l.status === 'belum' || l.status === 'gagal' || macet) {
-        // Kalau gagal berulang (mis. kuota AI habis), jarak coba ulang makin panjang: 1, 2, 4, 8, lalu tiap 10 menit.
-        var jeda = l && l.status === 'gagal' ? (this._jedaLengkap || 60000) : 60000;
-        if (this._mintaLengkap && Date.now() - this._mintaLengkap < jeda) return;
-        if (l && l.status === 'gagal') this._jedaLengkap = Math.min(jeda * 2, 600000); else this._jedaLengkap = 0;
+        // Coba ulang otomatis berjeda 1, 5, lalu 15 menit sejak gagal (dihitung dari server, tetap benar walau aplikasi ditutup)
+        var JEDA = [60000, 300000, 900000];
+        var jeda = l && l.status === 'gagal' ? JEDA[Math.min(Math.max((l.percobaan || 1) - 1, 0), 2)] : 60000;
+        if (l && l.status === 'gagal' && Date.now() - new Date(l.diubah || 0).getTime() < jeda) return;
+        if (this._mintaLengkap && Date.now() - this._mintaLengkap < 60000) return;
         this._mintaLengkap = Date.now();
         API.mintaLaporanLengkap().catch(function (e) { console.warn(e); });
       }

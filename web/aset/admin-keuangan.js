@@ -148,12 +148,16 @@
       var r = await Promise.all([
         sb.from('pesanan').select('*, profil(nama, email)').order('dibuat', { ascending: false }).limit(10000),
         sb.from('pembayaran_komisi').select('jumlah'),
-        sb.from('rekonsiliasi').select('id, dibuat, dibuat_oleh, nama_file, dari, sampai, ringkasan').order('dibuat', { ascending: false }).limit(30)
+        sb.from('rekonsiliasi').select('id, dibuat, dibuat_oleh, nama_file, dari, sampai, ringkasan').order('dibuat', { ascending: false }).limit(30),
+        sb.from('refund').select('id, kode, pesanan_id, alasan, nominal, status, selesai, tanggal_transfer, nominal_transfer, biaya_admin').order('diajukan', { ascending: false }).limit(10000)
       ]);
       if (r[0].error) { toast(r[0].error.message); return; }
       this.s.keuRows = r[0].data || [];
       this.s.keuKomisiBayar = (r[1].data || []).reduce(function (a, x) { return a + Number(x.jumlah || 0); }, 0);
       this.s.rekonRiwayat = r[2].data || [];
+      // refund selesai per order (satu order paling banyak satu refund selesai)
+      var rf = {}; (r[3].error ? [] : (r[3].data || [])).forEach(function (x) { if (x.status === 'selesai') rf[x.pesanan_id] = x; });
+      this.s.keuRefund = rf;
       this.set({});
     },
     rentangKeu: function () {
@@ -168,10 +172,14 @@
     },
     unduhKeuCsv: function (rows) {
       var A = this.s.admins;
-      var b = [['order_id', 'status', 'dibuat', 'bukti_dikirim', 'dikonfirmasi', 'nama', 'email', 'metode', 'harga', 'potongan', 'jenis_potongan', 'kode_voucher', 'kode_unik', 'nominal', 'komisi_ambassador', 'dikonfirmasi_oleh']]
+      var RF = this.s.keuRefund || {};
+      var b = [['order_id', 'status', 'dibuat', 'bukti_dikirim', 'dikonfirmasi', 'nama', 'email', 'metode', 'harga', 'potongan', 'jenis_potongan', 'kode_voucher', 'kode_unik', 'nominal', 'komisi_ambassador', 'dikonfirmasi_oleh',
+        'refund_kode', 'refund_alasan', 'refund_nominal', 'refund_tanggal_transfer', 'refund_biaya_admin']]
         .concat(rows.map(function (r) {
+          var f = RF[r.id] || {};
           return [r.kode, r.status, r.dibuat, r.dikirim, r.dicek, r.profil && r.profil.nama, r.profil && r.profil.email, r.metode, r.harga, r.potongan,
-            r.kode_voucher ? 'voucher' : (r.potongan ? 'referral' : ''), r.kode_voucher, r.kode_unik, r.nominal, r.komisi, A[r.dicek_oleh] || ''];
+            r.kode_voucher ? 'voucher' : (r.potongan ? 'referral' : ''), r.kode_voucher, r.kode_unik, r.nominal, r.komisi, A[r.dicek_oleh] || '',
+            f.kode || '', f.alasan === 'nominal' ? 'nominal transfer salah' : f.alasan === 'analisis' ? 'analisis gagal' : '', f.nominal_transfer || '', f.tanggal_transfer || '', f.biaya_admin == null ? '' : f.biaya_admin];
         }));
       var rg = this.rentangKeu(), nama = 'transaksi-nawasena-' + (this.s.keuPeriode === 'semua' ? 'semua' : isoHari(rg[0]) + '_' + isoHari(Math.min(rg[1], hariIni()))) + '.csv';
       U.csv(b, nama);
@@ -245,9 +253,16 @@
       v.keuBolehImpor = this.boleh('keuangan', 'c');
 
       // sepanjang waktu
-      var lunas = rows.filter(function (r) { return r.status === 'ok'; });
-      var semuaUang = lunas.reduce(function (a, r) { return a + r.nominal; }, 0), semuaKomisi = lunas.reduce(function (a, r) { return a + Number(r.komisi || 0); }, 0);
-      v.keuSemuaUang = rp(semuaUang); v.keuSemuaN = lunas.length + ' transaksi lunas sejak awal';
+      // Pemasukan kotor = order lunas + order yang lunas lalu direfund karena analisis gagal. Refund nominal-salah bukan pemasukan
+      // (uangnya tidak pernah diakui), jadi hanya dicatat sebagai dana dikembalikan + biaya admin.
+      var RF = s.keuRefund || {}, rfList = Object.keys(RF).map(function (k) { return RF[k]; });
+      var lunas = rows.filter(function (r) { return r.status === 'ok' || (r.status === 'direfund' && RF[r.id] && RF[r.id].alasan === 'analisis'); });
+      var semuaKomisi = rows.filter(function (r) { return r.status === 'ok'; }).reduce(function (a, r) { return a + Number(r.komisi || 0); }, 0);
+      var semuaKotor = lunas.reduce(function (a, r) { return a + r.nominal; }, 0);
+      var semuaRefA = rfList.filter(function (x) { return x.alasan === 'analisis'; }).reduce(function (a, x) { return a + (x.nominal_transfer || x.nominal); }, 0);
+      var semuaBiaya = rfList.reduce(function (a, x) { return a + Number(x.biaya_admin || 0); }, 0);
+      v.keuSemuaUang = rp(semuaKotor - semuaRefA - semuaBiaya);
+      v.keuSemuaN = 'bersih · kotor ' + rp(semuaKotor) + (semuaRefA || semuaBiaya ? ' − refund ' + rp(semuaRefA) + ' − biaya admin refund ' + rp(semuaBiaya) : '') + ' · ' + lunas.length + ' transaksi';
       v.keuKomisiSisa = rp(Math.max(0, semuaKomisi - s.keuKomisiBayar)); v.keuKomisiInfo = 'dari ' + rp(semuaKomisi) + ' komisi, ' + rp(s.keuKomisiBayar) + ' sudah dibayar';
 
       // periode
@@ -263,6 +278,12 @@
       var diPeriode = function (iso) { if (!iso) return false; var k = hariWib(iso); return k >= rg[0] && k <= rg[1]; };
       var lunasP = lunas.filter(function (r) { return diPeriode(r.dicek); });
       var uang = lunasP.reduce(function (a, r) { return a + r.nominal; }, 0);
+      var rfP = rfList.filter(function (x) { return diPeriode(x.selesai); });
+      var refA = rfP.filter(function (x) { return x.alasan === 'analisis'; }).reduce(function (a, x) { return a + (x.nominal_transfer || x.nominal); }, 0);
+      var refN = rfP.filter(function (x) { return x.alasan === 'nominal'; }).reduce(function (a, x) { return a + (x.nominal_transfer || x.nominal); }, 0);
+      var biayaRf = rfP.reduce(function (a, x) { return a + Number(x.biaya_admin || 0); }, 0);
+      v.keuBersih = rp(uang - refA - biayaRf); v.keuKotor = rp(uang); v.keuRefA = rp(refA); v.keuBiayaRf = rp(biayaRf);
+      v.keuRefN = rp(refN); v.keuAdaRefund = rfP.length > 0; v.keuNRefund = String(rfP.length);
       var pot = lunasP.reduce(function (a, r) { return a + Number(r.potongan || 0); }, 0);
       var potV = lunasP.filter(function (r) { return r.kode_voucher; }).reduce(function (a, r) { return a + Number(r.potongan || 0); }, 0);
       var qr = lunasP.filter(function (r) { return r.metode === 'qris'; }).reduce(function (a, r) { return a + r.nominal; }, 0);
@@ -272,9 +293,9 @@
       v.keuPeriodeTeks = s.keuPeriode === 'semua' ? 'Sepanjang waktu' : (isoHari(rg[0]) === '0000-00-00' ? 'Sampai ' : U.tgl(isoHari(Math.max(rg[0], 19700101)) + 'T00:00:00+07:00') + ' – ') + U.tgl(isoHari(Math.min(rg[1], hariIni())) + 'T00:00:00+07:00');
       // order dibuat di periode, per status (funnel)
       var dibuatP = rows.filter(function (r) { return diPeriode(r.dibuat); });
-      var hs = { belum_bayar: 0, menunggu: 0, ok: 0, tolak: 0, kedaluwarsa: 0 };
+      var hs = { belum_bayar: 0, menunggu: 0, ok: 0, tolak: 0, kedaluwarsa: 0, direfund: 0 };
       dibuatP.forEach(function (r) { hs[r.status] = (hs[r.status] || 0) + 1; });
-      v.keuFunnel = [['belum_bayar', 'Belum bayar'], ['menunggu', 'Menunggu dicek'], ['ok', 'Lunas'], ['tolak', 'Ditolak'], ['kedaluwarsa', 'Kedaluwarsa']].map(function (x) {
+      v.keuFunnel = [['belum_bayar', 'Belum bayar'], ['menunggu', 'Menunggu dicek'], ['ok', 'Lunas'], ['tolak', 'Ditolak'], ['kedaluwarsa', 'Kedaluwarsa'], ['direfund', 'Direfund']].map(function (x) {
         return { label: x[1], n: String(hs[x[0]] || 0), st: U.pillBase + U.PST[x[0]] };
       });
       v.keuKonversi = dibuatP.length ? Math.round((hs.ok || 0) / dibuatP.length * 100) + '% order dibuat → lunas' : 'Belum ada order di periode ini';
@@ -289,7 +310,7 @@
       });
       v.keuPerBulanKosong = !kunci.length;
       // tabel transaksi
-      v.keuStatusList = [['semua', 'Semua'], ['ok', 'Lunas'], ['menunggu', 'Menunggu'], ['belum_bayar', 'Belum bayar'], ['tolak', 'Ditolak'], ['kedaluwarsa', 'Kedaluwarsa']].map(function (x) {
+      v.keuStatusList = [['semua', 'Semua'], ['ok', 'Lunas'], ['menunggu', 'Menunggu'], ['belum_bayar', 'Belum bayar'], ['tolak', 'Ditolak'], ['kedaluwarsa', 'Kedaluwarsa'], ['direfund', 'Direfund']].map(function (x) {
         var on = s.keuStatus === x[0];
         return { label: x[1], pick: function () { self.set({ keuStatus: x[0] }); },
           st: 'height: 30px; padding: 0 10px; border-radius: 9px; display: flex; align-items: center; font-size: 12.5px; font-weight: 700; cursor: pointer; ' + (on ? 'background: #38BDF8; color: #0F172A;' : 'color: #64748B;') };

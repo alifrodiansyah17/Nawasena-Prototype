@@ -205,6 +205,10 @@
     },
     async mulaiAnalisis() { return fungsi('analisis', {}); },
     async mintaLaporanLengkap() { return fungsi('laporan-lengkap', {}); },
+    // Refund: syarat + refund terakhir, pengajuan (lewat fungsi server, ada email), dan "Coba lagi" analisis yang tertunda
+    async infoRefund() { return cek(await sb.rpc('info_refund')); },
+    async ajukanRefund(d) { return fungsi('refund', Object.assign({ aksi: 'ajukan' }, d)); },
+    async cobaLagiAnalisis() { return cek(await sb.rpc('coba_lagi_analisis')); },
 
     // ---------- pembayaran
     async kirimBukti(file, metode) {
@@ -222,7 +226,7 @@
       var u = uid();
       if (!u) return function () {};
       var ch = sb.channel('nawasena-' + u);
-      ['pesanan', 'laporan', 'laporan_lengkap'].forEach(function (t) {
+      ['pesanan', 'laporan', 'laporan_lengkap', 'refund'].forEach(function (t) {
         ch.on('postgres_changes', { event: '*', schema: 'public', table: t, filter: 'user_id=eq.' + u }, function () { cb(t); });
       });
       ch.subscribe();

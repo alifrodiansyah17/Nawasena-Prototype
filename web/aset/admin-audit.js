@@ -6,12 +6,12 @@
   var BO = window.BO, U = window.BOUtil;
   if (!BO || !U) return;
   var sb = U.sb, toast = U.toast;
-  var NAMA_MENU = { order: 'Authorize order', voucher: 'Voucher', keuangan: 'Laporan keuangan', ambassador: 'Ambassador', akun: 'Akun & role', audit: 'Audit trail', sistem: 'Sistem' };
+  var NAMA_MENU = { order: 'Authorize order', refund: 'Refund', voucher: 'Voucher', keuangan: 'Laporan keuangan', ambassador: 'Ambassador', akun: 'Akun & role', audit: 'Audit trail', sistem: 'Sistem' };
   var NAMA_AKSI = { login: 'Login', logout: 'Logout', sesi_habis: 'Logout otomatis (24 jam)', create: 'Buat', update: 'Ubah', delete: 'Hapus',
-    konfirmasi: 'Konfirmasi', tolak: 'Tolak', batal: 'Batalkan keputusan', ekspor: 'Ekspor', impor: 'Impor' };
+    konfirmasi: 'Konfirmasi', tolak: 'Tolak', proses: 'Proses', selesai: 'Selesaikan', batal: 'Batalkan keputusan', ekspor: 'Ekspor', impor: 'Impor' };
   var WARNA = { create: 'color: #15803D; background: #DCFCE7;', update: 'color: #075985; background: #E0F2FE;', delete: 'color: #991B1B; background: #FEE2E2;',
     konfirmasi: 'color: #15803D; background: #DCFCE7;', tolak: 'color: #991B1B; background: #FEE2E2;', login: 'color: #475569; background: #F1F5F9;',
-    logout: 'color: #475569; background: #F1F5F9;', sesi_habis: 'color: #475569; background: #F1F5F9;', ekspor: 'color: #6B21A8; background: #F3E8FF;', batal: 'color: #92400E; background: #FEF3C7;' };
+    logout: 'color: #475569; background: #F1F5F9;', sesi_habis: 'color: #475569; background: #F1F5F9;', ekspor: 'color: #6B21A8; background: #F3E8FF;', batal: 'color: #92400E; background: #FEF3C7;', proses: 'color: #075985; background: #E0F2FE;', selesai: 'color: #15803D; background: #DCFCE7;' };
   var ABAIKAN = { dibuat: 1, dibuat_oleh: 1, id: 1 };
 
   function nilai(x) { if (x == null || x === '') return '–'; if (typeof x === 'object') return JSON.stringify(x); return String(x); }

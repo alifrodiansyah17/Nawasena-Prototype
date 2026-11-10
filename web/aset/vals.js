@@ -4,7 +4,7 @@
   var App = window.App, C = window.NAWASENA_CONFIG, D = window.DATA, U = window.NawasenaUtil;
   var ITEMS = D.ITEMS, SKALA4 = ['Bukan aku', 'Aku banget'];
   var LAYAR = ['muat', 'landing', 'masuk', 'masukKode', 'daftar', 'cekcv', 'unggah', 'lampiran', 'susun', 'previewcv',
-    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan'];
+    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus'];
 
   function lengkapContoh(s) { var b = s.lengkap && s.lengkap.bagian; return !!(b && b.rencana && b.rencana.contoh); }
 
@@ -415,12 +415,79 @@
     for (var i = 0; i <= 8; i++) v['b' + i] = (s.bagian === i);
     for (var j = 2; j <= 6; j++) v['c' + j] = v['b' + j] && siap;
     v.bTunggu = s.bagian >= 2 && s.bagian <= 6 && !siap;
-    var gagal = !!(s.lengkap && s.lengkap.status === 'gagal');
-    v.lengkapGagal = gagal; v.lengkapBelum = !siap;
-    v.tungguJudul = gagal ? 'Penyusunannya tersendat' : 'Bagian ini sedang disusun';
-    v.tungguTeks = gagal ? 'Ada kendala waktu menyusun bagian ini. Coba susun lagi, atau chat kami kalau masih gagal.'
+    var gagal = !!(s.lengkap && s.lengkap.status === 'gagal'), tertunda = this.analisisTertunda();
+    var percobaan = (s.lengkap && s.lengkap.percobaan) || 0;
+    v.lengkapGagal = gagal && !tertunda; v.lengkapTertunda = tertunda; v.lengkapBelum = !siap; v.lengkapMuter = !tertunda;
+    v.tungguJudul = tertunda ? 'Analisismu belum berhasil disusun' : gagal ? 'Penyusunannya tersendat' : 'Bagian ini sedang disusun';
+    v.tungguTeks = tertunda ? 'Kami sudah mencoba 3 kali tapi masih gagal. Jawaban tesmu tetap tersimpan. Kamu bisa coba lagi tanpa bayar ulang, atau ajukan refund penuh.'
+      : gagal ? 'Ada kendala waktu menyusun bagian ini. Kami coba lagi otomatis (percobaan ' + Math.min(percobaan + 1, 3) + ' dari 3), halaman ini berubah sendiri.'
       : 'Bagian 2–6 sedang kami susun dari CV dan jawabanmu. Biasanya siap dalam beberapa menit, halaman ini ikut berubah sendiri.';
-    v.ulangLengkapKlik = this.aman(async function () { self._mintaLengkap = 0; await window.API.mintaLaporanLengkap(); await self.segarkan(); });
+    v.ulangLengkapKlik = this.aman(function () { return self.cobaLagiAnalisis(); }, 'Menyusun ulang…');
+
+    // ---------------------------------------------------------------- refund
+    var RI = s.refundInfo || {}, SY = RI.syarat || {}, RF = RI.refund || null;
+    var refAktif = RF && (RF.status === 'diajukan' || RF.status === 'diproses');
+    v.bisaRefund = !!SY.boleh; v.adaRefund = !!RF; v.refundAktif = !!refAktif;
+    v.bisaRefundAnalisis = !!SY.boleh && SY.alasan === 'analisis';
+    v.bisaRefundNominal = !!SY.boleh && SY.alasan === 'nominal';
+    v.refundAktifOrderIni = !!(RF && refAktif && p && RF.pesanan_id === p.id);
+    v.tertundaTanpaRefund = tertunda && !v.refundAktifOrderIni;
+    v.nominalMasukTeks = SY.nominal ? U.rp(SY.nominal) : '';
+    v.ajukanRefundKlik = function () { self.bukaRefund(); };
+    v.lihatRefundKlik = function () { self.set({ layar: 'refundStatus' }); };
+    v.keluarRefund = function () { self.keluarRefund(); };
+    // form
+    var F = s.refundForm || { jenis: 'ewallet' };
+    var BANK = ['BCA', 'BRI', 'BNI', 'Mandiri', 'BSI', 'CIMB Niaga', 'Permata', 'Jago', 'SeaBank', 'Lainnya'], EW = ['GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja'];
+    var chip = function (on) { return 'padding: 9px 13px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.5px solid ' + (on ? '#0284C7; background: #E0F2FE; color: #0F172A;' : '#E2E8F0; background: #FFFFFF; color: #475569;'); };
+    v.rfAlasanTeks = SY.alasan === 'nominal' ? 'Nominal transfer tidak sesuai tagihan' : 'Analisis arah karir gagal disusun';
+    v.rfAlasanCatatan = SY.alasan === 'nominal' ? 'Uang yang masuk dikembalikan penuh. Setelah itu kamu bayar ulang dengan nominal yang tertera di halaman pembayaran.'
+      : 'Nominal order dikembalikan penuh. Setelah refund selesai, akses laporan lengkap ditutup.';
+    v.rfNominal = SY.nominal ? U.rp(SY.nominal) : '';
+    v.rfJenisBank = chip(F.jenis === 'bank'); v.rfJenisEw = chip(F.jenis === 'ewallet');
+    v.pilihBankKlik = function () { self.s.refundForm.jenis = 'bank'; self.s.refundForm.nama = ''; self.render(); };
+    v.pilihEwKlik = function () { self.s.refundForm.jenis = 'ewallet'; self.s.refundForm.nama = ''; self.render(); };
+    v.rfNamaList = (F.jenis === 'bank' ? BANK : EW).map(function (n) { return { label: n, st: chip(F.nama === n), pick: function () { self.s.refundForm.nama = n; self.render(); } }; });
+    v.rfNamaLain = F.nama === 'Lainnya'; v.rfNamaLainIsi = F.namaLain || '';
+    v.setRfNamaLain = function (e) { self.s.refundForm.namaLain = e.target.value; };
+    v.rfNomorLabel = F.jenis === 'bank' ? 'Nomor rekening' : 'Nomor HP terdaftar di e-wallet';
+    v.rfNomorPh = F.jenis === 'bank' ? 'mis. 1234567890' : 'mis. 0812 3456 7890';
+    v.rfNomor = F.nomor || ''; v.setRfNomor = function (e) { self.s.refundForm.nomor = e.target.value; };
+    v.rfPemilik = F.pemilik || ''; v.setRfPemilik = function (e) { self.s.refundForm.pemilik = e.target.value; };
+    var cek = function (on) { return 'width: 22px; height: 22px; flex-shrink: 0; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #FFFFFF; ' + (on ? 'background: #0284C7; border: 1.5px solid #0284C7;' : 'background: #FFFFFF; border: 1.5px solid #CBD5E1;'); };
+    v.rfMilikLainSt = cek(F.milikLain); v.rfMilikLainT = F.milikLain ? '✓' : '';
+    v.togelMilikLain = function () { self.s.refundForm.milikLain = !self.s.refundForm.milikLain; self.render(); };
+    v.rfSetujuSt = cek(F.setuju); v.rfSetujuT = F.setuju ? '✓' : '';
+    v.togelSetuju = function () { self.s.refundForm.setuju = !self.s.refundForm.setuju; self.render(); };
+    v.rfSetujuTeks = SY.alasan === 'nominal' ? 'Data tujuan sudah benar, dan aku paham perlu bayar ulang setelah refund selesai.' : 'Data tujuan sudah benar, dan aku paham akses laporan lengkap ditutup setelah refund selesai.';
+    v.kirimRefundKlik = this.aman(function () { return self.kirimRefund(); }, 'Mengirim pengajuan…');
+    // status
+    var STR = { diajukan: ['Diajukan', 'color: #92400E; background: #FEF3C7;'], diproses: ['Diproses', 'color: #075985; background: #E0F2FE;'],
+      selesai: ['Selesai', 'color: #15803D; background: #DCFCE7;'], ditolak: ['Ditolak', 'color: #991B1B; background: #FEE2E2;'] };
+    if (RF) {
+      var w = function (iso) { return iso ? U.tglIndo(iso) + ', ' + U.jamIndo(iso) + ' WIB' : ''; };
+      v.rsKode = RF.kode; v.rsPill = (STR[RF.status] || [RF.status])[0];
+      v.rsPillSt = 'display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; border-radius: 999px; padding: 3px 10px; ' + ((STR[RF.status] || [])[1] || '');
+      v.rsNominal = U.rp(RF.nominal);
+      v.rsAlasan = RF.alasan === 'nominal' ? 'Nominal transfer tidak sesuai tagihan' : 'Analisis arah karir gagal disusun';
+      v.rsTujuan = RF.tujuan_nama + ' •••• ' + (RF.nomor_akhir || '') + ' a.n. ' + RF.tujuan_pemilik;
+      v.rsAktif = !!refAktif; v.rsBatas = w(RF.batas_sla);
+      v.rsSelesai = RF.status === 'selesai'; v.rsDitolak = RF.status === 'ditolak';
+      v.rsAlasanTolak = RF.alasan_tolak || '';
+      v.rsBisaAjukanUlang = RF.status === 'ditolak' && !!SY.boleh;
+      v.rsBayarUlang = RF.status === 'selesai' && RF.alasan === 'nominal';
+      var langkah = [
+        { t: 'Refund diajukan', w: w(RF.diajukan), on: true },
+        { t: 'Sedang diproses tim', w: w(RF.diproses), on: !!RF.diproses || RF.status === 'selesai' },
+        RF.status === 'ditolak' ? { t: 'Ditolak', w: w(RF.ditolak), on: true, merah: true } : { t: 'Dana sudah ditransfer', w: RF.tanggal_transfer ? U.tglIndo(RF.tanggal_transfer) : '', on: RF.status === 'selesai' }
+      ];
+      v.rsLangkah = langkah.map(function (l) {
+        return { t: l.t, w: l.w || (l.on ? '' : 'Menunggu'), dotSt: 'width: 14px; height: 14px; border-radius: 999px; flex-shrink: 0; margin-top: 3px; ' + (l.merah ? 'background: #DC2626;' : l.on ? 'background: #0284C7;' : 'background: #FFFFFF; border: 2px solid #CBD5E1;') };
+      });
+      v.lihatBuktiRefundKlik = this.aman(function () { return self.lihatBuktiRefund(); });
+      v.bayarUlangKlik = function () { self.keBayar(); };
+      v.refundBanner = 'Refund ' + RF.kode + ': ' + v.rsPill.toLowerCase();
+    }
     var aktB = akt || D.BAGIAN[0];
     v.bagNama = aktB.nama; v.bagSub = aktB.sub;
     v.judulBagian = akt ? akt.nama : 'Daftar isi';

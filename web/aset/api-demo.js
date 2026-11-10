@@ -110,9 +110,32 @@
       return db.pesanan;
     },
     async kirimMasukan() { await tunda(300); },
+    // ---- refund (meniru syarat_refund / ajukan_refund di server)
+    async infoRefund() { await tunda(100); return { syarat: syaratDemo(), refund: db.refund ? Object.assign({}, db.refund) : null }; },
+    async ajukanRefund(d) {
+      await tunda(600);
+      var sy = syaratDemo();
+      if (!sy.boleh) throw new Error('Order ini tidak memenuhi syarat refund');
+      var ke = db.refund && db.refund.pesanan_id === sy.pesanan_id ? (db.refund.ke || 1) + 1 : 1;
+      db.refund = { id: 'rf-' + Date.now(), ke: ke, kode: 'RF-' + sy.kode_order + (ke > 1 ? '-' + ke : ''), pesanan_id: sy.pesanan_id, alasan: sy.alasan,
+        nominal: sy.nominal, status: 'diajukan', tujuan_jenis: d.jenis, tujuan_nama: d.nama, nomor_akhir: String(d.nomor).slice(-4), tujuan_pemilik: d.pemilik,
+        milik_lain: !!d.milik_lain, diajukan: new Date().toISOString(), batas_sla: new Date(Date.now() + 864e5).toISOString() };
+      return { id: db.refund.id, kode: db.refund.kode, status: 'diajukan', batas_sla: db.refund.batas_sla };
+    },
+    async cobaLagiAnalisis() { await tunda(300); if (db.lengkap) { db.lengkap.percobaan = 0; db.lengkap.status = 'gagal'; } },
     pantau(cb) { pendengar.push(cb); return function () { pendengar = pendengar.filter(function (x) { return x !== cb; }); }; },
     async urlBerkas() { return '#'; }
   };
+
+  function syaratDemo() {
+    var p = db.pesanan, l = db.lengkap, aktif = db.refund && p && db.refund.pesanan_id === p.id && db.refund.status !== 'ditolak';
+    if (!p || aktif) return { boleh: false };
+    if (p.status === 'tolak' && /^Nominal tidak sesuai/i.test(p.alasan || '') && p.nominal_bukti > 0)
+      return { boleh: true, alasan: 'nominal', nominal: p.nominal_bukti, pesanan_id: p.id, kode_order: p.kode };
+    if (p.status === 'ok' && l && (l.percobaan || 0) >= 3 && l.status === 'gagal')
+      return { boleh: true, alasan: 'analisis', nominal: p.nominal, pesanan_id: p.id, kode_order: p.kode };
+    return { boleh: false };
+  }
 
   // Sama seperti server: label kelompok arah mengikuti jenis pertanyaan target.
   function lengkapDemo() {
@@ -131,6 +154,13 @@
       setTimeout(function () { db.lengkap = { status: 'siap', bagian: lengkapDemo() }; beri('laporan_lengkap'); }, 4000); },
     kedaluwarsa: function () { if (db.pesanan) { db.pesanan.kedaluwarsa = new Date(Date.now() - 1000).toISOString(); db.pesanan.status = 'kedaluwarsa'; beri('pesanan'); } },
     tolak: function (a) { db.pesanan.status = 'tolak'; db.pesanan.alasan = a || 'Nominal di bukti bayar belum sama dengan total pesanan.'; beri('pesanan'); },
+    // Refund: DEMO.tolakNominal(149000) lalu ajukan dari layar ditolak; DEMO.gagalAnalisis() untuk status Tertunda
+    tolakNominal: function (n) { db.pesanan.status = 'tolak'; db.pesanan.alasan = 'Nominal tidak sesuai tagihan'; db.pesanan.nominal_bukti = n || (db.pesanan.nominal - 1000); beri('pesanan'); },
+    gagalAnalisis: function () { db.lengkap = { status: 'gagal', percobaan: 3, bagian: {}, diubah: new Date().toISOString() }; beri('laporan_lengkap'); },
+    prosesRefund: function () { Object.assign(db.refund, { status: 'diproses', diproses: new Date().toISOString() }); beri('refund'); },
+    selesaiRefund: function () { Object.assign(db.refund, { status: 'selesai', selesai: new Date().toISOString(), tanggal_transfer: new Date().toISOString().slice(0, 10), bukti_path: 'demo/bukti.pdf' });
+      db.pesanan.status = 'direfund'; beri('refund'); },
+    tolakRefund: function (a) { Object.assign(db.refund, { status: 'ditolak', ditolak: new Date().toISOString(), alasan_tolak: a || 'Nama pemilik rekening tidak sesuai' }); beri('refund'); },
     db: db
   };
   window.API = API;

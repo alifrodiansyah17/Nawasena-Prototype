@@ -232,3 +232,47 @@ update public.peran set izin = izin || '{"refund":["r","c","u","d"]}'::jsonb whe
 update public.peran set izin = izin || '{"refund":["r","u"]}'::jsonb where nama = 'Finance' and not (izin ? 'refund');
 update public.peran set izin = izin || '{"refund":["r"]}'::jsonb where nama = 'Operation' and not (izin ? 'refund');
 alter table public.peran enable trigger jaga_peran;
+
+-- Tertunda juga mencakup percobaan ke-3 yang macet (status proses tanpa kemajuan > 15 menit)
+create or replace function public.analisis_tertunda(l public.laporan_lengkap) returns boolean
+language sql stable as $$
+  select l.percobaan >= 3 and (l.status = 'gagal' or (l.status = 'proses' and l.diubah < now() - interval '15 minutes'))
+$$;
+
+create or replace function public.coba_lagi_analisis() returns json
+language plpgsql security definer set search_path = public as $$
+declare l public.laporan_lengkap;
+begin
+  if auth.uid() is null then raise exception 'Harus masuk dulu'; end if;
+  if not public.sudah_lunas(auth.uid()) then raise exception 'Pembayaran belum dikonfirmasi'; end if;
+  select * into l from public.laporan_lengkap where user_id = auth.uid();
+  if not found or not public.analisis_tertunda(l) then return json_build_object('ok', false, 'alasan', 'Analisis tidak sedang tertunda'); end if;
+  update public.laporan_lengkap set percobaan = 0, status = 'gagal', galat = null, diubah = now() where user_id = auth.uid();
+  return json_build_object('ok', true);
+end $$;
+
+create or replace function public.syarat_refund(p_user uuid) returns json
+language plpgsql stable security definer set search_path = public as $$
+declare o public.pesanan; l public.laporan_lengkap;
+begin
+  select * into o from public.pesanan where user_id = p_user order by dibuat desc limit 1;
+  if not found then return json_build_object('boleh', false); end if;
+  if exists(select 1 from public.refund where pesanan_id = o.id and status in ('diajukan', 'diproses', 'selesai')) then
+    return json_build_object('boleh', false, 'alasan_tidak', 'Refund untuk order ini sudah diajukan');
+  end if;
+  if o.status = 'tolak' and o.alasan ilike 'Nominal tidak sesuai%' and coalesce(o.nominal_bukti, 0) > 0 then
+    return json_build_object('boleh', true, 'alasan', 'nominal', 'nominal', o.nominal_bukti, 'pesanan_id', o.id, 'kode_order', o.kode);
+  end if;
+  if o.status = 'ok' then
+    select * into l from public.laporan_lengkap where user_id = p_user;
+    if found and public.analisis_tertunda(l) then
+      return json_build_object('boleh', true, 'alasan', 'analisis', 'nominal', o.nominal, 'pesanan_id', o.id, 'kode_order', o.kode);
+    end if;
+  end if;
+  return json_build_object('boleh', false);
+end $$;
+revoke all on function public.syarat_refund(uuid) from public, anon, authenticated;
+grant execute on function public.syarat_refund(uuid) to service_role;
+
+-- Status refund ikut realtime supaya layar status di aplikasi berubah sendiri
+alter publication supabase_realtime add table public.refund;

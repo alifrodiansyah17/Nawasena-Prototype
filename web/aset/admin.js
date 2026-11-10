@@ -1,19 +1,20 @@
 /* Backoffice Nawasena: login admin + RBAC (menu sesuai role), sesi maks. 24 jam, Authorize order.
- * Modul lain menempel ke window.BO: admin-voucher.js, admin-keuangan.js, admin-amb.js, admin-akun.js, admin-audit.js. */
+ * Modul lain menempel ke window.BO: admin-refund.js, admin-voucher.js, admin-keuangan.js, admin-amb.js, admin-akun.js, admin-audit.js. */
 (function () {
   'use strict';
   var C = window.NAWASENA_CONFIG;
   var BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   var ALASAN = ['Nominal tidak sesuai tagihan', 'Bukti tidak terbaca', 'Dana belum masuk ke rekening', 'Bukti untuk pesanan lain'];
-  var LBL = { belum_bayar: 'Belum bayar', menunggu: 'Menunggu', ok: 'Terkonfirmasi', tolak: 'Ditolak', kedaluwarsa: 'Kedaluwarsa' };
+  var LBL = { belum_bayar: 'Belum bayar', menunggu: 'Menunggu', ok: 'Terkonfirmasi', tolak: 'Ditolak', kedaluwarsa: 'Kedaluwarsa', direfund: 'Direfund' };
   var PST = { belum_bayar: 'color: #075985; background: #E0F2FE;', menunggu: 'color: #0F172A; background: #FEF9C3;', ok: 'color: #15803D; background: #DCFCE7;',
-    tolak: 'color: #991B1B; background: #FEE2E2;', kedaluwarsa: 'color: #475569; background: #F1F5F9;' };
+    tolak: 'color: #991B1B; background: #FEE2E2;', kedaluwarsa: 'color: #475569; background: #F1F5F9;', direfund: 'color: #6B21A8; background: #F3E8FF;' };
   var pillBase = 'justify-self: start; display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; border-radius: 999px; padding: 4px 10px; white-space: nowrap; ';
   var baruOn = 'font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #FFFFFF; background: #0284C7; border-radius: 999px; padding: 2px 7px; flex-shrink: 0;';
   var SESI_MS = 24 * 3600 * 1000;
   // Menu backoffice (urutan tampil) → kunci izin di role
   var MENU = [
     { id: 'order', label: 'Authorize order', ikon: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18"/>' },
+    { id: 'refund', label: 'Refund', ikon: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 8v8M9.5 10.5c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7-1.1 1.5-2.5 1.5-2.5.6-2.5 1.6 1.1 1.7 2.5 1.7 2.5-.7 2.5-1.7"/>' },
     { id: 'voucher', label: 'Voucher', ikon: '<path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/>' },
     { id: 'keuangan', label: 'Laporan keuangan', ikon: '<path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/>' },
     { id: 'ambassador', label: 'Ambassador', ikon: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 14.6c1.8.8 2.8 2.6 3 5.4"/>' },
@@ -118,6 +119,7 @@
       if (!this.boleh(id)) return;
       this.set({ view: id });
       if (id === 'order') await this.muat();
+      if (id === 'refund' && this.muatRefund) await this.muatRefund();
       if (id === 'voucher' && this.muatVoucher) await this.muatVoucher();
       if (id === 'keuangan' && this.muatKeu) await this.muatKeu();
       if (id === 'ambassador' && this.muatAmb) await this.muatAmb();
@@ -177,7 +179,7 @@
       var r = await sb.storage.from('kwitansi').createSignedUrl(d.kwitansi_path, 900);
       if (!r.error) { this.s.kwitansiUrl[d.id] = r.data.signedUrl; this.set({}); }
     },
-    aksi: async function (aksi, alasan) {
+    aksi: async function (aksi, alasan, nominalBukti) {
       var d = this.cari(this.s.pilih); if (!d) return;
       var kw = this.s.kwitansi[d.id];
       if ((aksi === 'ok' || aksi === 'kwitansi') && !kw) { toast('Unggah receipt pembayaran dulu. Receipt wajib sebelum konfirmasi.'); return; }
@@ -186,7 +188,7 @@
         var s = (await sb.auth.getSession()).data.session;
         var res = await fetch(C.SUPABASE_URL + '/functions/v1/konfirmasi', {
           method: 'POST', headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + s.access_token },
-          body: JSON.stringify({ pesanan_id: d.id, aksi: aksi, alasan: alasan, kwitansi: kw ? { nama: kw.nama, tipe: kw.tipe, data: kw.data } : undefined })
+          body: JSON.stringify({ pesanan_id: d.id, aksi: aksi, alasan: alasan, nominal_bukti: nominalBukti || undefined, kwitansi: kw ? { nama: kw.nama, tipe: kw.tipe, data: kw.data } : undefined })
         });
         var j = await res.json().catch(function () { return {}; });
         if (!res.ok) throw new Error(j.galat || ('Gagal (' + res.status + ')'));
@@ -195,7 +197,7 @@
         toast(aksi === 'ok' ? 'Pembayaran dikonfirmasi dan receipt dikirim ke email pengguna.' + surel
           : aksi === 'kwitansi' ? 'Receipt tersimpan dan dikirim ke email pengguna.' + surel
           : (aksi === 'tolak' ? 'Penolakan terkirim ke pengguna.' : 'Dikembalikan ke Menunggu.'), !surel);
-        this.s.tolakBuka = false; this.s.alasan = -1;
+        this.s.tolakBuka = false; this.s.alasan = -1; this.s.nominalMasuk = '';
         await this.muat();
       } catch (e) { toast(e.message); }
       finally { sibuk(false); }
@@ -230,8 +232,10 @@
           st: 'display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 11px; font-size: 14px; font-weight: 600; cursor: pointer; ' + (on ? 'background: #38BDF8; color: #0F172A;' : 'color: #FFFFFF;') };
       });
       v.viewOrder = s.view === 'order'; v.viewVoucher = s.view === 'voucher'; v.viewKeu = s.view === 'keuangan';
+      v.viewRefund = s.view === 'refund';
       v.viewAmb = s.view === 'ambassador'; v.viewAkun = s.view === 'akun'; v.viewAudit = s.view === 'audit';
       v.keViewOrder = function () { self.keView('order'); };
+      if (v.viewRefund && self.valsRefund) self.valsRefund(v);
       if (v.viewAmb && self.valsAmb) self.valsAmb(v);
       if (v.viewVoucher && self.valsVoucher) self.valsVoucher(v);
       if (v.viewKeu && self.valsKeu) self.valsKeu(v);
@@ -245,7 +249,7 @@
       var self = this, s = this.s;
       var bisaUbah = this.boleh('order', 'u');
       var semua = s.rows, hariIni = kunciHari(new Date().toISOString()), kini = Date.now();
-      var hit = { menunggu: 0, belum_bayar: 0, ok: 0, tolak: 0, kedaluwarsa: 0, semua: semua.length }, okHari = 0, uHari = 0, expHari = 0, palingLama = null;
+      var hit = { menunggu: 0, belum_bayar: 0, ok: 0, tolak: 0, kedaluwarsa: 0, direfund: 0, semua: semua.length }, okHari = 0, uHari = 0, expHari = 0, palingLama = null;
       semua.forEach(function (r) {
         hit[r.status] = (hit[r.status] || 0) + 1;
         if (r.status === 'ok' && r.dicek && kunciHari(r.dicek) === hariIni) { okHari++; uHari += r.nominal; }
@@ -255,7 +259,7 @@
       v.nMenunggu = String(hit.menunggu); v.nOkHari = String(okHari); v.uangHari = rp(uHari);
       v.nBelumBayar = String(hit.belum_bayar); v.nExpHari = String(expHari);
       v.lamaTeks = palingLama ? 'Paling lama masuk ' + tgl(palingLama) + ', ' + jam(palingLama) : 'Semua sudah dicek';
-      v.tabs = [['menunggu', 'Menunggu dicek'], ['belum_bayar', 'Belum bayar'], ['ok', 'Terkonfirmasi'], ['tolak', 'Ditolak'], ['kedaluwarsa', 'Kedaluwarsa'], ['semua', 'Semua']].map(function (t) {
+      v.tabs = [['menunggu', 'Menunggu dicek'], ['belum_bayar', 'Belum bayar'], ['ok', 'Terkonfirmasi'], ['tolak', 'Ditolak'], ['kedaluwarsa', 'Kedaluwarsa'], ['direfund', 'Direfund'], ['semua', 'Semua']].map(function (t) {
         var on = s.filter === t[0];
         return { label: t[1], n: String(hit[t[0]] || 0), pick: function () { self.set({ filter: t[0] }); },
           st: 'height: 34px; padding: 0 11px; border-radius: 10px; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; ' + (on ? 'background: #38BDF8; color: #0F172A;' : 'background: transparent; color: #64748B;'),
@@ -300,7 +304,8 @@
       v.bukaBukti = function () { if (v.dBuktiUrl) window.open(v.dBuktiUrl, '_blank'); else toast('Bukti belum termuat'); };
       v.dPill = LBL[st] || st; v.dPillSt = pillBase + (PST[st] || '');
       v.dMenunggu = st === 'menunggu' && !!d.id && bisaUbah; v.dMenungguLihat = st === 'menunggu' && !!d.id && !bisaUbah;
-      v.dOk = st === 'ok'; v.dTolak = st === 'tolak'; v.dBelumBayar = st === 'belum_bayar' && !!d.id; v.dKedaluwarsa = st === 'kedaluwarsa';
+      v.dOk = st === 'ok'; v.dTolak = st === 'tolak'; v.dDirefund = st === 'direfund';
+      v.dNominalBukti = d.nominal_bukti ? rp(d.nominal_bukti) : ''; v.dBelumBayar = st === 'belum_bayar' && !!d.id; v.dKedaluwarsa = st === 'kedaluwarsa';
       v.dOleh = (s.admins[d.dicek_oleh] || 'admin') + (d.dicek ? ' · ' + tgl(d.dicek) + ', ' + jam(d.dicek) : '');
       v.dAlasan = d.alasan || '';
       // Batalkan hanya keputusan sendiri, paling lama 15 menit (server juga menolak di luar itu).
@@ -325,14 +330,26 @@
       };
       v.bukaTolak = function () { self.set({ tolakBuka: true, alasan: -1 }); };
       v.tutupTolak = function () { self.set({ tolakBuka: false, alasan: -1 }); };
-      v.kirimTolak = function () { if (s.alasan >= 0) self.aksi('tolak', ALASAN[s.alasan]); };
+      // "Nominal tidak sesuai tagihan" wajib mengisi nominal yang benar-benar masuk: itu yang nanti direfund penuh ke pengguna.
+      v.perluNominal = s.alasan === 0;
+      v.nominalMasuk = s.nominalMasuk || ''; v.setNominalMasuk = function (e) { self.s.nominalMasuk = e.target.value; };
+      v.kirimTolak = function () {
+        if (s.alasan < 0) return;
+        var nb = null;
+        if (s.alasan === 0) {
+          nb = Number(String(s.nominalMasuk || '').replace(/\D/g, ''));
+          if (!nb) { toast('Isi nominal yang masuk di mutasi. Nominal ini yang direfund penuh ke pengguna.'); return; }
+          if (nb === d.nominal) { toast('Nominal yang masuk sama dengan tagihan. Kalau sudah sesuai, konfirmasi saja.'); return; }
+        }
+        self.aksi('tolak', ALASAN[s.alasan], nb);
+      };
       v.alasanList = ALASAN.map(function (a, i) {
         var on = s.alasan === i;
         return { label: a, pick: function () { self.set({ alasan: i }); },
           st: 'padding: 7px 11px; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid ' + (on ? '#0284C7; background: #FEF9C3; color: #0F172A;' : '#E2E8F0; background: #FFFFFF; color: #64748B;') };
       });
       v.kirimTolakSt = 'height: 42px; padding: 0 16px; border-radius: 12px; display: flex; align-items: center; font-size: 14px; font-weight: 700; '
-        + (s.alasan >= 0 ? 'background: #0284C7; color: #FFFFFF; cursor: pointer;' : 'background: #E2E8F0; color: #64748B; cursor: not-allowed;');
+        + (s.alasan >= 0 && (s.alasan !== 0 || String(s.nominalMasuk || '').replace(/\D/g, '')) ? 'background: #0284C7; color: #FFFFFF; cursor: pointer;' : 'background: #E2E8F0; color: #64748B; cursor: not-allowed;');
       // riwayat status order
       var JENIS = { user: 'Pengguna', admin: 'Admin', sistem: 'Sistem' };
       v.dRiwayat = (s.riwayat[d.id] || []).map(function (h) {
