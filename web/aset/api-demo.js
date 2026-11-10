@@ -118,7 +118,7 @@
       if (!sy.boleh) throw new Error('Order ini tidak memenuhi syarat refund');
       var ke = db.refund && db.refund.pesanan_id === sy.pesanan_id ? (db.refund.ke || 1) + 1 : 1;
       db.refund = { id: 'rf-' + Date.now(), ke: ke, kode: 'RF-' + sy.kode_order + (ke > 1 ? '-' + ke : ''), pesanan_id: sy.pesanan_id, alasan: sy.alasan,
-        nominal: sy.nominal, status: 'diajukan', tujuan_jenis: d.jenis, tujuan_nama: d.nama, nomor_akhir: String(d.nomor).slice(-4), tujuan_pemilik: d.pemilik,
+        nominal: sy.nominal, status: 'diajukan', tujuan_jenis: d.jenis, tujuan_nama: d.nama, nomor_akhir: String(d.nomor).slice(-4), tujuan_nomor: String(d.nomor), tujuan_pemilik: d.pemilik,
         milik_lain: !!d.milik_lain, diajukan: new Date().toISOString(), batas_sla: new Date(Date.now() + 864e5).toISOString() };
       return { id: db.refund.id, kode: db.refund.kode, status: 'diajukan', batas_sla: db.refund.batas_sla };
     },
