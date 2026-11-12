@@ -460,13 +460,11 @@
     v.keFaq = function () { self.bukaFaq(); };
     v.keluarFaq = function () { self.keluarFaq(); };
     var FAQ = [
-      ['Berapa lama pembayaranku dicek?', 'Maksimal 1×24 jam kalender sejak bukti bayar diunggah. Tim mengecek setiap hari ' + v.jamOps + '. Bukti yang masuk setelah ' + jj(tutup) + ' WIB dicek mulai ' + jj(buka) + ' WIB keesokan paginya.'],
-      ['Kenapa pembayarannya dicek manual?', 'Nawasena belum memakai payment gateway, jadi pembayaran QRIS dicocokkan manual oleh tim dengan mutasi. Refund juga ditransfer manual oleh tim.'],
+      ['Berapa lama pembayaranku dicek?', 'Maksimal 1×24 jam kalender sejak bukti bayar diunggah. Tim mengecek setiap hari ' + v.jamOps + ', termasuk akhir pekan dan libur nasional. Bukti yang masuk setelah ' + jj(tutup) + ' WIB dicek mulai ' + jj(buka) + ' WIB keesokan paginya.'],
       ['Kenapa nominalnya ada angka unik di belakang?', 'Tiga digit terakhir adalah kode unik order kamu. Dengan itu tim bisa mencocokkan pembayaranmu dengan cepat, jadi transfer persis sampai digit terakhir.'],
-      ['Aku transfer lebih atau kurang dari tagihan. Gimana?', 'Karena transfer antar bank minimal Rp10.000, selisihnya tidak bisa ditambah atau dikembalikan sebagian. Tim akan menolak bukti bayarmu, lalu kamu bisa: (1) ajukan refund untuk uang yang sudah masuk, dikembalikan penuh, dan (2) bayar ulang persis sesuai tagihan lalu unggah buktinya. Keduanya bisa dilakukan bersamaan.'],
+      ['Aku transfer lebih atau kurang dari tagihan. Gimana?', 'Tim akan menolak bukti bayarmu, lalu kamu bisa: (1) ajukan refund untuk uang yang sudah masuk, dikembalikan penuh, dan (2) bayar ulang persis sesuai tagihan lalu unggah buktinya. Keduanya bisa dilakukan bersamaan.'],
       ['Kapan aku bisa minta refund?', 'Refund berlaku untuk dua kondisi: nominal transfer tidak sesuai tagihan (kelebihan atau kekurangan bayar), dan analisis arah karir lengkap gagal disusun setelah 3 kali dicoba otomatis.'],
-      ['Berapa lama refund diproses?', 'Maksimal 1×24 jam kalender sejak pengajuan, mengikuti jam operasional ' + v.jamOps + '. Pengajuan setelah ' + jj(tutup) + ' WIB diproses mulai ' + jj(buka) + ' WIB. Kamu dapat email beserta bukti transfernya begitu dana dikirim.'],
-      ['Apakah ada potongan biaya refund?', 'Tidak. Refund selalu penuh sesuai uang yang masuk, dan biaya admin transfer ditanggung Nawasena.'],
+      ['Berapa lama refund diproses?', 'Maksimal 1×24 jam kalender sejak pengajuan, mengikuti jam operasional ' + v.jamOps + ' (termasuk akhir pekan dan libur nasional). Pengajuan setelah ' + jj(tutup) + ' WIB diproses mulai ' + jj(buka) + ' WIB. Kamu dapat email beserta bukti transfernya begitu dana dikirim.'],
       ['Analisis lengkapku gagal disusun. Apa pilihanku?', 'Sistem mencoba otomatis sampai 3 kali. Kalau masih gagal, kamu bisa pilih "Coba lagi" tanpa bayar ulang, atau ajukan refund penuh. Setelah refund selesai, akses laporan lengkap ditutup.'],
       ['Data rekening refund-ku salah. Gimana?', 'Tim akan menolak pengajuan dengan alasannya. Perbaiki datanya lalu ajukan ulang dari aplikasi. Waktu proses 1×24 jam dihitung lagi sejak pengajuan baru.']
     ];
