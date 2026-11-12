@@ -4,7 +4,7 @@
   var App = window.App, C = window.NAWASENA_CONFIG, D = window.DATA, U = window.NawasenaUtil;
   var ITEMS = D.ITEMS, SKALA4 = ['Bukan aku', 'Aku banget'];
   var LAYAR = ['muat', 'landing', 'masuk', 'masukKode', 'daftar', 'cekcv', 'unggah', 'lampiran', 'susun', 'previewcv',
-    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus'];
+    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus', 'faq'];
 
   function lengkapContoh(s) { var b = s.lengkap && s.lengkap.bagian; return !!(b && b.rencana && b.rencana.contoh); }
 
@@ -433,6 +433,47 @@
     v.refundAktifOrderIni = !!(RF && refAktif && p && RF.pesanan_id === p.id);
     v.tertundaTanpaRefund = tertunda && !v.refundAktifOrderIni;
     v.nominalMasukTeks = SY.nominal ? U.rp(SY.nominal) : '';
+    v.nominalJenisTeks = SY.jenis === 'lebih' ? 'lebih besar' : 'kurang';
+    v.tagihanTeks = p && p.nominal ? U.rp(p.nominal) : '';
+    var tolakNominal = !!(p && p.status === 'tolak' && /^Nominal tidak sesuai/i.test(p.alasan || ''));
+    v.unggahUlangLabel = tolakNominal ? 'Bayar ulang ' + (p.nominal ? U.rp(p.nominal) : '') : 'Kirim ulang bukti bayar';
+    // banner refund: dana salah transfer yang belum diajukan, atau refund yang sedang berjalan
+    var bisaNom = !!SY.boleh && SY.alasan === 'nominal';
+    if (bisaNom && s.layar !== 'ditolak') {
+      v.rfBannerAda = true; v.rfBannerTombol = 'Ajukan refund'; v.rfBannerKlik = function () { self.bukaRefund(); };
+      v.rfBannerTeks = 'Ada dana ' + U.rp(SY.nominal) + ' dari transfer yang tidak sesuai tagihan. Ajukan refund supaya dikembalikan penuh.';
+    } else if (RF && (refAktif || s.layar === 'hasil')) {
+      v.rfBannerAda = true; v.rfBannerTombol = 'Lihat detail'; v.rfBannerKlik = function () { self.set({ layar: 'refundStatus' }); };
+      v.rfBannerTeks = 'Refund ' + RF.kode + ': ' + ((({ diajukan: 'diajukan', diproses: 'diproses', selesai: 'selesai', ditolak: 'ditolak' })[RF.status]) || RF.status);
+    } else v.rfBannerAda = false;
+    // jam operasional (WIB) & FAQ
+    var buka = C.JAM_BUKA || 9, tutup = C.JAM_TUTUP || 22, jamWib = (new Date().getUTCHours() + 7) % 24;
+    var jj = function (h) { return String(h).padStart(2, '0') + '.00'; };
+    var luarJam = jamWib >= tutup || jamWib < buka;
+    v.jamOps = jj(buka) + '–' + jj(tutup) + ' WIB'; v.jamBukaTeks = jj(buka) + ' WIB'; v.jamTutupTeks = jj(tutup) + ' WIB';
+    v.luarJam = luarJam;
+    v.jamOpsCatatan = 'Sekarang di luar jam operasional (' + v.jamOps + '), jadi diproses mulai ' + jj(buka) + ' WIB.';
+    v.janjiCekStatus = luarJam ? 'Sekarang di luar jam operasional. Dicek mulai ' + jj(buka) + ' WIB, maksimal 1×24 jam.' : 'Maksimal 1×24 jam, setiap hari ' + v.jamOps + '.';
+    v.jamOpsKotak = luarJam ? 'Sekarang di luar jam operasional. Bukti bayar dan pengajuan refund yang masuk sekarang diproses mulai ' + jj(buka) + ' WIB.'
+      : 'Tim sedang beroperasi sampai ' + jj(tutup) + ' WIB. Yang masuk setelah itu diproses mulai ' + jj(buka) + ' WIB keesokan paginya.';
+    v.jamOpsKotakSt = 'border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.55; ' + (luarJam ? 'background: #FEF3C7; color: #92400E;' : 'background: #F0F9FF; color: #075985;');
+    v.keFaq = function () { self.bukaFaq(); };
+    v.keluarFaq = function () { self.keluarFaq(); };
+    var FAQ = [
+      ['Berapa lama pembayaranku dicek?', 'Maksimal 1×24 jam kalender sejak bukti bayar diunggah. Tim mengecek setiap hari ' + v.jamOps + '. Bukti yang masuk setelah ' + jj(tutup) + ' WIB dicek mulai ' + jj(buka) + ' WIB keesokan paginya.'],
+      ['Kenapa pembayarannya dicek manual?', 'Nawasena belum memakai payment gateway, jadi pembayaran QRIS dicocokkan manual oleh tim dengan mutasi. Refund juga ditransfer manual oleh tim.'],
+      ['Kenapa nominalnya ada angka unik di belakang?', 'Tiga digit terakhir adalah kode unik order kamu. Dengan itu tim bisa mencocokkan pembayaranmu dengan cepat, jadi transfer persis sampai digit terakhir.'],
+      ['Aku transfer lebih atau kurang dari tagihan. Gimana?', 'Karena transfer antar bank minimal Rp10.000, selisihnya tidak bisa ditambah atau dikembalikan sebagian. Tim akan menolak bukti bayarmu, lalu kamu bisa: (1) ajukan refund untuk uang yang sudah masuk, dikembalikan penuh, dan (2) bayar ulang persis sesuai tagihan lalu unggah buktinya. Keduanya bisa dilakukan bersamaan.'],
+      ['Kapan aku bisa minta refund?', 'Refund berlaku untuk dua kondisi: nominal transfer tidak sesuai tagihan (kelebihan atau kekurangan bayar), dan analisis arah karir lengkap gagal disusun setelah 3 kali dicoba otomatis.'],
+      ['Berapa lama refund diproses?', 'Maksimal 1×24 jam kalender sejak pengajuan, mengikuti jam operasional ' + v.jamOps + '. Pengajuan setelah ' + jj(tutup) + ' WIB diproses mulai ' + jj(buka) + ' WIB. Kamu dapat email beserta bukti transfernya begitu dana dikirim.'],
+      ['Apakah ada potongan biaya refund?', 'Tidak. Refund selalu penuh sesuai uang yang masuk, dan biaya admin transfer ditanggung Nawasena.'],
+      ['Analisis lengkapku gagal disusun. Apa pilihanku?', 'Sistem mencoba otomatis sampai 3 kali. Kalau masih gagal, kamu bisa pilih "Coba lagi" tanpa bayar ulang, atau ajukan refund penuh. Setelah refund selesai, akses laporan lengkap ditutup.'],
+      ['Data rekening refund-ku salah. Gimana?', 'Tim akan menolak pengajuan dengan alasannya. Perbaiki datanya lalu ajukan ulang dari aplikasi. Waktu proses 1×24 jam dihitung lagi sejak pengajuan baru.']
+    ];
+    v.faqList = FAQ.map(function (f, i) {
+      var on = s.faqBuka === i;
+      return { q: f[0], a: f[1], buka: on, ikon: on ? '−' : '+', pick: function () { self.set({ faqBuka: on ? -1 : i }); } };
+    });
     v.ajukanRefundKlik = function () { self.bukaRefund(); };
     v.lihatRefundKlik = function () { self.set({ layar: 'refundStatus' }); };
     v.keluarRefund = function () { self.keluarRefund(); };
@@ -440,8 +481,8 @@
     var F = s.refundForm || { jenis: 'ewallet' };
     var BANK = ['BCA', 'BRI', 'BNI', 'Mandiri', 'BSI', 'CIMB Niaga', 'Permata', 'Jago', 'SeaBank', 'Lainnya'], EW = ['GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja'];
     var chip = function (on) { return 'padding: 9px 13px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1.5px solid ' + (on ? '#0284C7; background: #E0F2FE; color: #0F172A;' : '#E2E8F0; background: #FFFFFF; color: #475569;'); };
-    v.rfAlasanTeks = SY.alasan === 'nominal' ? 'Nominal transfer tidak sesuai tagihan' : 'Analisis arah karir gagal disusun';
-    v.rfAlasanCatatan = SY.alasan === 'nominal' ? 'Uang yang masuk dikembalikan penuh. Setelah itu kamu bayar ulang dengan nominal yang tertera di halaman pembayaran.'
+    v.rfAlasanTeks = SY.alasan === 'nominal' ? (SY.jenis === 'lebih' ? 'Kelebihan bayar' : 'Kekurangan bayar') : 'Analisis arah karir gagal disusun';
+    v.rfAlasanCatatan = SY.alasan === 'nominal' ? 'Uang yang masuk dikembalikan penuh. Bayar ulang sesuai tagihan bisa langsung kamu lakukan, tidak perlu menunggu refund selesai.'
       : 'Nominal order dikembalikan penuh. Setelah refund selesai, akses laporan lengkap ditutup.';
     v.rfNominal = SY.nominal ? U.rp(SY.nominal) : '';
     v.rfJenisBank = chip(F.jenis === 'bank'); v.rfJenisEw = chip(F.jenis === 'ewallet');
@@ -459,7 +500,7 @@
     v.togelMilikLain = function () { self.s.refundForm.milikLain = !self.s.refundForm.milikLain; self.render(); };
     v.rfSetujuSt = cek(F.setuju); v.rfSetujuT = F.setuju ? '✓' : '';
     v.togelSetuju = function () { self.s.refundForm.setuju = !self.s.refundForm.setuju; self.render(); };
-    v.rfSetujuTeks = SY.alasan === 'nominal' ? 'Data tujuan sudah benar, dan aku paham perlu bayar ulang setelah refund selesai.' : 'Data tujuan sudah benar, dan aku paham akses laporan lengkap ditutup setelah refund selesai.';
+    v.rfSetujuTeks = SY.alasan === 'nominal' ? 'Data tujuan sudah benar, dan aku paham tetap perlu bayar ulang sesuai tagihan.' : 'Data tujuan sudah benar, dan aku paham akses laporan lengkap ditutup setelah refund selesai.';
     v.kirimRefundKlik = this.aman(function () { return self.kirimRefund(); }, 'Mengirim pengajuan…');
     // status
     var STR = { diajukan: ['Diajukan', 'color: #92400E; background: #FEF3C7;'], diproses: ['Diproses', 'color: #075985; background: #E0F2FE;'],
@@ -475,7 +516,7 @@
       v.rsSelesai = RF.status === 'selesai'; v.rsDitolak = RF.status === 'ditolak';
       v.rsAlasanTolak = RF.alasan_tolak || '';
       v.rsBisaAjukanUlang = RF.status === 'ditolak' && !!SY.boleh;
-      v.rsBayarUlang = RF.status === 'selesai' && RF.alasan === 'nominal';
+      v.rsBayarUlang = RF.alasan === 'nominal' && !!p && p.status === 'tolak';
       var langkah = [
         { t: 'Refund diajukan', w: w(RF.diajukan), on: true },
         { t: 'Sedang diproses tim', w: w(RF.diproses), on: !!RF.diproses || RF.status === 'selesai' },

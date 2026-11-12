@@ -22,7 +22,7 @@
 
   Object.assign(BO, {
     muatRefund: async function () {
-      var r = await sb.from('refund').select('*, profil(nama, email, hp), pesanan(kode, nominal, status, metode, nominal_bukti)').order('diajukan', { ascending: false }).limit(2000);
+      var r = await sb.from('refund').select('*, profil(nama, email, hp), pesanan(kode, nominal, status, metode, nominal_bukti), transfer_salah(nominal, tagihan)').order('diajukan', { ascending: false }).limit(2000);
       if (r.error) { toast(r.error.message); return; }
       var rows = r.data || [], self = this;
       if (!this.s.rfPilih || !rows.some(function (x) { return x.id === self.s.rfPilih; })) {
@@ -30,7 +30,12 @@
         var aktif = rows.filter(function (x) { return x.status === 'diajukan' || x.status === 'diproses'; }).sort(function (a, b) { return a.batas_sla < b.batas_sla ? -1 : 1; });
         this.s.rfPilih = (aktif[0] || rows[0] || {}).id || null;
       }
-      this.s.rfRows = rows; this.set({});
+      this.s.rfRows = rows;
+      // transfer salah yang belum diajukan refund oleh pengguna (penanda untuk tim)
+      var ts = await sb.from('transfer_salah').select('id, pesanan_id, nominal, tagihan, dicatat, pesanan(kode), profil(nama)').order('dicatat', { ascending: false }).limit(500);
+      var dipakai = {}; rows.forEach(function (x) { if (x.transfer_salah_id && x.status !== 'ditolak') dipakai[x.transfer_salah_id] = 1; });
+      this.s.rfBelum = ((ts && ts.data) || []).filter(function (x) { return !dipakai[x.id]; });
+      this.set({});
       this.siapkanBuktiRefund();
       if (!this._rfCh) {
         this._rfCh = sb.channel('bo-refund').on('postgres_changes', { event: '*', schema: 'public', table: 'refund' }, function () { if (self.s.view === 'refund') self.muatRefund(); }).subscribe();
@@ -117,6 +122,11 @@
             + (sel ? 'background: #F0F9FF; box-shadow: inset 3px 0 0 #009FE3;' : (aktif && sla.lewat ? 'background: #FEF2F2;' : '')) };
       });
       v.rfKosong = tampil.length === 0;
+      var B = s.rfBelum || [];
+      v.rfBelumAda = B.length > 0;
+      v.rfBelumTeks = B.length + ' transfer tidak sesuai tagihan belum diajukan refund oleh penggunanya: '
+        + B.slice(0, 4).map(function (x) { return (x.pesanan ? x.pesanan.kode : '-') + ' (' + (x.profil ? x.profil.nama : '-') + ', ' + rp(x.nominal) + ')'; }).join(', ')
+        + (B.length > 4 ? ', dan lainnya' : '') + '. Pengguna sudah diberi tahu lewat email dan aplikasi.';
 
       // ------------------------------------------------ detail
       var d = this.cariRefund(s.rfPilih);
@@ -126,7 +136,9 @@
       v.rdKode = d.kode; v.rdNama = d.profil ? d.profil.nama : '-'; v.rdEmail = d.profil ? d.profil.email : ''; v.rdHp = d.profil && d.profil.hp ? d.profil.hp : '';
       v.rdPill = LBL[st] || st; v.rdPillSt = U.pillBase + (PST[st] || '');
       v.rdNominal = rp(d.nominal); v.rdAlasan = ALASAN[d.alasan] || d.alasan;
-      v.rdOrder = (P.kode || '-') + ' · tagihan ' + rp(P.nominal) + (d.alasan === 'nominal' && P.nominal_bukti ? ' · masuk ' + rp(P.nominal_bukti) : '');
+      var T = d.transfer_salah;
+      if (T) v.rdAlasan = T.nominal > T.tagihan ? 'Kelebihan bayar' : 'Kekurangan bayar';
+      v.rdOrder = (P.kode || '-') + ' · tagihan ' + rp(T ? T.tagihan : P.nominal) + (T ? ' · masuk ' + rp(T.nominal) : '');
       v.rdOrderStatus = P.status === 'direfund' ? 'Order sudah direfund' : '';
       v.rdJenis = d.tujuan_jenis === 'bank' ? 'Rekening bank' : 'E-wallet';
       v.rdTujuanNama = d.tujuan_nama; v.rdTujuanNomor = d.tujuan_nomor; v.rdPemilik = d.tujuan_pemilik;

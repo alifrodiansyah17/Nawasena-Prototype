@@ -73,7 +73,7 @@
   }
   // Urutan alur untuk menentukan arah animasi (layar lebih awal = gerak mundur)
   var URUTAN_LAYAR = ['muat', 'landing', 'masuk', 'daftar', 'masukKode', 'cekcv', 'unggah', 'susun', 'lampiran', 'previewcv',
-    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus'];
+    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus', 'faq'];
   var GERAK_HEMAT = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
 
   var JEDA_KODE_MS = 60 * 1000;
@@ -341,7 +341,7 @@
         cekcv: 'keluarKlik', unggah: 'kembaliDariUnggah', lampiran: 'kembaliLampiran', previewcv: 'ubahCVKlik',
         intro: 'kembaliIntro', target: 'kembaliKeSoal', hasil: 'kembaliDariHasil',
         paywall: 'keHasil', bayar: 'go_paywall', instruksi: 'keMetode', menunggu: 'keHasil', ditolak: 'keHasil',
-        refund: 'keluarRefund', refundStatus: 'keluarRefund'
+        refund: 'keluarRefund', refundStatus: 'keluarRefund', faq: 'keluarFaq'
       };
       if (!PETA[s.layar]) return false;
       v = this.vals();
@@ -439,6 +439,11 @@
       var url = await API.urlBerkas('refund', r.bukti_path);
       window.open(url, '_blank');
     },
+    bukaFaq: function () {
+      if (this.s.layar !== 'faq') this.s.faqDari = this.s.layar;
+      this.set({ layar: 'faq' });
+    },
+    keluarFaq: function () { this.set({ layar: this.s.faqDari || 'landing' }); },
     keluarRefund: function () {
       var p = this.s.pesanan;
       if (p && p.status === 'ok') { this.set({ layar: 'laporan' }); return; }

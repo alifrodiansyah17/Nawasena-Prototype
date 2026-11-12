@@ -118,7 +118,14 @@ Deno.serve(async (req) => {
       }
       await kirimEmail(ps.profil.email, "Bukti pembayaranmu perlu dikirim ulang", bungkusEmail(
         `<p>Halo ${esc(ps.profil.nama)},</p><p>Bukti pembayaran ${esc(ps.kode)} belum bisa kami konfirmasi: ${esc(a)}</p>` +
-        `<p>Kamu bisa kirim ulang buktinya dari halaman pembayaran.</p>` +
+        (/^Nominal tidak sesuai/i.test(a) && nominal
+          ? `<p>Nominal yang masuk <b>Rp${nominal.toLocaleString("id-ID")}</b>, sedangkan tagihannya <b>Rp${Number(ps.nominal).toLocaleString("id-ID")}</b>. ` +
+            `Karena transfer antar bank minimal Rp10.000, selisihnya tidak bisa ditambah atau dikembalikan sebagian. Jadi:</p>` +
+            `<ol><li>Ajukan refund dari aplikasi. Uang yang masuk dikembalikan <b>penuh</b>, biaya admin ditanggung Nawasena.</li>` +
+            `<li>Bayar ulang persis <b>Rp${Number(ps.nominal).toLocaleString("id-ID")}</b> lalu unggah buktinya dari halaman pembayaran.</li></ol>` +
+            `<p>Keduanya bisa kamu lakukan sekarang, tidak perlu saling menunggu.</p>`
+          : `<p>Kamu bisa kirim ulang buktinya dari halaman pembayaran.</p>`) +
+        `<p style="color:#64748B;font-size:13px">Pembayaran dan refund dicek manual setiap hari pukul 09.00–22.00 WIB, maksimal 1×24 jam. Yang masuk setelah 22.00 WIB diproses mulai 09.00 WIB.</p>` +
         (app ? `<p><a href="${app}" style="color:#0284C7;font-weight:bold">Buka Nawasena</a></p>` : "") + `<p>— Nawasena</p>`));
       return json({ ok: true });
     }

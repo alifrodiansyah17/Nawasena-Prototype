@@ -35,7 +35,10 @@ window.NAWASENA_CONFIG = {
   EMAIL_KONTAK: 'kotakpos@nawasena.info',     // kontak umum di bagian Tentang Nawasena
 
   // Lama pengecekan pembayaran yang dijanjikan ke pengguna
-  JANJI_CEK: '1×24 jam di hari kerja',
+  JANJI_CEK: 'maksimal 1×24 jam',
+  // Jam operasional verifikasi pembayaran & refund (WIB). Yang masuk di luar jam ini diproses mulai JAM_BUKA.
+  JAM_BUKA: 9,
+  JAM_TUTUP: 22,
 
   // Cara masuk:
   //   false = daftar dan login pakai kata sandi, tanpa email apa pun (matikan "Confirm email" di Supabase)

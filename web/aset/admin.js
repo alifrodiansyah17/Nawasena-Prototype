@@ -10,6 +10,7 @@
     tolak: 'color: #991B1B; background: #FEE2E2;', kedaluwarsa: 'color: #475569; background: #F1F5F9;', direfund: 'color: #6B21A8; background: #F3E8FF;' };
   var pillBase = 'justify-self: start; display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; border-radius: 999px; padding: 4px 10px; white-space: nowrap; ';
   var baruOn = 'font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #FFFFFF; background: #0284C7; border-radius: 999px; padding: 2px 7px; flex-shrink: 0;';
+  var perluOn = 'font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #6B21A8; background: #F3E8FF; border-radius: 999px; padding: 2px 7px; flex-shrink: 0; white-space: nowrap;';
   var SESI_MS = 24 * 3600 * 1000;
   // Menu backoffice (urutan tampil) → kunci izin di role
   var MENU = [
@@ -134,6 +135,12 @@
       var r = await sb.from('pesanan').select('*, profil(nama, email)').order('dibuat', { ascending: false }).limit(2000);
       if (r.error) { toast(r.error.message); return; }
       var rows = r.data || [], self = this;
+      // penanda "perlu refund": transfer salah (kelebihan/kekurangan bayar) per order + status refund-nya
+      var t = await Promise.all([sb.from('transfer_salah').select('id, pesanan_id, nominal, tagihan, dicatat').order('dicatat', { ascending: true }),
+        sb.from('refund').select('id, kode, status, transfer_salah_id').not('transfer_salah_id', 'is', null)]);
+      var rfTs = {}; ((t[1] && t[1].data) || []).forEach(function (x) { if (x.status !== 'ditolak' || !rfTs[x.transfer_salah_id]) rfTs[x.transfer_salah_id] = x; });
+      var ts = {}; ((t[0] && t[0].data) || []).forEach(function (x) { x.refund = rfTs[x.id] || null; (ts[x.pesanan_id] = ts[x.pesanan_id] || []).push(x); });
+      this.s.tsPesanan = ts;
       if (!this.s.pilih || !rows.some(function (x) { return x.id === self.s.pilih; })) {
         var m = rows.filter(function (x) { return x.status === 'menunggu'; });
         this.s.pilih = (m[m.length - 1] || rows[0] || {}).id || null;
@@ -148,10 +155,13 @@
     },
     siapkanBukti: async function () {
       var d = this.cari(this.s.pilih);
-      if (!d || !d.bukti_path || this.s.buktiUrl[d.id]) return;
+      // kunci cache = path bukti, supaya bukti yang diunggah ulang (bayar ulang) langsung tampil
+      if (!d || !d.bukti_path || this.s.buktiUrl[d.bukti_path]) return;
       var r = await sb.storage.from('bukti').createSignedUrl(d.bukti_path, 900);
-      if (!r.error) { this.s.buktiUrl[d.id] = r.data.signedUrl; this.set({}); }
+      if (!r.error) { this.s.buktiUrl[d.bukti_path] = r.data.signedUrl; this.set({}); }
     },
+    // transfer salah di order ini yang refund-nya belum selesai
+    perluRefund: function (id) { return ((this.s.tsPesanan || {})[id] || []).some(function (x) { return !x.refund || x.refund.status !== 'selesai'; }); },
     cari: function (id) { return this.s.rows.filter(function (x) { return x.id === id; })[0]; },
     // Receipt pembayaran: dipilih admin, dibaca jadi base64, dikirim bersama aksi "ok" (wajib) atau "kwitansi".
     pilihKwitansi: function () {
@@ -278,7 +288,8 @@
         return { tgl: tgl(w), jam: jam(w), nama: r.profil ? r.profil.nama : '-', email: r.profil ? r.profil.email : '', pesanan: r.kode,
           metodeK: r.metode === 'qris' ? 'QRIS' : 'Transfer', nominal: rp(r.nominal),
           pick: function () { self.set({ pilih: r.id, tolakBuka: false, alasan: -1 }); self.siapkanBukti(); self.siapkanKwitansi(); self.muatRiwayat(); },
-          baruSt: s.baru[r.id] ? baruOn : 'display: none;', nomSt: 'font-size: 13px; font-weight: 700; color: #1E293B;',
+          baruSt: s.baru[r.id] ? baruOn : 'display: none;',
+          refLbl: self.perluRefund(r.id) ? 'Perlu refund' : '', refSt: self.perluRefund(r.id) ? perluOn : 'display: none;', nomSt: 'font-size: 13px; font-weight: 700; color: #1E293B;',
           pill: LBL[r.status] || r.status, pillSt: pillBase + (PST[r.status] || ''),
           st: 'display: grid; grid-template-columns: 64px minmax(0,1fr) 128px 70px 84px 116px; gap: 10px; align-items: center; padding: 12px 18px; border-bottom: 1px solid #F1F5F9; cursor: pointer; '
             + (sel ? 'background: #F0F9FF; box-shadow: inset 3px 0 0 #009FE3;' : (s.baru[r.id] ? 'background: #F0FDF4;' : '')) };
@@ -297,7 +308,7 @@
       v.dWaktu = d.dikirim ? tglJam(d.dikirim) : 'Belum ada bukti';
       v.dDibuat = d.dibuat ? tglJam(d.dibuat) : '';
       v.dBatas = d.kedaluwarsa ? tglJam(d.kedaluwarsa) + (st === 'belum_bayar' ? ' (sisa ' + Math.max(0, Math.round((new Date(d.kedaluwarsa).getTime() - kini) / 60000)) + ' menit)' : '') : '–';
-      v.dBuktiUrl = s.buktiUrl[d.id] || '';
+      v.dBuktiUrl = (d.bukti_path && s.buktiUrl[d.bukti_path]) || '';
       v.dAdaBukti = !!d.bukti_path; v.dTanpaBukti = !d.bukti_path;
       v.dGambar = !!v.dBuktiUrl && !/\.pdf$/i.test(d.bukti_path || '');
       v.dBukanGambar = !!d.bukti_path && !v.dGambar;
@@ -305,7 +316,16 @@
       v.dPill = LBL[st] || st; v.dPillSt = pillBase + (PST[st] || '');
       v.dMenunggu = st === 'menunggu' && !!d.id && bisaUbah; v.dMenungguLihat = st === 'menunggu' && !!d.id && !bisaUbah;
       v.dOk = st === 'ok'; v.dTolak = st === 'tolak'; v.dDirefund = st === 'direfund';
-      v.dNominalBukti = d.nominal_bukti ? rp(d.nominal_bukti) : ''; v.dBelumBayar = st === 'belum_bayar' && !!d.id; v.dKedaluwarsa = st === 'kedaluwarsa';
+      v.dNominalBukti = d.nominal_bukti ? rp(d.nominal_bukti) : '';
+      var LR = { diajukan: 'diajukan pengguna, menunggu diproses', diproses: 'sedang diproses', selesai: 'selesai ditransfer', ditolak: 'ditolak, menunggu pengajuan ulang' };
+      v.dTs = ((s.tsPesanan || {})[d.id] || []).map(function (x) {
+        var sel = x.refund && x.refund.status === 'selesai';
+        return { teks: rp(x.nominal) + ' masuk (' + (x.nominal > x.tagihan ? 'kelebihan' : 'kekurangan') + ' bayar dari tagihan ' + rp(x.tagihan) + ')',
+          status: x.refund ? 'Refund ' + x.refund.kode + ' ' + (LR[x.refund.status] || x.refund.status) : 'Refund belum diajukan pengguna',
+          st: 'font-size: 12px; font-weight: 700; color: ' + (sel ? '#15803D' : '#6B21A8') + ';' };
+      });
+      v.dAdaTs = v.dTs.length > 0;
+      v.keMenuRefund = function () { self.keView('refund'); }; v.dBelumBayar = st === 'belum_bayar' && !!d.id; v.dKedaluwarsa = st === 'kedaluwarsa';
       v.dOleh = (s.admins[d.dicek_oleh] || 'admin') + (d.dicek ? ' · ' + tgl(d.dicek) + ', ' + jam(d.dicek) : '');
       v.dAlasan = d.alasan || '';
       // Batalkan hanya keputusan sendiri, paling lama 15 menit (server juga menolak di luar itu).

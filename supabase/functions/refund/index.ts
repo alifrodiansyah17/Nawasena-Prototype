@@ -11,6 +11,7 @@ import { punyaIzin } from "./_shared/izin.ts";
 
 const EKSTENSI: Record<string, string> = { "application/pdf": "pdf", "image/png": "png", "image/jpeg": "jpg" };
 const ALASAN: Record<string, string> = { nominal: "nominal transfer tidak sesuai tagihan", analisis: "analisis arah karir gagal disusun" };
+const JAM = `<p style="color:#64748B;font-size:13px">Refund dicek manual setiap hari pukul 09.00–22.00 WIB, maksimal 1×24 jam. Yang masuk setelah 22.00 WIB diproses mulai 09.00 WIB.</p>`;
 
 function rp(n: number): string { return "Rp" + Math.round(n || 0).toLocaleString("id-ID"); }
 function wib(iso: string): string {
@@ -55,7 +56,7 @@ Deno.serve(async (req) => {
       await kirimEmail(p.email, `Refund ${r.kode} sudah kami terima`, bungkusEmail(
         `<p>Halo ${esc(p.nama)},</p><p>Pengajuan refund <b>${esc(r.kode)}</b> sebesar <b>${rp(r.nominal)}</b> (${esc(ALASAN[r.alasan] || r.alasan)}) sudah kami terima.</p>` +
         `<p>Dana dikirim ke <b>${esc(r.tujuan_nama)} ${esc(samarkan(r.tujuan_nomor))}</b> a.n. ${esc(r.tujuan_pemilik)} paling lambat <b>${wib(r.batas_sla)}</b>. Biaya admin ditanggung Nawasena.</p>` +
-        (r.alasan === "nominal" ? `<p>Setelah dana kembali, silakan bayar ulang dengan nominal yang tertera di halaman pembayaran.</p>` : "") + tautan + `<p>— Nawasena</p>`));
+        (r.alasan === "nominal" ? `<p>Kalau belum, kamu bisa langsung bayar ulang sesuai tagihan dari halaman pembayaran. Tidak perlu menunggu refund ini selesai.</p>` : "") + JAM + tautan + `<p>— Nawasena</p>`));
       return json({ ok: true, refund: { id: r.id, kode: r.kode, status: r.status, batas_sla: r.batas_sla } });
     }
 
@@ -87,7 +88,7 @@ Deno.serve(async (req) => {
       const p = await profil(lama.user_id);
       const terkirim = await kirimEmail(p.email, `Refund ${r.kode} sudah ditransfer`, bungkusEmail(
         `<p>Halo ${esc(p.nama)},</p><p>Refund <b>${esc(r.kode)}</b> sebesar <b>${rp(r.nominal)}</b> sudah kami transfer ke <b>${esc(r.tujuan_nama)} ${esc(samarkan(r.tujuan_nomor))}</b> a.n. ${esc(r.tujuan_pemilik)}. Bukti transfer terlampir.</p>` +
-        (r.alasan === "nominal" ? `<p>Kamu bisa membayar ulang kapan saja dari halaman pembayaran. Pastikan nominalnya persis sampai 3 digit terakhir ya.</p>`
+        (r.alasan === "nominal" ? `<p>Kalau belum bayar ulang, kamu bisa melakukannya dari halaman pembayaran. Pastikan nominalnya persis sampai 3 digit terakhir ya.</p>`
           : `<p>Order ini sudah direfund, jadi akses laporan lengkapnya ditutup. Kalau mau mencoba lagi, kamu bisa membeli ulang dari aplikasi.</p>`) +
         tautan + `<p>Terima kasih atas kesabarannya. — Nawasena</p>`), [k]);
       return json({ ok: true, email: terkirim });
@@ -101,7 +102,7 @@ Deno.serve(async (req) => {
     const p = await profil(lama.user_id);
     await kirimEmail(p.email, `Refund ${r.kode} perlu diperbaiki`, bungkusEmail(
       `<p>Halo ${esc(p.nama)},</p><p>Refund <b>${esc(r.kode)}</b> belum bisa kami proses: <b>${esc(alasan)}</b>.</p>` +
-      `<p>Silakan perbaiki data rekening / e-wallet tujuan dan ajukan ulang dari aplikasi. Waktu proses 1×24 jam dihitung lagi sejak pengajuan baru.</p>` + tautan + `<p>— Nawasena</p>`));
+      `<p>Silakan perbaiki data rekening / e-wallet tujuan dan ajukan ulang dari aplikasi. Waktu proses 1×24 jam dihitung lagi sejak pengajuan baru.</p>` + JAM + tautan + `<p>— Nawasena</p>`));
     return json({ ok: true });
   } catch (e) {
     console.error(e);
