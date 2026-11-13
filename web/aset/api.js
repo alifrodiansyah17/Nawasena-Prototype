@@ -70,7 +70,7 @@
     });
     var data = {};
     try { data = await res.json(); } catch (e) { /* kosong */ }
-    if (!res.ok && res.status !== 202) throw new Error(data.galat || ('Server sedang sibuk (' + res.status + ')'));
+    if (!res.ok && res.status !== 202) { var er = new Error(data.galat || ('Server sedang sibuk (' + res.status + ')')); er.kode = data.kode || ''; throw er; }
     return data;
   }
 
@@ -129,6 +129,30 @@
       cek(await sb.auth.setSession({ access_token: d.access_token, refresh_token: d.refresh_token }));
       await API.sesi();
     },
+    // ---------- login baru: password + verifikasi dua langkah (edge function `login`)
+    async _pasangSesi(d) {
+      if (d && d.access_token) {
+        cek(await sb.auth.setSession({ access_token: d.access_token, refresh_token: d.refresh_token }));
+        await API.sesi();
+      }
+      return d;
+    },
+    async loginSandi(akun, sandi) { return API._pasangSesi(await fungsi('login', { aksi: 'sandi', peran: 'pengguna', akun: akun, sandi: sandi })); },
+    async loginVerifikasi(tantangan, kode) { return API._pasangSesi(await fungsi('login', { aksi: 'verifikasi', tantangan: tantangan, kode: kode })); },
+    async loginKirimUlang(tantangan) { return fungsi('login', { aksi: 'kirim_ulang', tantangan: tantangan }); },
+    async daftarKirim(email) { return fungsi('login', { aksi: 'daftar_kirim', email: email }); },
+    async daftarCek(tantangan, kode, sandi) {
+      var d = await API._pasangSesi(await fungsi('login', { aksi: 'daftar_cek', tantangan: tantangan, kode: kode, sandi: sandi }));
+      return { id: API._uid, email: (await sb.auth.getUser()).data.user.email, d: d };
+    },
+    async resetKirim(akun) { return fungsi('login', { aksi: 'reset_kirim', akun: akun }); },
+    async resetCek(tantangan, kode, sandi) { return API._pasangSesi(await fungsi('login', { aksi: 'reset_cek', tantangan: tantangan, kode: kode, sandi: sandi })); },
+    async statusKeamanan() { return cek(await sb.rpc('status_keamanan')); },
+    async totpMulai() { return fungsi('login', { aksi: 'totp_mulai' }); },
+    async totpAktifkan(tantangan, kode) { return fungsi('login', { aksi: 'totp_aktifkan', tantangan: tantangan, kode: kode }); },
+    async totpMatikan(kode) { return fungsi('login', { aksi: 'totp_matikan', kode: kode }); },
+    async gantiSandi(lama, baru) { return fungsi('login', { aksi: 'ganti_sandi', sandi_lama: lama, sandi_baru: baru }); },
+
     async kirimKodeMasuk(akun) { return fungsi('masuk', { aksi: 'kirim', akun: akun }); },
     async cekKodeMasuk(akun, kode) {
       var d = await fungsi('masuk', { aksi: 'cek', akun: akun, kode: kode });

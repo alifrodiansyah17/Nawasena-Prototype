@@ -55,23 +55,55 @@
       var s = (await sb.auth.getSession()).data.session;
       if (s) await this.setelahMasuk(s.user); else this.set({ layar: 'masuk' });
     },
+    // Login: email + kata sandi, lalu verifikasi dua langkah (kode email atau Authenticator) lewat edge function `login`.
+    // Sesi baru diberikan server setelah kedua langkah lolos.
+    panggilLogin: async function (body) {
+      var res = await fetch(C.SUPABASE_URL + '/functions/v1/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + C.SUPABASE_ANON_KEY },
+        body: JSON.stringify(Object.assign({ peran: 'admin' }, body))
+      });
+      var j = await res.json().catch(function () { return {}; });
+      if (!res.ok) { var e = new Error(j.galat || ('Gagal (' + res.status + ')')); e.kode = j.kode || ''; throw e; }
+      return j;
+    },
     masuk: async function () {
       this.set({ galatMasuk: '' });
-      // Email selalu huruf kecil tanpa spasi; kalau gagal dan sandinya berspasi di ujung, coba sekali tanpa spasi itu.
       var email = String(this.s.emailAdmin || '').trim().toLowerCase(), sandi = String(this.s.sandiAdmin || '');
       if (!email || !sandi) { this.set({ galatMasuk: 'Isi email dan kata sandinya dulu.' }); return; }
-      var r = await sb.auth.signInWithPassword({ email: email, password: sandi });
-      if (r.error && sandi.trim() !== sandi) r = await sb.auth.signInWithPassword({ email: email, password: sandi.trim() });
-      if (r.error) {
-        var m = r.error.message || '';
-        this.set({ galatMasuk: /rate|too many/i.test(m) ? 'Terlalu sering mencoba. Tunggu beberapa menit lalu coba lagi.'
-          : /confirm/i.test(m) ? 'Email akun ini belum dikonfirmasi. Hubungi Super admin.'
-          : /banned/i.test(m) ? 'Akun ini sudah tidak punya akses backoffice.'
-          : 'Email atau kata sandi salah. Tekan ikon mata untuk mengecek kata sandi yang terketik (huruf besar/kecil berpengaruh).' });
-        return;
-      }
-      this.s.sandiAdmin = '';
-      await this.setelahMasuk(r.data.user, true);
+      try {
+        var r = await this.panggilLogin({ aksi: 'sandi', akun: email, sandi: sandi });
+        this.s.sandiAdmin = '';
+        this.set({ dua: { tantangan: r.tantangan, tahap: r.tahap, tujuan: r.tujuan || '', kode: '', qr: '', rahasia: '', dikirim: r.tahap === 'email' ? Date.now() : 0 } });
+      } catch (e) { this.set({ galatMasuk: e.message }); }
+    },
+    duaPilih: async function (metode) {
+      var d = this.s.dua;
+      try {
+        var r = await this.panggilLogin({ aksi: 'pilih', tantangan: d.tantangan, metode: metode });
+        Object.assign(d, { tahap: r.tahap, tujuan: r.tujuan || d.tujuan, qr: r.qr || '', rahasia: r.rahasia || '', dikirim: r.tahap === 'email_baru' ? Date.now() : 0 });
+        this.set({ galatMasuk: '' });
+      } catch (e) { this.duaGalat(e); }
+    },
+    duaKirimUlang: async function () {
+      var d = this.s.dua;
+      if (d.dikirim && Date.now() - d.dikirim < 60000) { toast('Tunggu ' + Math.ceil((60000 - (Date.now() - d.dikirim)) / 1000) + ' detik lagi ya'); return; }
+      try { await this.panggilLogin({ aksi: 'kirim_ulang', tantangan: d.tantangan }); d.dikirim = Date.now(); toast('Kode baru sudah dikirim', true); this.set({}); }
+      catch (e) { this.duaGalat(e); }
+    },
+    duaVerifikasi: async function () {
+      var d = this.s.dua, k = String(d.kode || '').replace(/\D/g, '');
+      if (k.length !== 6) { this.set({ galatMasuk: 'Kodenya 6 angka.' }); return; }
+      try {
+        var r = await this.panggilLogin({ aksi: 'verifikasi', tantangan: d.tantangan, kode: k });
+        var x = await sb.auth.setSession({ access_token: r.access_token, refresh_token: r.refresh_token });
+        if (x.error) throw x.error;
+        this.s.dua = null; this.s.galatMasuk = '';
+        await this.setelahMasuk(x.data.user, true);
+      } catch (e) { this.duaGalat(e); }
+    },
+    duaGalat: function (e) {
+      if (e.kode === 'ULANG') { this.set({ dua: null, galatMasuk: e.message }); return; }
+      this.set({ galatMasuk: e.message });
     },
     keluar: async function (pesan, aksi) {
       try { await sb.rpc('catat_aktivitas', { p_menu: 'sistem', p_aksi: aksi || 'logout', p_ringkas: pesan || null }); } catch (e) { /* abaikan */ }
@@ -84,6 +116,7 @@
       var a = pr.data;
       if (pr.error || !a) { await sb.auth.signOut(); this.set({ layar: 'masuk', galatMasuk: 'Akun ini belum terdaftar sebagai admin backoffice.' }); return; }
       if (!a.aktif) { await sb.auth.signOut(); this.set({ layar: 'masuk', galatMasuk: 'Akun ini sedang dinonaktifkan. Hubungi Super admin.' }); return; }
+      if (a.kedaluwarsa) { await sb.auth.signOut(); this.set({ layar: 'masuk', galatMasuk: 'Masa berlaku akun ini sudah habis. Minta Super admin memperpanjang.' }); return; }
       if (!a.sesi_ok) {
         await sb.auth.signOut();
         this.set({ layar: 'masuk', galatMasuk: 'Sesimu sudah lebih dari 24 jam. Masuk lagi ya.' }); return;
@@ -95,6 +128,7 @@
       var pertama = MENU.filter(function (m) { return (izin[m.id] || []).indexOf('r') >= 0; })[0];
       this.s.admins = map; this.s.uid = user.id; this.s.izin = izin; this.s.sesiMulai = a.sesi_mulai;
       if (!pertama) { await sb.auth.signOut(); this.set({ layar: 'masuk', galatMasuk: 'Role akun ini belum punya akses ke menu mana pun.' }); return; }
+      this.s.berlakuSampai = a.berlaku_sampai || null;
       this.set({ layar: 'bo', adminNama: a.nama || a.email, peranNama: a.peran || '', view: pertama.id });
       this.jagaSesi();
       await this.keView(pertama.id);
@@ -225,12 +259,34 @@
       v.mataBuka = !s.lihatSandi; v.mataTutup = !!s.lihatSandi;
       v.setSandiAdmin = function (e) { self.s.sandiAdmin = e.target.value; };
       v.masukAdminKlik = function () { sibuk(true); self.masuk().finally(function () { sibuk(false); }); };
+      var D = s.dua;
+      v.duaTutup = !D; v.duaBuka = !!D;
+      if (D) {
+        v.duaPilihTahap = D.tahap === 'pilih';
+        v.duaKodeTahap = D.tahap !== 'pilih';
+        v.duaEmail = D.tahap === 'email' || D.tahap === 'email_baru';
+        v.duaTotpBaru = D.tahap === 'totp_baru';
+        v.duaJudul = D.tahap === 'pilih' ? 'Atur verifikasi dua langkah' : D.tahap === 'totp_baru' ? 'Hubungkan aplikasi Authenticator' : 'Verifikasi dua langkah';
+        v.duaTeks = D.tahap === 'pilih' ? 'Wajib untuk semua akun backoffice. Pilih dari mana kode verifikasimu datang setiap login.'
+          : D.tahap === 'totp_baru' ? 'Pindai kode QR dengan Google Authenticator, Microsoft Authenticator, atau aplikasi sejenis, lalu masukkan 6 angka yang tampil.'
+          : D.tahap === 'totp' ? 'Masukkan 6 angka dari aplikasi Authenticator untuk Nawasena.'
+          : 'Kode 6 angka sudah dikirim ke ' + D.tujuan + '. Berlaku 10 menit.';
+        v.duaQr = D.qr ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(D.qr) : '';
+        v.duaRahasia = String(D.rahasia || '').replace(/(.{4})/g, '$1 ').trim();
+        v.duaKode = D.kode; v.setDuaKode = function (e) { self.s.dua.kode = e.target.value; };
+        v.duaPilihTotp = function () { sibuk(true); self.duaPilih('totp').finally(function () { sibuk(false); }); };
+        v.duaPilihEmail = function () { sibuk(true); self.duaPilih('email').finally(function () { sibuk(false); }); };
+        v.duaVerifikasiKlik = function () { sibuk(true); self.duaVerifikasi().finally(function () { sibuk(false); }); };
+        v.duaKirimUlangKlik = function () { self.duaKirimUlang(); };
+        v.duaBatalKlik = function () { self.set({ dua: null, galatMasuk: '' }); };
+      }
       if (s.layar !== 'bo') return v;
 
       v.adminNama = s.adminNama; v.peranNama = s.peranNama; v.adminInisial = String(s.adminNama || 'A').charAt(0).toUpperCase();
       v.keluarKlik = function () { self.keluar(); };
       var sisa = s.sesiMulai ? SESI_MS - (Date.now() - new Date(s.sesiMulai).getTime()) : SESI_MS;
-      v.sesiSisa = 'Sesi berakhir ' + (sisa > 3600000 ? 'dalam ' + Math.floor(sisa / 3600000) + ' jam' : 'dalam ' + Math.max(1, Math.ceil(sisa / 60000)) + ' menit');
+      v.sesiSisa = 'Sesi berakhir ' + (sisa > 3600000 ? 'dalam ' + Math.floor(sisa / 3600000) + ' jam' : 'dalam ' + Math.max(1, Math.ceil(sisa / 60000)) + ' menit')
+        + (s.berlakuSampai ? ' · akun berlaku s.d. ' + tgl(s.berlakuSampai) + ' ' + wib(s.berlakuSampai).getFullYear() : '');
       v.hargaTeks = rp(C.HARGA);
       var nMenunggu = s.rows.filter(function (r) { return r.status === 'menunggu'; }).length;
       // menu samping: hanya yang boleh dibuka role ini

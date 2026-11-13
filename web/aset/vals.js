@@ -4,7 +4,7 @@
   var App = window.App, C = window.NAWASENA_CONFIG, D = window.DATA, U = window.NawasenaUtil;
   var ITEMS = D.ITEMS, SKALA4 = ['Bukan aku', 'Aku banget'];
   var LAYAR = ['muat', 'landing', 'masuk', 'masukKode', 'daftar', 'cekcv', 'unggah', 'lampiran', 'susun', 'previewcv',
-    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus', 'faq'];
+    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus', 'faq', 'lupaSandi', 'keamanan'];
 
   function lengkapContoh(s) { var b = s.lengkap && s.lengkap.bagian; return !!(b && b.rencana && b.rencana.contoh); }
 
@@ -97,7 +97,7 @@
 
     var ak = String(s.akun || '').trim();
     v.akun = s.akun; v.setAkun = this.isi('akun');
-    var sandiMode = !C.VERIFIKASI_EMAIL;
+    var sandiMode = true;   // login selalu pakai kata sandi + verifikasi dua langkah
     v.modeSandi = sandiMode;
     v.sandi = s.sandi || ''; v.setSandi = function (e) { s.sandi = e.target.value; };
     v.sandiTipe = s.lihatSandi ? 'text' : 'password';
@@ -105,18 +105,26 @@
     v.lihatSandiLabel = s.lihatSandi ? 'Sembunyikan kata sandi' : 'Lihat kata sandi';
     v.mataBuka = !s.lihatSandi; v.mataTutup = !!s.lihatSandi;
     v.catatanEmail = sandiMode ? 'Kami pakai buat menghubungimu soal laporan dan pembayaran' : 'Ini juga yang kamu pakai buat masuk lagi nanti';
-    v.labelKirim = sandiMode ? 'Masuk' : 'Kirim kodenya ke email';
-    v.catatanMasuk = sandiMode
-      ? 'Lupa kata sandi? Chat kami lewat tombol Bantuan di atas, nanti kami bantu atur ulang.'
-      : 'Tidak usah ingat kata sandi. Kami kirim kode 6 angka ke email yang kamu daftarkan, itu saja yang dipakai buat masuk.';
-    v.kirimKodeMasukKlik = this.aman(sandiMode ? this.masukSandi : this.kirimKodeMasuk, sandiMode ? 'Masuk…' : 'Mengirim kode…');
-    var daftarMode = s.kodeMode === 'daftar';
-    v.kodeAtas = daftarMode ? 'Langkah 1 dari 4' : 'Login';
+    v.labelKirim = 'Lanjut';
+    v.catatanMasuk = 'Supaya akunmu aman, setelah kata sandi kami minta kode verifikasi dari email atau aplikasi Authenticator.';
+    v.kirimKodeMasukKlik = this.aman(this.masukSandi, 'Mengecek…');
+    v.lupaSandiKlik = function () { self.set({ layar: 'lupaSandi', sandiBaru: '', sandiUlang: '' }); };
+    // lupa / belum punya kata sandi
+    v.sandiBaru = s.sandiBaru || ''; v.setSandiBaru = function (e) { s.sandiBaru = e.target.value; };
+    v.sandiUlang = s.sandiUlang || ''; v.setSandiUlang = function (e) { s.sandiUlang = e.target.value; };
+    v.kirimKodeResetKlik = this.aman(this.kirimKodeReset, 'Mengirim kode…');
+    var daftarMode = s.kodeMode === 'daftar', totpMode = s.kodeMode === 'totp', resetMode = s.kodeMode === 'reset';
+    v.kodeAtas = daftarMode ? 'Langkah 1 dari 4' : resetMode ? 'Atur kata sandi' : 'Verifikasi dua langkah';
     v.kontakTampil = s.kontakTampil || ak;
-    v.kodeGantiTanya = daftarMode ? 'Salah tulis email?' : 'Salah email atau nomor?';
-    v.kodeGantiLabel = daftarMode ? 'Ganti email' : 'Ganti email atau nomor HP';
-    v.kodeKembali = function () { self.set({ layar: daftarMode ? 'daftar' : 'masuk' }); };
-    v.kodeTombol = daftarMode ? 'Verifikasi dan lanjut' : 'Login dan lihat punyaku';
+    v.kodeEmail = !totpMode;
+    v.kodeJudul = totpMode ? 'Masukkan kode Authenticator' : 'Masukkan kodenya ya';
+    v.kodeSubA = totpMode ? 'Buka aplikasi Authenticator di HP-mu, lalu masukkan 6 angka untuk ' : 'Kode 6 angkanya barusan kami kirim ke ';
+    v.kodeSubB = totpMode ? 'Nawasena' : v.kontakTampil;
+    v.kodeSubC = totpMode ? '. Kodenya berganti tiap 30 detik.' : '';
+    v.kodeGantiTanya = daftarMode ? 'Salah tulis email?' : totpMode ? 'Kehilangan akses ke aplikasi Authenticator? Chat tim Nawasena lewat tombol Bantuan. Atau' : 'Salah email atau nomor?';
+    v.kodeGantiLabel = daftarMode ? 'Ganti email' : totpMode ? 'kembali ke login' : 'Ganti email atau nomor HP';
+    v.kodeKembali = function () { self.set({ layar: daftarMode ? 'daftar' : resetMode ? 'lupaSandi' : 'masuk' }); };
+    v.kodeTombol = daftarMode ? 'Verifikasi dan lanjut' : resetMode ? 'Simpan kata sandi baru' : 'Masuk';
     v.kirimUlangKlik = this.aman(this.kirimUlangKode, 'Mengirim ulang…');
     var sisaKode = this.sisaTungguKode();
     v.kirimUlangLabel = sisaKode > 0 ? 'Kirim ulang dalam ' + sisaKode + ' detik' : 'Kirim ulang kodenya';
@@ -458,6 +466,25 @@
       : 'Tim sedang beroperasi sampai ' + jj(tutup) + ' WIB. Yang masuk setelah itu diproses mulai ' + jj(buka) + ' WIB keesokan paginya.';
     v.jamOpsKotakSt = 'border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.55; ' + (luarJam ? 'background: #FEF3C7; color: #92400E;' : 'background: #F0F9FF; color: #075985;');
     v.keFaq = function () { self.bukaFaq(); };
+    v.keKeamanan = this.aman(function () { return self.bukaKeamanan(); });
+    var AM = s.aman || {};
+    v.amMuat = !AM.metode; v.amTotp = AM.metode === 'totp'; v.amEmail = AM.metode === 'email';
+    v.amMetodeTeks = AM.metode === 'totp' ? 'Aplikasi Authenticator' : 'Kode ke email';
+    v.amSiapkan = !!AM.totp && AM.metode === 'email'; v.amBelumSiapkan = !AM.totp && AM.metode === 'email';
+    v.amQr = AM.totp ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(AM.totp.qr) : '';
+    v.amRahasia = AM.totp ? String(AM.totp.rahasia).replace(/(.{4})/g, '$1 ').trim() : '';
+    v.amKodeTotp = AM.kodeTotp || ''; v.setAmKodeTotp = function (e) { AM.kodeTotp = e.target.value; };
+    v.mulaiTotpKlik = this.aman(function () { return self.mulaiTotp(); }, 'Menyiapkan…');
+    v.batalTotpKlik = function () { AM.totp = null; self.render(); };
+    v.aktifkanTotpKlik = this.aman(function () { return self.aktifkanTotp(); }, 'Mengecek kode…');
+    v.matikanTotpKlik = this.aman(function () { return self.matikanTotp(); }, 'Mengecek kode…');
+    v.amBukaSandi = !!AM.bukaSandi; v.amTutupSandi = !AM.bukaSandi;
+    v.togelSandiKlik = function () { AM.bukaSandi = !AM.bukaSandi; self.render(); };
+    v.amLama = AM.lama || ''; v.setAmLama = function (e) { AM.lama = e.target.value; };
+    v.amBaru = AM.baru || ''; v.setAmBaru = function (e) { AM.baru = e.target.value; };
+    v.amUlang = AM.ulang || ''; v.setAmUlang = function (e) { AM.ulang = e.target.value; };
+    v.gantiSandiKlik = this.aman(function () { return self.gantiSandiKu(); }, 'Menyimpan…');
+    v.keluarKeamanan = function () { self.keluarKeamanan(); };
     v.keluarFaq = function () { self.keluarFaq(); };
     var FAQ = [
       ['Berapa lama pembayaranku dicek?', 'Maksimal 1×24 jam kalender sejak bukti bayar diunggah. Tim mengecek setiap hari ' + v.jamOps + ', termasuk akhir pekan dan libur nasional. Bukti yang masuk setelah ' + jj(tutup) + ' WIB dicek mulai ' + jj(buka) + ' WIB keesokan paginya.'],

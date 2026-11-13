@@ -110,6 +110,31 @@
       return db.pesanan;
     },
     async kirimMasukan() { await tunda(300); },
+    // ---- login baru (demo): kode email & Authenticator selalu 123456, kata sandi demo "rahasia123"
+    async _kodeDemo(k) { await tunda(300); if (k !== '123456') { var e = new Error('Kodenya salah. Di mode demo kodenya 123456.'); throw e; } },
+    async loginSandi(akun, sandi) {
+      await tunda(400);
+      if (!db.profil) throw new Error('Email atau nomor ini belum terdaftar. Coba daftar dulu ya.');
+      if (sandi !== (db.sandi || 'rahasia123')) throw new Error('Kata sandinya belum cocok. Di mode demo: rahasia123');
+      return db.metode2fa === 'totp' ? { tantangan: 't-demo', tahap: 'totp' } : { tantangan: 't-demo', tahap: 'email', tujuan: 'de***@email.com' };
+    },
+    async loginVerifikasi(t, kode) { await API._kodeDemo(kode); API._uid = 'demo-user'; return { access_token: 'demo' }; },
+    async loginKirimUlang() { await tunda(300); return { ok: true }; },
+    async daftarKirim(email) { await tunda(400); calon = email; return { tantangan: 't-daftar', tahap: 'kode', tujuan: email }; },
+    async daftarCek(t, kode, sandi) { await API._kodeDemo(kode); db.sandi = sandi; API._uid = 'demo-user'; return { id: 'demo-user', email: calon }; },
+    async resetKirim(akun) { await tunda(400); if (!db.profil) throw new Error('Email atau nomor ini belum terdaftar. Coba daftar dulu ya.'); return { tantangan: 't-reset', tahap: 'kode', tujuan: 'de***@email.com' }; },
+    async resetCek(t, kode, sandi) { await API._kodeDemo(kode); db.sandi = sandi; if (db.metode2fa === 'totp') return { tantangan: 't-demo', tahap: 'totp' }; API._uid = 'demo-user'; return { access_token: 'demo' }; },
+    async statusKeamanan() { await tunda(150); return { metode: db.metode2fa || 'email', punya_sandi: true }; },
+    async totpMulai() {
+      await tunda(300);
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" width="200" height="200"><rect width="29" height="29" fill="#fff"/>'
+        + [[1,1],[21,1],[1,21]].map(function (q) { return '<rect x="' + q[0] + '" y="' + q[1] + '" width="7" height="7" fill="none" stroke="#0F172A" stroke-width="1"/><rect x="' + (q[0] + 2) + '" y="' + (q[1] + 2) + '" width="3" height="3" fill="#0F172A"/>'; }).join('')
+        + '<text x="14.5" y="16" font-size="3" text-anchor="middle" fill="#0F172A">QR demo</text></svg>';
+      return { tantangan: 't-totp', qr: svg, rahasia: 'JBSWY3DPEHPK3PXP4NWSDEMO' };
+    },
+    async totpAktifkan(t, kode) { await API._kodeDemo(kode); db.metode2fa = 'totp'; return { ok: true, metode: 'totp' }; },
+    async totpMatikan(kode) { await API._kodeDemo(kode); db.metode2fa = 'email'; return { ok: true, metode: 'email' }; },
+    async gantiSandi(lama, baru) { await tunda(300); if (lama !== (db.sandi || 'rahasia123')) throw new Error('Kata sandi lama belum cocok.'); db.sandi = baru; return { ok: true }; },
     // ---- refund (meniru syarat_refund / ajukan_refund di server)
     async infoRefund() { await tunda(100); return { syarat: syaratDemo(), refund: db.refund ? Object.assign({}, db.refund) : null }; },
     async ajukanRefund(d) {

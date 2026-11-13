@@ -56,8 +56,9 @@
     <img src="../aset/logo-nawasena.png" alt="Nawasena" style="height: 28px; width: auto; align-self: flex-start;">
     <div>
       <h1 style="font-size: 22px; font-weight: 800;">Backoffice Nawasena</h1>
-      <p style="font-size: 13.5px; color: #64748B; margin-top: 6px;">Khusus tim Nawasena. Masuk pakai email dan kata sandi akun backoffice-mu. Sesi otomatis berakhir 24 jam setelah login.</p>
+      <p style="font-size: 13.5px; color: #64748B; margin-top: 6px;">Khusus tim Nawasena. Masuk pakai email, kata sandi, lalu kode verifikasi dua langkah. Sesi otomatis berakhir 24 jam setelah login.</p>
     </div>
+    <sc-if value="{{duaTutup}}">
     <div style="display: flex; flex-direction: column; gap: 6px;">
       <div style="font-size: 13px; font-weight: 600; color: #334155;">Email</div>
       <input type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" value="{{emailAdmin}}" onChange="{{setEmailAdmin}}" style="height: 48px; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 14px; font-size: 14px;">
@@ -71,6 +72,24 @@
     </div>
     <sc-if value="{{galatMasuk}}"><p style="font-size: 13px; color: #B91C1C;">{{galatMasuk}}</p></sc-if>
     <div class="tap" onClick="{{masukAdminKlik}}" style="height: 50px; border-radius: 9999px; background: #FACC15; color: #0F172A; display: flex; align-items: center; justify-content: center; font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px;">Masuk</div>
+    </sc-if>
+    <sc-if value="{{duaBuka}}">
+      <div><div style="font-size: 16px; font-weight: 800; color: #0F172A;">{{duaJudul}}</div><p style="font-size: 13px; color: #64748B; margin-top: 4px; line-height: 1.5;">{{duaTeks}}</p></div>
+      <sc-if value="{{duaPilihTahap}}">
+        <div class="tap" onClick="{{duaPilihTotp}}" style="border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; border-color: #7DD3FC; background: #F0F9FF;"><b style="font-size: 14px;">Aplikasi Authenticator <span style="font-size: 10.5px; font-weight: 800; color: #15803D; background: #DCFCE7; border-radius: 999px; padding: 2px 7px; margin-left: 4px;">DISARANKAN</span></b><span style="font-size: 12.5px; color: #475569;">Google/Microsoft Authenticator. Tetap aman walau email diretas.</span></div>
+        <div class="tap" onClick="{{duaPilihEmail}}" style="border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 3px;"><b style="font-size: 14px;">Kode ke email</b><span style="font-size: 12.5px; color: #475569;">Kode 6 angka dikirim ke email akun setiap login.</span></div>
+      </sc-if>
+      <sc-if value="{{duaTotpBaru}}">
+        <img src="{{duaQr}}" alt="Kode QR Authenticator" style="width: 180px; height: 180px; align-self: center; border: 1px solid #E2E8F0; border-radius: 12px; padding: 6px;">
+        <p style="font-size: 12px; color: #64748B; line-height: 1.5;">Tidak bisa memindai? Kunci manual: <b style="font-family: monospace; color: #0F172A;">{{duaRahasia}}</b></p>
+      </sc-if>
+      <sc-if value="{{duaKodeTahap}}">
+        <input inputmode="numeric" maxlength="6" autocomplete="one-time-code" value="{{duaKode}}" onChange="{{setDuaKode}}" data-enter="1" placeholder="000000" style="height: 48px; width: 100%; box-sizing: border-box; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0 14px; font-size: 20px; letter-spacing: 0.3em; text-align: center;">
+      </sc-if>
+      <sc-if value="{{galatMasuk}}"><p style="font-size: 13px; color: #B91C1C;">{{galatMasuk}}</p></sc-if>
+      <sc-if value="{{duaKodeTahap}}"><div class="tap" onClick="{{duaVerifikasiKlik}}" style="height: 50px; border-radius: 9999px; background: #FACC15; color: #0F172A; display: flex; align-items: center; justify-content: center; font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px; cursor: pointer;">Verifikasi dan masuk</div></sc-if>
+      <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span class="tap" onClick="{{duaBatalKlik}}" style="color: #64748B; font-weight: 700; cursor: pointer;">Kembali</span><sc-if value="{{duaEmail}}"><span class="tap" onClick="{{duaKirimUlangKlik}}" style="color: #0284C7; font-weight: 700; cursor: pointer;">Kirim ulang kode</span></sc-if></div>
+    </sc-if>
   </div>
 </div>
 
@@ -730,6 +749,7 @@
                 <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Kata sandi awal
                   <div style="display: flex; gap: 8px;"><input value="{{afSandi}}" onChange="{{setAfSandi}}" autocomplete="new-password" style="flex-grow: 1; min-width: 0; height: 40px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 12px; font-size: 13.5px; font-family: monospace;"><div class="tap" onClick="{{acakSandiKlik}}" style="height: 40px; padding: 0 12px; border-radius: 10px; border: 1.5px solid #0284C7; color: #0284C7; font-size: 13px; font-weight: 800; display: flex; align-items: center; cursor: pointer;">Acak</div></div>
                   <span style="font-weight: 500; color: #64748B;">Minimal 8 karakter, ada huruf dan angka. Kirim ke orangnya lewat jalur aman.</span></label>
+                <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700; color: #334155;">Masa berlaku (hari)<input inputmode="numeric" value="{{afBerlaku}}" onChange="{{setAfBerlaku}}" placeholder="Kosongkan = tanpa batas" style="{{akKotakSt}}"><span style="font-weight: 500; color: #64748B;">Isi angka bebas, mis. 1, 7, 30. Dihitung mulai hari ini. Lewat dari itu akun tidak bisa login sampai diperpanjang.</span></label>
                 <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 12.5px; font-weight: 700; color: #334155;">Role</div><div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{afPeran}}" as="p"><div class="tap" onClick="{{p.pick}}" style="{{p.st}}">{{p.label}}</div></sc-for></div></div>
                 <div style="display: flex; gap: 10px; margin-top: 4px;"><div class="tap" onClick="{{simpanAkunKlik}}" style="flex: 1; height: 44px; border-radius: 9999px; background: #0284C7; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer;">Buat akun</div><div class="tap" onClick="{{batalAkunKlik}}" style="height: 44px; padding: 0 14px; display: flex; align-items: center; font-size: 14px; font-weight: 700; color: #64748B; cursor: pointer;">Batal</div></div>
               </sc-if>
@@ -739,6 +759,8 @@
                   <div style="display: flex; justify-content: space-between;"><span style="color: #64748B;">Role</span><b style="color: #0284C7;">{{adPeran}}</b></div>
                   <div style="display: flex; justify-content: space-between;"><span style="color: #64748B;">Login terakhir</span><b>{{adMasuk}}</b></div>
                   <div style="display: flex; justify-content: space-between;"><span style="color: #64748B;">Dibuat</span><b>{{adDibuat}}</b></div>
+                  <div style="display: flex; justify-content: space-between; gap: 10px;"><span style="color: #64748B;">Masa berlaku</span><b style="text-align: right; {{adBerlakuSt}}">{{adBerlaku}}</b></div>
+                  <div style="display: flex; justify-content: space-between; gap: 10px;"><span style="color: #64748B;">Verifikasi dua langkah</span><b style="text-align: right;">{{ad2fa}}</b></div>
                 </div>
                 <sc-if value="{{adEditTutup}}"><div style="display: flex; flex-wrap: wrap; gap: 14px; border-top: 1px solid #F1F5F9; padding-top: 12px;"><div class="tap" onClick="{{ubahAkunKlik}}" style="font-size: 13px; font-weight: 800; color: #0284C7; cursor: pointer;">Ubah data &amp; role</div><sc-if value="{{adAktif}}"><div class="tap" onClick="{{nonaktifAkunKlik}}" style="font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer;">Nonaktifkan</div></sc-if><sc-if value="{{adNonaktif}}"><div class="tap" onClick="{{aktifAkunKlik}}" style="font-size: 13px; font-weight: 700; color: #0284C7; cursor: pointer;">Aktifkan lagi</div></sc-if><sc-if value="{{adBolehHapus}}"><div class="tap" onClick="{{hapusAkunKlik}}" style="font-size: 13px; font-weight: 700; color: #DC2626; cursor: pointer;">Hapus akun</div></sc-if></div></sc-if>
                 <sc-if value="{{adEditBuka}}">
@@ -748,6 +770,16 @@
                     <div style="display: flex; flex-direction: column; gap: 6px;"><div style="font-size: 12.5px; font-weight: 700; color: #334155;">Role</div><div style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{aePeran}}" as="p"><div class="tap" onClick="{{p.pick}}" style="{{p.st}}">{{p.label}}</div></sc-for></div></div>
                     <div style="display: flex; gap: 10px;"><div class="tap" onClick="{{simpanEditAkunKlik}}" style="height: 38px; padding: 0 16px; border-radius: 10px; background: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; cursor: pointer;">Simpan</div><div class="tap" onClick="{{batalEditAkunKlik}}" style="height: 38px; padding: 0 10px; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer;">Batal</div></div>
                   </div>
+                </sc-if>
+                <sc-if value="{{adBerlakuUbah}}">
+                  <div style="border-top: 1px solid #F1F5F9; padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #64748B;">Masa berlaku akun</div>
+                    <div style="display: flex; gap: 8px;"><input inputmode="numeric" value="{{akunBerlaku}}" onChange="{{setAkunBerlaku}}" placeholder="Jumlah hari, kosong = tanpa batas" style="flex-grow: 1; min-width: 0; height: 38px; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0 10px; font-size: 13px;"><div class="tap" onClick="{{simpanBerlakuKlik}}" style="height: 38px; padding: 0 14px; border-radius: 10px; background: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; cursor: pointer;">Simpan</div></div>
+                    <div style="font-size: 11.5px; color: #64748B;">Dihitung mulai hari ini. Dipakai juga untuk memperpanjang akun yang sudah habis.</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{adBisaReset2fa}}">
+                  <div style="border-top: 1px solid #F1F5F9; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;"><div style="font-size: 12px; color: #64748B;">HP Authenticator hilang atau ganti email?</div><div class="tap" onClick="{{reset2faKlik}}" style="font-size: 13px; font-weight: 800; color: #B91C1C; cursor: pointer; white-space: nowrap;">Reset 2FA</div></div>
                 </sc-if>
                 <sc-if value="{{adBolehUbah}}">
                   <div style="border-top: 1px solid #F1F5F9; padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
@@ -834,12 +866,12 @@
 <script src="../aset/vendor/supabase-2.117.2.js?v=d3846343"></script>
 <script src="../aset/vendor/morphdom-2.7.4.min.js?v=0b337db4"></script>
 <script src="../aset/runtime.js?v=03102134"></script>
-<script src="../aset/admin.js?v=679d69a2"></script>
+<script src="../aset/admin.js?v=b730b0fc"></script>
 <script src="../aset/admin-refund.js?v=ed122cc5"></script>
 <script src="../aset/admin-voucher.js?v=872ce981"></script>
 <script src="../aset/admin-keuangan.js?v=3717c90c"></script>
 <script src="../aset/admin-amb.js?v=8a0d982c"></script>
-<script src="../aset/admin-akun.js?v=c7a6ccfd"></script>
+<script src="../aset/admin-akun.js?v=98715519"></script>
 <script src="../aset/admin-audit.js?v=e46ddd94"></script>
 </body>
 </html>

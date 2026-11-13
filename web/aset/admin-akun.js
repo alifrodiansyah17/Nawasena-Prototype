@@ -33,11 +33,13 @@
   Object.assign(BO, {
     muatAkun: async function () {
       var r = await Promise.all([
-        sb.from('admin').select('user_id, nama, email, hp, peran_id, aktif, dibuat, masuk_terakhir').order('dibuat', { ascending: true }),
-        sb.from('peran').select('*').order('dibuat', { ascending: true })
+        sb.from('admin').select('user_id, nama, email, hp, peran_id, aktif, dibuat, masuk_terakhir, berlaku_sampai').order('dibuat', { ascending: true }),
+        sb.from('peran').select('*').order('dibuat', { ascending: true }),
+        sb.rpc('status_2fa_admin')
       ]);
       if (r[0].error) { toast(r[0].error.message); return; }
       var s = this.s; s.akunList = r[0].data || []; s.peranList = r[1].data || [];
+      s.akun2fa = {}; ((r[2] && r[2].data) || []).forEach(function (x) { s.akun2fa[x.user_id] = x.metode; });
       if (!s.akunPilih || !s.akunList.some(function (a) { return a.user_id === s.akunPilih; })) s.akunPilih = s.akunList[0] ? s.akunList[0].user_id : null;
       if (!s.peranPilih || !s.peranList.some(function (p) { return p.id === s.peranPilih; })) s.peranPilih = s.peranList[0] ? s.peranList[0].id : null;
       this.set({});
@@ -48,9 +50,10 @@
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(f.email || '').trim())) { toast('Email belum benar'); return; }
       if (!f.peran_id) { toast('Pilih role akunnya'); return; }
       if (String(f.sandi || '').length < 8 || !/[A-Za-z]/.test(f.sandi) || !/\d/.test(f.sandi)) { toast('Kata sandi minimal 8 karakter, ada huruf dan angka'); return; }
+      if (String(f.berlaku || '').trim() && !/^\d+$/.test(String(f.berlaku).trim())) { toast('Masa berlaku diisi angka hari, atau kosongkan untuk tanpa batas'); return; }
       sibuk(true);
       try {
-        var j = await panggil({ aksi: 'buat', nama: f.nama, email: f.email, hp: f.hp, sandi: f.sandi, peran_id: f.peran_id });
+        var j = await panggil({ aksi: 'buat', nama: f.nama, email: f.email, hp: f.hp, sandi: f.sandi, peran_id: f.peran_id, berlaku_hari: f.berlaku });
         toast('Akun ' + f.nama + ' dibuat. Kirim email dan kata sandinya ke orangnya lewat jalur aman.', true);
         this.s.akunForm = null; this.s.akunPilih = j.user_id; await this.muatAkun();
       } catch (e) { toast(e.message); } finally { sibuk(false); }
@@ -65,6 +68,11 @@
       if (sandi.length < 8 || !/[A-Za-z]/.test(sandi) || !/\d/.test(sandi)) { toast('Kata sandi baru minimal 8 karakter, ada huruf dan angka'); return; }
       sibuk(true);
       try { await panggil({ aksi: 'sandi', user_id: uid, sandi: sandi }); toast('Kata sandi diganti. Akun itu otomatis keluar dari semua perangkat.', true); this.s.akunSandi = ''; this.set({}); }
+      catch (e) { toast(e.message); } finally { sibuk(false); }
+    },
+    reset2fa: async function (uid) {
+      sibuk(true);
+      try { await panggil({ aksi: 'reset_2fa', user_id: uid }); toast('Verifikasi dua langkah direset. Akun itu memilih ulang metodenya saat login berikutnya.', true); await this.muatAkun(); }
       catch (e) { toast(e.message); } finally { sibuk(false); }
     },
     hapusAkun: async function (uid) {
@@ -109,21 +117,30 @@
       var chip = function (on) { return 'padding: 7px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; cursor: pointer; border: 1.5px solid ' + (on ? '#0284C7; background: #E0F2FE; color: #0F172A;' : '#E2E8F0; background: #FFFFFF; color: #64748B;'); };
 
       // ---------------- akun
+      var berlakuTeks = function (a) {
+        if (!a.berlaku_sampai) return 'Tanpa batas';
+        var ms = new Date(a.berlaku_sampai).getTime() - Date.now();
+        if (ms <= 0) return 'Habis ' + U.tgl(a.berlaku_sampai);
+        return 's.d. ' + U.tgl(a.berlaku_sampai) + ' ' + U.wib(a.berlaku_sampai).getFullYear() + ' (sisa ' + Math.ceil(ms / 86400000) + ' hari)';
+      };
+      var habis = function (a) { return !!a.berlaku_sampai && new Date(a.berlaku_sampai).getTime() <= Date.now(); };
       v.akRows = s.akunList.map(function (a) {
         var sel = s.akunPilih === a.user_id;
         return { nama: a.nama || '-', email: a.email || '', hp: a.hp ? '+' + a.hp : '–', peran: namaPeran[a.peran_id] || '–',
           masuk: a.masuk_terakhir ? U.tglJam(a.masuk_terakhir) : 'Belum pernah', saya: a.user_id === s.uid,
-          pill: a.aktif ? 'Aktif' : 'Nonaktif', pillSt: U.pillBase + (a.aktif ? 'color: #15803D; background: #DCFCE7;' : 'color: #475569; background: #F1F5F9;'),
-          pick: function () { self.set({ akunPilih: a.user_id, akunForm: null, akunEdit: null, akunSandi: '' }); },
+          pill: !a.aktif ? 'Nonaktif' : habis(a) ? 'Kedaluwarsa' : 'Aktif',
+          pillSt: U.pillBase + (!a.aktif ? 'color: #475569; background: #F1F5F9;' : habis(a) ? 'color: #991B1B; background: #FEE2E2;' : 'color: #15803D; background: #DCFCE7;'),
+          pick: function () { self.set({ akunPilih: a.user_id, akunForm: null, akunEdit: null, akunSandi: '', akunBerlaku: '' }); },
           st: 'display: grid; grid-template-columns: minmax(0,1.3fr) minmax(0,1.4fr) 120px 120px 150px 90px; gap: 10px; align-items: center; padding: 12px 18px; border-bottom: 1px solid #F1F5F9; cursor: pointer; ' + (sel ? 'background: #F0F9FF; box-shadow: inset 3px 0 0 #009FE3;' : '') };
       });
-      v.tambahAkunKlik = function () { self.set({ akunForm: { nama: '', email: '', hp: '', sandi: sandiAcak(), peran_id: '' }, akunEdit: null }); };
+      v.tambahAkunKlik = function () { self.set({ akunForm: { nama: '', email: '', hp: '', sandi: sandiAcak(), peran_id: '', berlaku: '' }, akunEdit: null }); };
       var F = s.akunForm;
       v.akFormBuka = !!F; v.akDetail = !F && !!s.akunPilih;
       if (F) {
         var isiF = function (k) { return function (e) { self.s.akunForm[k] = e.target.value; }; };
         v.afNama = F.nama; v.setAfNama = isiF('nama'); v.afEmail = F.email; v.setAfEmail = isiF('email');
         v.afHp = F.hp; v.setAfHp = isiF('hp'); v.afSandi = F.sandi; v.setAfSandi = isiF('sandi');
+        v.afBerlaku = F.berlaku; v.setAfBerlaku = isiF('berlaku');
         v.acakSandiKlik = function () { self.s.akunForm.sandi = sandiAcak(); self.set({}); };
         v.afPeran = s.peranList.map(function (p) { return { label: p.nama, st: chip(F.peran_id === p.id), pick: function () { self.s.akunForm.peran_id = p.id; self.set({}); } }; });
         v.simpanAkunKlik = function () { self.simpanAkunBaru(); };
@@ -136,7 +153,22 @@
         v.adPeran = namaPeran[a.peran_id] || '–'; v.adSaya = saya;
         v.adMasuk = a.masuk_terakhir ? U.tglJam(a.masuk_terakhir) : 'Belum pernah login';
         v.adDibuat = a.dibuat ? U.tglJam(a.dibuat) : '';
-        v.adPill = a.aktif ? 'Aktif' : 'Nonaktif'; v.adPillSt = U.pillBase + (a.aktif ? 'color: #15803D; background: #DCFCE7;' : 'color: #475569; background: #F1F5F9;');
+        v.adPill = !a.aktif ? 'Nonaktif' : habis(a) ? 'Kedaluwarsa' : 'Aktif';
+        v.adPillSt = U.pillBase + (!a.aktif ? 'color: #475569; background: #F1F5F9;' : habis(a) ? 'color: #991B1B; background: #FEE2E2;' : 'color: #15803D; background: #DCFCE7;');
+        v.adBerlaku = berlakuTeks(a); v.adBerlakuSt = habis(a) ? 'color: #B91C1C;' : '';
+        var m2 = (s.akun2fa || {})[a.user_id];
+        v.ad2fa = m2 === 'totp' ? 'Authenticator' : m2 === 'email' ? 'Kode email' : 'Belum diatur (diminta saat login)';
+        v.adBisaReset2fa = bu && !saya && !!m2;
+        v.reset2faKlik = function () { if (window.confirm('Reset verifikasi dua langkah ' + (a.nama || a.email) + '? Akunnya keluar dan memilih ulang metode saat login berikutnya.')) self.reset2fa(a.user_id); };
+        v.adBerlakuUbah = bu && !saya;
+        v.akunBerlaku = s.akunBerlaku || ''; v.setAkunBerlaku = function (e) { self.s.akunBerlaku = e.target.value; };
+        v.simpanBerlakuKlik = function () {
+          var n = String(s.akunBerlaku || '').trim();
+          if (n && !/^\d+$/.test(n)) { toast('Isi angka hari, atau kosongkan untuk tanpa batas'); return; }
+          if (!window.confirm(n ? 'Set masa berlaku ' + (a.nama || a.email) + ' menjadi ' + n + ' hari mulai hari ini?' : 'Jadikan akun ' + (a.nama || a.email) + ' tanpa batas masa berlaku?')) return;
+          self.ubahAkun(a.user_id, { berlaku_hari: n || null }, n ? 'Masa berlaku diset ' + n + ' hari' : 'Akun tanpa batas masa berlaku');
+          self.s.akunBerlaku = '';
+        };
         v.adBolehUbah = bu; v.adBolehHapus = bd && !saya;
         v.adEditBuka = !!E && bu; v.adEditTutup = !E && bu;
         v.ubahAkunKlik = function () { self.set({ akunEdit: { nama: a.nama || '', hp: a.hp || '', peran_id: a.peran_id } }); };

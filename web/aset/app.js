@@ -46,6 +46,10 @@
   }
   function levelDari(tgl) { var u = umur(tgl); return u <= 25 ? 'entry' : (u <= 30 ? 'mid' : 'senior'); }
   function emailValid(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e || '').trim()); }
+  function cekSandiBaru(x) {
+    if (x.length < 8) throw new Error('Kata sandi minimal 8 karakter');
+    if (!/[A-Za-z]/.test(x) || !/\d/.test(x)) throw new Error('Kata sandi harus ada huruf dan angka');
+  }
   function hpDigit(h) { return String(h || '').replace(/\D/g, ''); }
   function fmtHp(h) {
     var d = hpDigit(h);
@@ -73,7 +77,7 @@
   }
   // Urutan alur untuk menentukan arah animasi (layar lebih awal = gerak mundur)
   var URUTAN_LAYAR = ['muat', 'landing', 'masuk', 'daftar', 'masukKode', 'cekcv', 'unggah', 'susun', 'lampiran', 'previewcv',
-    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus', 'faq'];
+    'intro', 'soal', 'target', 'proses', 'hasil', 'paywall', 'bayar', 'instruksi', 'menunggu', 'ditolak', 'berhasil', 'laporan', 'refund', 'refundStatus', 'faq', 'lupaSandi', 'keamanan'];
   var GERAK_HEMAT = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
 
   var JEDA_KODE_MS = 60 * 1000;
@@ -341,7 +345,7 @@
         cekcv: 'keluarKlik', unggah: 'kembaliDariUnggah', lampiran: 'kembaliLampiran', previewcv: 'ubahCVKlik',
         intro: 'kembaliIntro', target: 'kembaliKeSoal', hasil: 'kembaliDariHasil',
         paywall: 'keHasil', bayar: 'go_paywall', instruksi: 'keMetode', menunggu: 'keHasil', ditolak: 'keHasil',
-        refund: 'keluarRefund', refundStatus: 'keluarRefund', faq: 'keluarFaq'
+        refund: 'keluarRefund', refundStatus: 'keluarRefund', faq: 'keluarFaq', lupaSandi: 'masuk', keamanan: 'keluarKeamanan'
       };
       if (!PETA[s.layar]) return false;
       v = this.vals();
@@ -492,6 +496,7 @@
       if (hp.length < 10 || hp.length > 15) throw new Error('Nomor WhatsApp-nya belum benar');
       if (!emailValid(email)) throw new Error('Alamat email-nya belum benar');
       if (!s.setuju) { this.set({ tandaSetuju: true }); throw new Error('Centang dulu persetujuan pengolahan data pribadinya ya'); }
+      if (!(s.user && API._uid)) cekSandiBaru(String(s.sandi || ''));
       var k = await API.cekKontak(email, hp);
       if (k.hp_terpakai && !(s.profil)) throw new Error('Nomor WhatsApp ini sudah dipakai akun lain. Kalau itu kamu, pakai Login.');
       if (s.user && API._uid) {
@@ -509,9 +514,9 @@
         await this.simpanProfilDanLanjut();
         return;
       }
-      await API.kirimKodeDaftar(email);
-      this.s.kodeDikirim = Date.now();
-      this.set({ layar: 'masukKode', kodeMode: 'daftar', kontakTampil: email, otp: ['', '', '', '', '', ''], email: email });
+      var r = await API.daftarKirim(email);
+      this.s.tantangan = r.tantangan; this.s.kodeDikirim = Date.now();
+      this.set({ layar: 'masukKode', kodeMode: 'daftar', kontakTampil: r.tujuan || email, otp: ['', '', '', '', '', ''], email: email });
     },
     simpanProfilDanLanjut: async function () {
       var s = this.s;
@@ -551,15 +556,78 @@
       this.s.kodeDikirim = Date.now();
       this.set({ layar: 'masukKode', kodeMode: 'masuk', kontakTampil: r.tujuan || a, otp: ['', '', '', '', '', ''] });
     },
+    // Login: kata sandi dulu, lalu kode kedua (email atau Authenticator). Sesi baru diberikan server setelah keduanya lolos.
     masukSandi: async function () {
       var a = String(this.s.akun || '').trim(), sandi = String(this.s.sandi || '');
       if (!a) throw new Error('Isi email atau nomor HP dulu ya');
       if (!sandi) throw new Error('Isi kata sandinya dulu ya');
-      await API.masukSandi(a, sandi);
+      var r;
+      try { r = await API.loginSandi(a, sandi); }
+      catch (e) {
+        if (e.kode === 'BELUM_ADA_SANDI') { this.set({ layar: 'lupaSandi', sandiBaru: '', sandiUlang: '' }); }
+        throw e;
+      }
       this.s.sandi = '';
+      this.lanjutLangkahKedua(r);
+    },
+    lanjutLangkahKedua: function (r) {
+      if (r && r.access_token) { return this.selesaiMasuk(); }
+      this.s.tantangan = r.tantangan; this.s.kodeDikirim = r.tahap === 'totp' ? 0 : Date.now();
+      this.set({ layar: 'masukKode', kodeMode: r.tahap === 'totp' ? 'totp' : 'masuk', kontakTampil: r.tujuan || '', otp: ['', '', '', '', '', ''] });
+      if (r.tahap !== 'totp') this.jalankanHitungKode();
+    },
+    selesaiMasuk: async function () {
+      this.s.sandi = ''; this.s.sandiBaru = ''; this.s.sandiUlang = ''; this.s.tantangan = null;
       this.s.user = await API.sesi();
       await this.muatData();
       this.arahkan();
+    },
+    // Lupa / belum punya kata sandi: kode ke email + kata sandi baru
+    kirimKodeReset: async function () {
+      var a = String(this.s.akun || '').trim();
+      if (!a) throw new Error('Isi email atau nomor HP dulu ya');
+      cekSandiBaru(String(this.s.sandiBaru || ''));
+      if (this.s.sandiBaru !== this.s.sandiUlang) throw new Error('Ulangi kata sandi barunya sama persis ya');
+      var r = await API.resetKirim(a);
+      this.s.tantangan = r.tantangan; this.s.kodeDikirim = Date.now();
+      this.set({ layar: 'masukKode', kodeMode: 'reset', kontakTampil: r.tujuan || a, otp: ['', '', '', '', '', ''] });
+      this.jalankanHitungKode();
+    },
+    // ------------------------------------------------------------ keamanan akun
+    bukaKeamanan: async function () {
+      if (this.s.layar !== 'keamanan') this.s.keamananDari = this.s.layar;
+      this.s.aman = { metode: '', totp: null, kodeTotp: '', lama: '', baru: '', ulang: '', bukaSandi: false };
+      this.set({ layar: 'keamanan' });
+      var st = await API.statusKeamanan();
+      this.s.aman.metode = st.metode; this.render();
+    },
+    keluarKeamanan: function () { this.set({ layar: this.s.keamananDari || 'hasil' }); },
+    mulaiTotp: async function () {
+      var r = await API.totpMulai();
+      this.s.aman.totp = r; this.s.aman.kodeTotp = ''; this.render();
+    },
+    aktifkanTotp: async function () {
+      var a = this.s.aman, k = String(a.kodeTotp || '').replace(/\D/g, '');
+      if (k.length !== 6) throw new Error('Masukkan 6 angka dari aplikasi Authenticator');
+      await API.totpAktifkan(a.totp.tantangan, k);
+      a.metode = 'totp'; a.totp = null; a.kodeTotp = ''; this.render();
+      toast('Authenticator aktif. Mulai login berikutnya, masukkan kode dari aplikasinya.', true);
+    },
+    matikanTotp: async function () {
+      var a = this.s.aman, k = String(a.kodeTotp || '').replace(/\D/g, '');
+      if (k.length !== 6) throw new Error('Masukkan kode dari aplikasi Authenticator untuk konfirmasi');
+      await API.totpMatikan(k);
+      a.metode = 'email'; a.kodeTotp = ''; this.render();
+      toast('Verifikasi kembali memakai kode email.', true);
+    },
+    gantiSandiKu: async function () {
+      var a = this.s.aman;
+      if (!a.lama) throw new Error('Isi kata sandi lamamu dulu');
+      cekSandiBaru(String(a.baru || ''));
+      if (a.baru !== a.ulang) throw new Error('Ulangi kata sandi barunya sama persis ya');
+      await API.gantiSandi(a.lama, a.baru);
+      a.lama = a.baru = a.ulang = ''; a.bukaSandi = false; this.render();
+      toast('Kata sandi diganti. Perangkat lain perlu login ulang.', true);
     },
     // Supabase hanya mengizinkan 1 email kode per 60 detik per alamat, jadi tombol kirim ulang
     // dikunci dengan hitung mundur. Setiap kode baru membuat kode lama tidak berlaku.
@@ -567,8 +635,8 @@
     kirimUlangKode: async function () {
       var sisa = this.sisaTungguKode();
       if (sisa > 0) { toast('Tunggu ' + sisa + ' detik lagi ya, baru bisa minta kode baru.'); return; }
-      if (this.s.kodeMode === 'daftar') await API.kirimKodeDaftar(this.s.email);
-      else await API.kirimKodeMasuk(this.s.akun);
+      if (this.s.kodeMode === 'totp') return;
+      await API.loginKirimUlang(this.s.tantangan);
       this.s.kodeDikirim = Date.now();
       this.set({ otp: ['', '', '', '', '', ''] });
       this.jalankanHitungKode();
@@ -585,16 +653,34 @@
     cekKode: async function () {
       var kode = this.s.otp.join('');
       if (kode.length < 6) throw new Error('Kodenya 6 angka');
-      if (this.s.kodeMode === 'daftar') {
-        var u = await API.cekKodeDaftar(this.s.email, kode);
-        this.s.user = { id: u.id, email: u.email };
-        await this.simpanProfilDanLanjut();
-      } else {
-        await API.cekKodeMasuk(this.s.akun, kode);
-        this.s.user = await API.sesi();
-        await this.muatData();
-        this.arahkan();
-      }
+      var self = this;
+      var ulang = function (e) {
+        // tantangan kedaluwarsa / terlalu banyak salah: kembali ke langkah awal
+        if (e && e.kode === 'ULANG') self.set({ layar: self.s.kodeMode === 'daftar' ? 'daftar' : (self.s.kodeMode === 'reset' ? 'lupaSandi' : 'masuk'), otp: ['', '', '', '', '', ''] });
+        throw e;
+      };
+      try {
+        if (this.s.kodeMode === 'daftar') {
+          var u = await API.daftarCek(this.s.tantangan, kode, String(this.s.sandi || ''));
+          this.s.sandi = ''; this.s.tantangan = null;
+          this.s.user = { id: u.id, email: u.email };
+          await this.simpanProfilDanLanjut();
+        } else if (this.s.kodeMode === 'reset') {
+          var r = await API.resetCek(this.s.tantangan, kode, String(this.s.sandiBaru || ''));
+          this.s.sandiBaru = this.s.sandiUlang = '';
+          if (r && r.tahap === 'totp') {
+            this.s.tantangan = r.tantangan;
+            this.set({ kodeMode: 'totp', otp: ['', '', '', '', '', ''] });
+            toast('Kata sandi baru tersimpan. Sekarang masukkan kode dari aplikasi Authenticator.', true);
+            return;
+          }
+          toast('Kata sandi baru tersimpan.', true);
+          await this.selesaiMasuk();
+        } else {
+          await API.loginVerifikasi(this.s.tantangan, kode);
+          await this.selesaiMasuk();
+        }
+      } catch (e) { ulang(e); }
     },
     isiOtp: function () {
       var self = this;

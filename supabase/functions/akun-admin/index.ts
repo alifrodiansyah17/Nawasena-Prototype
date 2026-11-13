@@ -3,13 +3,24 @@
 //   { aksi: "ubah",  user_id, nama?, hp?, peran_id?, aktif? }  → izin akun:u  (nonaktif = semua sesinya diputus)
 //   { aksi: "sandi", user_id, sandi }                          → izin akun:u  (reset kata sandi + putus sesi)
 //   { aksi: "hapus", user_id }                                 → izin akun:d  (hapus akses backoffice + blokir login)
+//   { aksi: "reset_2fa", user_id }                             → izin akun:u  (hapus metode 2FA; login berikutnya pilih ulang)
+// "buat" dan "ubah" menerima berlaku_hari: angka hari mulai hari ini, atau null/"" = tanpa batas masa berlaku.
 // Aturan: tidak bisa menonaktifkan/menurunkan/menghapus akun sendiri, dan minimal satu Super admin aktif tetap ada.
 // Semua aksi tercatat di audit_log.
 import { adminDb, CORS, json, penggunaDari } from "./_shared/umum.ts";
 import { punyaIzin } from "./_shared/izin.ts";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const PERLU: Record<string, "c" | "u" | "d"> = { buat: "c", ubah: "u", sandi: "u", hapus: "d" };
+const PERLU: Record<string, "c" | "u" | "d"> = { buat: "c", ubah: "u", sandi: "u", hapus: "d", reset_2fa: "u" };
+
+/** berlaku_hari → tanggal berakhir (ISO) atau null = tanpa batas. undefined = tidak diubah. */
+function berlakuDari(v: unknown): string | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null || String(v).trim() === "") return null;
+  const n = Number(String(v).trim());
+  if (!Number.isInteger(n) || n < 1 || n > 3650) throw new Error("Masa berlaku diisi angka hari 1–3650, atau kosongkan untuk tanpa batas");
+  return new Date(Date.now() + n * 86400_000).toISOString();
+}
 
 function cekSandi(s: string) {
   if (s.length < 8) throw new Error("Kata sandi minimal 8 karakter");
@@ -55,12 +66,13 @@ Deno.serve(async (req) => {
       if (!(peranSemua || []).some((p) => p.id === peran)) return json({ galat: "Pilih role akunnya" }, 400);
       cekSandi(sandi);
       const hp = bersihHp(body.hp);
+      const berlaku = berlakuDari(body.berlaku_hari) ?? null;
       const { data, error } = await db.auth.admin.createUser({ email, password: sandi, email_confirm: true, user_metadata: { nama, backoffice: true } });
       if (error || !data?.user) {
         const m = String(error?.message || "");
         return json({ galat: /already|registered|exists/i.test(m) ? "Email ini sudah dipakai akun lain (termasuk akun pengguna aplikasi)" : "Akun gagal dibuat: " + m }, 409);
       }
-      const baris = { user_id: data.user.id, nama, email, hp, peran_id: peran, aktif: true };
+      const baris = { user_id: data.user.id, nama, email, hp, peran_id: peran, aktif: true, berlaku_sampai: berlaku };
       const { error: e2 } = await db.from("admin").insert(baris);
       if (e2) { await db.auth.admin.deleteUser(data.user.id); throw new Error("Akun gagal disimpan: " + e2.message); }
       await audit("create", data.user.id, `${nama} <${email}> · ${namaPeran(peran)}`, null, { ...baris, peran: namaPeran(peran) });
@@ -81,6 +93,11 @@ Deno.serve(async (req) => {
         ubah.peran_id = body.peran_id;
       }
       if (body.aktif !== undefined) ubah.aktif = !!body.aktif;
+      const berlaku = berlakuDari(body.berlaku_hari);
+      if (berlaku !== undefined) {
+        if (diriSendiri && berlaku !== null) return json({ galat: "Kamu tidak bisa membatasi masa berlaku akunmu sendiri" }, 400);
+        ubah.berlaku_sampai = berlaku;
+      }
       const turunSuper = lama.peran_id === idSuper && ((ubah.peran_id && ubah.peran_id !== idSuper) || ubah.aktif === false);
       if (diriSendiri && (ubah.aktif === false || turunSuper)) return json({ galat: "Kamu tidak bisa menonaktifkan atau menurunkan role akunmu sendiri" }, 400);
       if (turunSuper && (await superLain(target)) === 0) return json({ galat: "Minimal harus ada satu Super admin yang aktif" }, 400);
@@ -88,7 +105,8 @@ Deno.serve(async (req) => {
       if (error) throw new Error(error.message);
       if (ubah.aktif === false || (ubah.peran_id && ubah.peran_id !== lama.peran_id)) await db.rpc("putus_sesi", { p_user: target });
       const ket = [ubah.peran_id && ubah.peran_id !== lama.peran_id ? `role ${namaPeran(lama.peran_id)} → ${namaPeran(ubah.peran_id as string)}` : "",
-        ubah.aktif === false ? "dinonaktifkan" : ubah.aktif === true && !lama.aktif ? "diaktifkan" : ""].filter(Boolean).join(", ");
+        ubah.aktif === false ? "dinonaktifkan" : ubah.aktif === true && !lama.aktif ? "diaktifkan" : "",
+        berlaku !== undefined ? (berlaku ? "berlaku sampai " + berlaku.slice(0, 10) : "tanpa batas masa berlaku") : ""].filter(Boolean).join(", ");
       await audit("update", target, `${lama.nama || lama.email}${ket ? " · " + ket : ""}`, lama, { ...lama, ...ubah });
       return json({ ok: true });
     }
@@ -100,6 +118,15 @@ Deno.serve(async (req) => {
       if (error) throw new Error("Kata sandi gagal diganti: " + error.message);
       if (!diriSendiri) await db.rpc("putus_sesi", { p_user: target });
       await audit("update", target, `${lama.nama || lama.email} · reset kata sandi`);
+      return json({ ok: true });
+    }
+
+    if (aksi === "reset_2fa") {
+      if (diriSendiri) return json({ galat: "Reset 2FA akunmu sendiri harus dilakukan Super admin lain" }, 400);
+      await db.from("metode_2fa").delete().eq("user_id", target);
+      await db.from("sesi_2fa").delete().eq("user_id", target);
+      await db.rpc("putus_sesi", { p_user: target });
+      await audit("update", target, `${lama.nama || lama.email} · reset verifikasi dua langkah`);
       return json({ ok: true });
     }
 
