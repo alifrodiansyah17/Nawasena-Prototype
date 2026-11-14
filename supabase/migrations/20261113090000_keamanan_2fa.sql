@@ -168,3 +168,6 @@ language sql stable security definer set search_path = public as $$
 $$;
 revoke all on function public.status_2fa_admin() from public, anon;
 grant execute on function public.status_2fa_admin() to authenticated;
+
+-- bersihkan_login hanya untuk pg_cron, bukan untuk dipanggil dari browser
+revoke all on function public.bersihkan_login() from public, anon, authenticated;
